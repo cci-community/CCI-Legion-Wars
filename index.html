@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CCI Volunteer Legion · Poll</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --border: rgba(255,255,255,0.08);
+      --accent: #e63c2f;
+      --accent2: #ff8c42;
+      --text: #f0eee8;
+      --muted: #888;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    /* subtle grid bg */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(230,60,47,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(230,60,47,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* top label */
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow-badge {
+      background: var(--accent);
+      color: #fff;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 13px;
+      letter-spacing: 1.5px;
+      padding: 3px 10px 2px;
+      border-radius: 3px;
+    }
+
+    .eyebrow-org {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    /* heading */
+    .heading {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(32px, 7vw, 52px);
+      line-height: 1;
+      letter-spacing: 1px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .heading span {
+      color: var(--accent);
+    }
+
+    .subheading {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+
+    /* poll card */
+    .poll-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .poll-card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .poll-icon {
+      width: 34px;
+      height: 34px;
+      background: rgba(230,60,47,0.15);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .poll-icon svg {
+      width: 16px;
+      height: 16px;
+      fill: var(--accent);
+    }
+
+    .poll-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* poll embed area */
+    .poll-embed {
+      padding: 28px 24px 24px;
+      min-height: 280px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    /* ── replace the placeholder div below with your actual embed ── */
+    .poll-placeholder {
+      width: 100%;
+      border: 1.5px dashed rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 40px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: #555;
+      font-size: 13px;
+      text-align: center;
+      min-height: 200px;
+    }
+
+    .poll-placeholder svg {
+      width: 32px;
+      height: 32px;
+      opacity: 0.3;
+    }
+
+    /* footer */
+    .footer {
+      margin-top: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 15px;
+      letter-spacing: 1px;
+      color: #444;
+    }
+
+    .footer-logo span { color: var(--accent); }
+
+    .footer-note {
+      font-size: 11px;
+      color: #383838;
+      text-align: right;
+    }
+
+    /* glow accent line */
+    .accent-line {
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), transparent);
+      border-radius: 2px;
+      margin-bottom: 36px;
+      width: 80px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="eyebrow">
+      <span class="eyebrow-badge">VL POLL</span>
+      <span class="eyebrow-org">Comic Con India · Volunteer Legion</span>
+    </div>
+
+    <h1 class="heading">ONLINE <span>TOURNAMENT</span></h1>
+    <div class="accent-line"></div>
+
+    <p class="subheading">
+      The Volunteer Legion wants to hear from you.<br>
+      Vote below to help us pick the game for our next online tournament.
+    </p>
+
+    <div class="poll-card">
+      <div class="poll-card-header">
+        <div class="poll-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 12h4v9H3v-9zm7-9h4v18h-4V3zm7 5h4v13h-4V8z"/>
+          </svg>
+        </div>
+        <span class="poll-label">Cast your vote</span>
+      </div>
+
+      <div class="poll-embed">
+        <!-- ✏️  REPLACE everything inside this div with your poll embed code -->
+        <div class="poll-placeholder">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 11H7.83l4.88-4.88c.39-.39.39-1.03 0-1.42-.39-.39-1.02-.39-1.41 0l-6.59 6.59c-.39.39-.39 1.02 0 1.41l6.59 6.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L7.83 13H19c.55 0 1-.45 1-1s-.45-1-1-1z"/>
+          </svg>
+          Paste your poll embed code here
+        </div>
+        <!-- ✏️  END REPLACE -->
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-logo"><span>CCI</span> VOLUNTEER LEGION</div>
+      <div class="footer-note">Brawlhalla · 2XKO</div>
+    </div>
+  </div>
+</body>
+</html>
