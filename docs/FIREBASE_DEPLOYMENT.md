@@ -9,6 +9,7 @@ Last updated: 2026-07-03
 - `.firebaserc` binds the default project to `cci-legion-wars`.
 - Live bracket updates do not require redeploys as long as staff update the same published public workbook tabs without changing gids or schema.
 - Live deployment runs from GitHub Actions on pushes to `main` after validation passes.
+- The first verified live deploy ran from GitHub Actions run `28628489855` for commit `9b0765f`.
 
 Firebase project:
 
@@ -91,6 +92,24 @@ Recommended workflow:
 4. Verify `https://cci-legion-wars.web.app`.
 
 For manual preview checks, run the workflow with `target=preview`.
+
+## Production Health Check
+
+After each deploy, verify:
+
+```powershell
+Invoke-WebRequest https://cci-legion-wars.web.app/
+Invoke-WebRequest https://cci-legion-wars.web.app/app.js
+Invoke-WebRequest https://cci-legion-wars.web.app/data/sheet-config.js
+Invoke-WebRequest https://cci-legion-wars.web.app/CCI-Volunteer-Legion-Logo-01.png
+```
+
+Expected:
+
+- Public page and static assets return HTTP 200.
+- Logo asset returns `image/png`.
+- Internal files such as `firebase.json` and `docs/**` return HTTP 404.
+- Browser console has no app errors on desktop and mobile smoke checks.
 
 ## Sheet Update Workflow
 

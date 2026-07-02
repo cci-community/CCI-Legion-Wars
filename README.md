@@ -145,6 +145,12 @@ Firebase deployment details are in [docs/FIREBASE_DEPLOYMENT.md](docs/FIREBASE_D
 
 The repo is bound to Firebase project `cci-legion-wars`. Pushes to `main` run validation and deploy the live Firebase Hosting channel.
 
+Live URL:
+
+```text
+https://cci-legion-wars.web.app
+```
+
 ## Maintenance
 
 Normal event updates happen in Google Sheets, not in code.
