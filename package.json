@@ -1,0 +1,14 @@
+{
+  "name": "cci-legion-wars",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/validate-site.mjs",
+    "config:sheet": "node scripts/configure-sheet.mjs",
+    "pdf:rules": "python scripts/generate-rules-pdf.py",
+    "serve": "npx --yes http-server . -p 4173 -c-1",
+    "firebase:preview": "npx -y firebase-tools@latest hosting:channel:deploy legion-wars-preview --expires 7d",
+    "firebase:deploy": "npx -y firebase-tools@latest deploy --only hosting"
+  }
+}

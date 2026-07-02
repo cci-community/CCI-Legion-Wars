@@ -3,248 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Copyright (c) 2026 CCI Volunteer Legion and ATLNO.exe. Public event page; do not embed private player data. -->
+  <meta name="description" content="CCI Volunteer Legion Wars live public bracket viewer." />
+  <meta name="theme-color" content="#0b0d12" />
+  <meta property="og:title" content="CCI Volunteer Legion Wars" />
+  <meta property="og:description" content="Live brackets, scores, winners, and qualifier status for Legion Wars." />
+  <meta property="og:image" content="./CCI-Volunteer-Legion-Logo-01.png" />
+  <meta property="og:type" content="website" />
   <title>CCI Volunteer Legion Wars</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="icon" type="image/x-icon" href="/CCI-Volunteer-Legion-Logo-01.png">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #0a0a0f;
-      --surface: #12121a;
-      --border: rgba(255,255,255,0.08);
-      --accent: #e63c2f;
-      --accent2: #ff8c42;
-      --text: #f0eee8;
-      --muted: #888;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      overflow-x: hidden;
-    }
-
-    /* subtle grid bg */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(230,60,47,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(230,60,47,0.04) 1px, transparent 1px);
-      background-size: 48px 48px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .container {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 560px;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-
-    /* top label */
-    .eyebrow {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .eyebrow-badge {
-      background: var(--accent);
-      color: #fff;
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 13px;
-      letter-spacing: 1.5px;
-      padding: 3px 10px 2px;
-      border-radius: 3px;
-    }
-
-    .eyebrow-org {
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0.3px;
-    }
-
-    /* heading */
-    .heading {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(32px, 7vw, 52px);
-      line-height: 1;
-      letter-spacing: 1px;
-      color: var(--text);
-      margin-bottom: 8px;
-    }
-
-    .heading span {
-      color: var(--accent);
-    }
-
-    .subheading {
-      font-size: 14px;
-      color: var(--muted);
-      margin-bottom: 32px;
-      line-height: 1.5;
-    }
-
-    /* poll card */
-    .poll-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    .poll-card-header {
-      padding: 20px 24px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .poll-icon {
-      width: 34px;
-      height: 34px;
-      background: rgba(230,60,47,0.15);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .poll-icon svg {
-      width: 16px;
-      height: 16px;
-      fill: var(--accent);
-    }
-
-    .poll-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    /* poll embed area */
-    .poll-embed {
-      padding: 28px 24px 24px;
-      min-height: 280px;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-    }
-
-    /* ── replace the placeholder div below with your actual embed ── */
-    .poll-placeholder {
-      width: 100%;
-      border: 1.5px dashed rgba(255,255,255,0.12);
-      border-radius: 8px;
-      padding: 40px 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      color: #555;
-      font-size: 13px;
-      text-align: center;
-      min-height: 200px;
-    }
-
-    .poll-placeholder svg {
-      width: 32px;
-      height: 32px;
-      opacity: 0.3;
-    }
-
-    /* footer */
-    .footer {
-      margin-top: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .footer-logo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 15px;
-      letter-spacing: 1px;
-      color: #444;
-    }
-
-    .footer-logo span { color: var(--accent); }
-
-    .footer-note {
-      font-size: 11px;
-      color: #383838;
-      text-align: right;
-    }
-
-    /* glow accent line */
-    .accent-line {
-      height: 3px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2), transparent);
-      border-radius: 2px;
-      margin-bottom: 36px;
-      width: 80px;
-    }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="./CCI-Volunteer-Legion-Logo-01.png" />
+  <link rel="shortcut icon" type="image/png" href="./CCI-Volunteer-Legion-Logo-01.png" />
+  <link rel="apple-touch-icon" href="./CCI-Volunteer-Legion-Logo-01.png" />
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <div class="container">
-    <div class="eyebrow">
-      <span class="eyebrow-badge">News Update</span>
-      <span class="eyebrow-org">Comic Con India · Volunteer Legion</span>
-    </div>
+  <a class="skip-link" href="#bracket">Skip to bracket</a>
 
-    <h1 class="heading">NEW <span>SEASON</span></h1>
-    <div class="accent-line"></div>
+  <header class="site-header" aria-label="Primary navigation">
+    <a class="brand" href="#top" aria-label="CCI Volunteer Legion Wars home">
+      <img class="brand__mark" src="./CCI-Volunteer-Legion-Logo-01.png" alt="" width="46" height="46" />
+      <span class="brand__text">
+        <span>CCI Volunteer</span>
+        <strong>Legion Wars</strong>
+      </span>
+    </a>
+    <nav class="nav-links" aria-label="Page sections">
+      <a href="#bracket">Brackets</a>
+      <a href="#qualifiers">Qualifiers</a>
+    </nav>
+  </header>
 
-    <p class="subheading">
-      The Volunteer Legion wants to hear from you.<br>
-      Vote below to help us pick the game for our next online tournament.
-    </p>
-
-    <div class="poll-card">
-      <div class="poll-card-header">
-        <div class="poll-icon">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 12h4v9H3v-9zm7-9h4v18h-4V3zm7 5h4v13h-4V8z"/>
-          </svg>
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero__copy">
+        <p class="event-line">Comic Con India Volunteer Legion</p>
+        <h1 id="hero-title">Legion Wars Live Bracket</h1>
+        <p class="hero__summary">
+          Group Titan, Group Nexus, Group Dominion, Wildcard, and National Finals.
+        </p>
+        <div class="hero__actions" aria-label="Primary actions">
+          <a class="button button--primary" href="#bracket">View brackets</a>
         </div>
-        <span class="poll-label">Cast your vote</span>
       </div>
 
-      <div class="poll-embed">
-        <!-- ✏️  REPLACE everything inside this div with your poll embed code -->
-          <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSs11px-8Fl8S-FvFYdg_lx-ep4mxx0RGzXi54s5kmEFGsc95UW3i5Nxrc63SzrsmOK0gd_5uJivxOQ/pubhtml?gid=1994318444&amp;single=true&amp;widget=true&amp;headers=false"></iframe>      
-        <!-- ✏️  END REPLACE -->
+      <aside class="command-panel" aria-label="Tournament status">
+        <div class="command-panel__top">
+          <img src="./CCI-Volunteer-Legion-Logo-01.png" alt="" width="74" height="74" />
+          <div>
+            <span class="panel-kicker">Legion Wars 2026</span>
+            <strong>Live Status</strong>
+          </div>
+        </div>
+        <dl class="status-grid" id="statusGrid"></dl>
+      </aside>
+    </section>
+
+    <section class="bracket-section" id="bracket" aria-labelledby="bracket-title">
+      <div class="section-heading section-heading--light">
+        <p>Brackets</p>
+        <h2 id="bracket-title">Live Tournament Brackets</h2>
       </div>
+      <div class="feed-tabs" id="feedTabs" role="tablist" aria-label="Public bracket feeds"></div>
+      <div class="data-panel" aria-live="polite">
+        <div>
+          <span>Sync</span>
+          <strong id="sheetStatus">Preparing sheet sync...</strong>
+          <small id="sheetUpdated">Last sync: not connected</small>
+        </div>
+        <div class="data-panel__controls">
+          <label class="stage-select-label" for="stageSelect">Bracket</label>
+          <select class="stage-select" id="stageSelect" hidden></select>
+          <button class="button button--secondary button--compact" id="refreshSheetButton" type="button">Refresh</button>
+        </div>
+      </div>
+      <div class="bracket-toolbar">
+        <div>
+          <span id="bracketPhase">Working format</span>
+          <strong id="bracketMode">Single elimination</strong>
+        </div>
+        <div class="legend" aria-label="Bracket legend">
+          <span><i class="legend-dot legend-dot--ready"></i>Ready</span>
+          <span><i class="legend-dot legend-dot--pending"></i>Pending</span>
+          <span><i class="legend-dot legend-dot--final"></i>Final</span>
+        </div>
+      </div>
+      <div class="bracket-viewport" tabindex="0" aria-label="Tournament bracket">
+        <div class="bracket-rounds" id="bracketRounds"></div>
+      </div>
+    </section>
 
-        
-    </div>
+    <section class="section-shell section-shell--split" id="qualifiers" aria-labelledby="qualifiers-title">
+      <div class="section-heading">
+        <p>Qualifiers</p>
+        <h2 id="qualifiers-title">Selected Feed Slots</h2>
+      </div>
+      <div class="lobby-grid" id="lobbyGrid"></div>
+    </section>
+  </main>
 
-    <div class="footer">
-      <div class="footer-logo"><span>CCI</span> VOLUNTEER LEGION</div>
-      <div class="footer-note">Legion Wars 2026</div>
-    </div>
-  </div>
+  <footer class="site-footer">
+    <span>CCI Volunteer Legion</span>
+    <span>Legion Wars 2026</span>
+  </footer>
+
+  <noscript>
+    <div class="noscript">JavaScript is required to render the live bracket data.</div>
+  </noscript>
+  <script type="module" src="./app.js"></script>
 </body>
 </html>

@@ -1,0 +1,101 @@
+name: Firebase Hosting Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Deploy target"
+        required: true
+        default: "preview"
+        type: choice
+        options:
+          - preview
+          - live
+      channel_id:
+        description: "Preview channel id. Ignored for live deploys."
+        required: false
+        default: "legion-wars-preview"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-hosting-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_TARGET: ${{ github.event_name == 'push' && 'live' || inputs.target }}
+      PREVIEW_CHANNEL_ID: ${{ inputs.channel_id || 'legion-wars-preview' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate static site
+        run: npm run check
+
+      - name: Validate Firebase configuration
+        shell: bash
+        env:
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$FIREBASE_PROJECT_ID" ]; then
+            echo "::error::Set repository variable FIREBASE_PROJECT_ID before deploying."
+            exit 1
+          fi
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
+            echo "::error::Set repository secret FIREBASE_SERVICE_ACCOUNT_JSON before deploying."
+            exit 1
+          fi
+          echo "Deploy target: $DEPLOY_TARGET"
+
+      - name: Deploy preview channel
+        if: ${{ env.DEPLOY_TARGET == 'preview' && vars.FIREBASE_HOSTING_TARGET == '' }}
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
+          channelId: ${{ env.PREVIEW_CHANNEL_ID }}
+          expires: 7d
+
+      - name: Deploy preview channel to target site
+        if: ${{ env.DEPLOY_TARGET == 'preview' && vars.FIREBASE_HOSTING_TARGET != '' }}
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
+          target: ${{ vars.FIREBASE_HOSTING_TARGET }}
+          channelId: ${{ env.PREVIEW_CHANNEL_ID }}
+          expires: 7d
+
+      - name: Deploy live channel
+        if: ${{ env.DEPLOY_TARGET == 'live' && vars.FIREBASE_HOSTING_TARGET == '' }}
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
+          channelId: live
+
+      - name: Deploy live channel to target site
+        if: ${{ env.DEPLOY_TARGET == 'live' && vars.FIREBASE_HOSTING_TARGET != '' }}
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
+          target: ${{ vars.FIREBASE_HOSTING_TARGET }}
+          channelId: live
