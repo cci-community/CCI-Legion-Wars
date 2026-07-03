@@ -1,9 +1,9 @@
 // Copyright (c) 2026 CCI Volunteer Legion and ATLNO.exe.
 // Runtime rule: render public sheet-derived qualifier data only; do not expose hidden player data.
 
-import { tournament as fallbackTournament } from "./data/bracket-data.js";
-import { sheetConfig } from "./data/sheet-config.js";
-import { loadTournamentFeeds } from "./data/sheet-data.js";
+import { tournament as fallbackTournament } from "./data/bracket-data.js?v=20260703-lobby-progression";
+import { sheetConfig } from "./data/sheet-config.js?v=20260703-lobby-progression";
+import { loadTournamentFeeds } from "./data/sheet-data.js?v=20260703-lobby-progression";
 
 const statusGrid = document.querySelector("#statusGrid");
 const lobbyGrid = document.querySelector("#lobbyGrid");

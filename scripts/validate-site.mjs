@@ -58,7 +58,7 @@ if (indexHtml.includes("rulesList") || appJs.includes("rulesList") || appJs.incl
   errors.push("Public homepage must not render an internal rules/planning section.");
 }
 
-if (!indexHtml.includes('type="module" src="./app.js"')) {
+if (!/type="module" src="\.\/app\.js(\?v=[^"]+)?"/u.test(indexHtml)) {
   errors.push("index.html must load app.js as an ES module");
 }
 
@@ -170,6 +170,12 @@ for (const header of requiredHostingHeaders) {
 const csp = flattenedHeaders.find((header) => header.key === "Content-Security-Policy")?.value ?? "";
 if (!csp.includes("connect-src") || !csp.includes("docs.google.com") || !csp.includes("googleusercontent.com")) {
   errors.push("Content-Security-Policy must allow the published Google Sheet CSV domains");
+}
+
+const scriptStyleHeaders = firebaseConfig.hosting?.headers?.find((entry) => entry.source === "**/*.@(js|css)")?.headers ?? [];
+const scriptStyleCache = scriptStyleHeaders.find((header) => header.key === "Cache-Control")?.value ?? "";
+if (!scriptStyleCache.includes("max-age=300") || !scriptStyleCache.includes("must-revalidate")) {
+  errors.push("JS/CSS assets must use short revalidating cache headers because files are not content-hashed");
 }
 
 try {
