@@ -39,12 +39,26 @@ const firebaseJson = JSON.parse(read("firebase.json"));
 if (firebaseJson.hosting?.public !== "dist") {
   errors.push("Firebase Hosting must deploy the Vite dist directory");
 }
-if (
-  !firebaseJson.hosting?.rewrites?.some(
-    (rewrite) => rewrite.source === "**" && rewrite.destination === "/index.html",
-  )
-) {
+const hostingRewrites = firebaseJson.hosting?.rewrites ?? [];
+if (!hostingRewrites.some((rewrite) => rewrite.destination === "/index.html")) {
   errors.push("Firebase Hosting must rewrite SPA routes to /index.html");
+}
+if (!hostingRewrites.some((rewrite) => rewrite.source === "!/assets/**")) {
+  errors.push("Firebase Hosting must not rewrite missing hashed assets to /index.html");
+}
+const hostingHeaders = firebaseJson.hosting?.headers ?? [];
+const hasNoStoreHeader = (source) =>
+  hostingHeaders.some(
+    (entry) =>
+      entry.source === source &&
+      entry.headers?.some(
+        (header) =>
+          header.key.toLowerCase() === "cache-control" &&
+          /no-store|no-cache|must-revalidate/.test(header.value),
+      ),
+  );
+if (!hasNoStoreHeader("/") || !hasNoStoreHeader("index.html")) {
+  errors.push("Firebase Hosting must revalidate the SPA app shell");
 }
 
 const indexHtml = read("index.html");
