@@ -158,9 +158,138 @@ function renderMatch(match) {
   return card;
 }
 
+function renderProgressionPlayer(player) {
+  const row = createElement("li");
+  const details = createElement("span", "progression-player-list__details");
+  const badge = player.stateLabel ?? (player.qualified ? "Advance" : "Pending");
+
+  row.dataset.state = player.state ?? (player.qualified ? "qualified" : "pending");
+  details.append(createElement("span", "", player.name));
+  if (player.city) details.append(createElement("small", "", player.city));
+  row.append(createElement("strong", "", player.rank ? ordinal(player.rank) : player.seed));
+  row.append(details);
+  row.append(createElement("em", "", badge));
+  return row;
+}
+
+function renderProgressionLobby(lobby) {
+  const card = createElement("article", "progression-lobby-card");
+  const head = createElement("div", "progression-lobby-card__head");
+  const players = createElement("ul", "progression-player-list");
+
+  head.append(createElement("span", "progression-lobby-card__id", lobby.id));
+  head.append(createElement("span", "progression-lobby-card__status", lobby.status));
+
+  card.append(head);
+  if (lobby.sourceName && lobby.sourceName !== lobby.name) {
+    card.append(createElement("p", "progression-lobby-card__source", lobby.sourceName));
+  }
+
+  (lobby.players ?? []).forEach((player) => {
+    players.append(renderProgressionPlayer(player));
+  });
+
+  if (players.childElementCount) {
+    card.append(players);
+  } else {
+    card.append(createElement("p", "progression-lobby-card__empty", "Awaiting lobby data"));
+  }
+
+  return card;
+}
+
+function renderGroupProgression(progression) {
+  bracketPhase.textContent = progression.phase;
+  bracketMode.textContent = progression.mode;
+  bracketRounds.dataset.view = "group";
+
+  const fragment = document.createDocumentFragment();
+
+  progression.rounds.forEach((round) => {
+    const section = createElement("section", "progression-round");
+    const head = createElement("div", "progression-round__head");
+    const metrics = createElement("div", "progression-round__metrics");
+    const lobbyRail = createElement("div", "progression-lobby-rail");
+
+    head.append(createElement("h3", "", round.title));
+    head.append(createElement("p", "", round.advance));
+    metrics.append(createElement("span", "", `${round.players} players`));
+    metrics.append(createElement("span", "", `${round.lobbies?.length ?? 0}/${round.expectedLobbies} lobbies`));
+    metrics.append(createElement("strong", "", round.result));
+    section.append(head, metrics);
+
+    if (round.lobbies?.length) {
+      round.lobbies.forEach((lobby) => {
+        lobbyRail.append(renderProgressionLobby(lobby));
+      });
+    } else {
+      const empty = createElement("article", "progression-lobby-card progression-lobby-card--empty");
+      empty.append(createElement("span", "progression-lobby-card__id", `${progression.phase}_R${round.title.replace(/\D/g, "")}`));
+      empty.append(createElement("p", "progression-lobby-card__empty", "Awaiting round data"));
+      lobbyRail.append(empty);
+    }
+
+    section.append(lobbyRail);
+    fragment.append(section);
+  });
+
+  bracketRounds.replaceChildren(fragment);
+}
+
+function renderWildcardSlot(slot) {
+  const card = createElement("article", "wildcard-slot");
+  card.dataset.state = slot.state ?? (slot.pending ? "pending" : "qualified");
+  card.append(createElement("span", "wildcard-slot__seed", slot.seed));
+  card.append(createElement("strong", "", slot.name));
+  if (slot.city) card.append(createElement("small", "", slot.city));
+  card.append(createElement("em", "", slot.stateLabel ?? "Pending"));
+  return card;
+}
+
+function renderWildcardProgression(feed) {
+  const progression = feed.progression;
+  if (!progression) {
+    renderBracket(feed.bracket);
+    return;
+  }
+
+  bracketPhase.textContent = progression.phase;
+  bracketMode.textContent = progression.mode;
+  bracketRounds.dataset.view = "wildcard";
+
+  const shell = createElement("div", "wildcard-view");
+  const pool = createElement("section", "wildcard-panel wildcard-panel--pool");
+  const finals = createElement("section", "wildcard-panel wildcard-panel--finals");
+  const poolGrid = createElement("div", "wildcard-pool-grid");
+  const slotGrid = createElement("div", "wildcard-slot-grid");
+
+  pool.append(createElement("h3", "", "12-player pool"));
+  pool.append(createElement("p", "", `${progression.poolCount}/${progression.expectedPoolCount} players listed`));
+  (progression.rounds?.[0]?.lobbies ?? []).forEach((lobby) => {
+    poolGrid.append(renderProgressionLobby(lobby));
+  });
+  if (!poolGrid.childElementCount) {
+    const empty = createElement("article", "progression-lobby-card progression-lobby-card--empty");
+    empty.append(createElement("p", "progression-lobby-card__empty", "Awaiting Wildcard pool"));
+    poolGrid.append(empty);
+  }
+  pool.append(poolGrid);
+
+  finals.append(createElement("h3", "", "Finals slots"));
+  finals.append(createElement("p", "", "Top 4 advance"));
+  (progression.finalSlots ?? []).forEach((slot) => {
+    slotGrid.append(renderWildcardSlot(slot));
+  });
+  finals.append(slotGrid);
+
+  shell.append(pool, finals);
+  bracketRounds.replaceChildren(shell);
+}
+
 function renderBracket(bracket) {
   bracketPhase.textContent = bracket.phase;
   bracketMode.textContent = bracket.mode;
+  bracketRounds.dataset.view = "bracket";
 
   const fragment = document.createDocumentFragment();
 
@@ -183,6 +312,20 @@ function renderBracket(bracket) {
   bracketRounds.replaceChildren(fragment);
 }
 
+function renderBracketView(feed) {
+  if (feed.type === "group" && feed.progression?.type === "group") {
+    renderGroupProgression(feed.progression);
+    return;
+  }
+
+  if (feed.type === "wildcard") {
+    renderWildcardProgression(feed);
+    return;
+  }
+
+  renderBracket(feed.bracket);
+}
+
 function renderSheetMeta(meta) {
   if (!sheetStatus || !sheetUpdated) return;
   sheetStatus.textContent = meta.message;
@@ -201,7 +344,7 @@ function renderFatalError(error) {
 function renderStageSelect(tournament) {
   if (!stageSelect) return;
   const stages = tournament.meta?.availableStages ?? [];
-  const hasMultipleStages = stages.length > 1;
+  const hasMultipleStages = stages.length > 1 && !["group", "wildcard"].includes(tournament.type);
   stageSelect.hidden = !hasMultipleStages;
   if (stageSelectLabel) stageSelectLabel.hidden = !hasMultipleStages;
   stageSelect.replaceChildren();
@@ -225,7 +368,7 @@ function renderActiveFeed(meta = { mode: "fallback", message: "Using fallback da
   renderStatus(activeFeed.status ?? dashboardTournament.status);
   renderFeedTabs(workbookFeeds);
   renderLobbies(activeFeed.lobbies ?? []);
-  renderBracket(activeFeed.bracket);
+  renderBracketView(activeFeed);
   renderStageSelect(activeFeed);
   renderSheetMeta(meta);
 }

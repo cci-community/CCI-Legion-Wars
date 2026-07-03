@@ -16,7 +16,7 @@ The public page does not embed Google Sheets, show raw private tabs, or include 
 
 - Multi-tab published Google Sheets CSV sync.
 - Separate group/lobby and National Finals parser modes.
-- Public bracket tabs with match cards, scores, winners, and pending/live/final states.
+- Public tabs with group lobby progression, Wildcard pool state, National Finals match cards, scores, winners, and pending/live/final states.
 - City/state/legion region display when present in public feeds.
 - Local browser cache, manual refresh, and low-frequency auto refresh.
 - Safe fallback bracket when a feed is unavailable.
@@ -134,6 +134,7 @@ The check verifies:
 - No Discord/broadcast/private-data copy on the homepage.
 - Five-feed workbook config.
 - Group/lobby parser behavior.
+- Custom group progression rendering requirements.
 - National Finals parser behavior, including current duplicate `Score` headers.
 - Wildcard typo normalization from `Wildcart` to `Wildcard`.
 - Firebase Hosting headers.

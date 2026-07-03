@@ -7,6 +7,40 @@ const GROUP_ROUND_BY_ENTRANT_COUNT = new Map([
   [4, "Semifinals"],
   [8, "Quarterfinals"]
 ]);
+const GROUP_ROUND_SPECS = [
+  {
+    number: 1,
+    title: "Round 1",
+    players: 64,
+    lobbies: 16,
+    advance: "Top 2 advance",
+    result: "32 advance"
+  },
+  {
+    number: 2,
+    title: "Round 2",
+    players: 32,
+    lobbies: 8,
+    advance: "Top 2 advance",
+    result: "16 advance"
+  },
+  {
+    number: 3,
+    title: "Round 3",
+    players: 16,
+    lobbies: 4,
+    advance: "Top 2 advance",
+    result: "8 advance"
+  },
+  {
+    number: 4,
+    title: "Round 4",
+    players: 8,
+    lobbies: 2,
+    advance: "1st-2nd Finals / 3rd-4th Wildcard",
+    result: "4 Finals + 4 Wildcard"
+  }
+];
 const FINALS_ROUND_TITLES = new Map([
   ["ro16", "Round of 16"],
   ["round of 16", "Round of 16"],
@@ -97,6 +131,9 @@ export function buildGroupFeedFromCsv(csvText, feedConfig, fallbackTournament, f
     qualifierCount: countStageQualifiers(stage)
   }));
   const lobbies = activeStage.lobbies.map((lobby) => normalizeLobby(lobby, feedConfig));
+  const progression = feedConfig.type === "wildcard" ?
+    buildWildcardProgression(lobbies, activeStage, feedConfig) :
+    buildGroupProgression(parsedStages, feedConfig);
   const bracket = buildGroupBracket(lobbies, activeStage.name, feedConfig);
   const qualifiedCount = lobbies.reduce((count, lobby) => {
     return count + lobby.qualifiers.filter((qualifier) => !qualifier.pending).length;
@@ -135,6 +172,7 @@ export function buildGroupFeedFromCsv(csvText, feedConfig, fallbackTournament, f
     type: feedConfig.type,
     status,
     bracket,
+    progression,
     lobbies,
     meta: {
       source: "sheet",
@@ -403,6 +441,7 @@ function applyDerivedWildcardPool(feeds) {
       { label: "Final slots", value: `${wildcard.meta?.nationalCount ?? 0}/4` }
     ],
     lobbies: candidateCards,
+    progression: buildWildcardProgression(candidateCards, { name: "Wildcard Pool" }, wildcard),
     meta: {
       ...wildcard.meta,
       stage: "Wildcard Pool",
@@ -414,6 +453,203 @@ function applyDerivedWildcardPool(feeds) {
   };
 
   return feeds.map((feed) => feed.id === wildcard.id ? enhancedWildcard : feed);
+}
+
+function buildGroupProgression(stages, feedConfig) {
+  const groupName = publicGroupName(feedConfig);
+  const rounds = GROUP_ROUND_SPECS.map((spec) => {
+    const stage = findStageForGroupRound(stages, spec.number);
+    const lobbies = (stage?.lobbies ?? []).map((lobby, index) => {
+      return normalizeProgressionLobby(lobby, feedConfig, spec, index);
+    });
+
+    return {
+      id: `${slugify(groupName)}-r${spec.number}`,
+      title: spec.title,
+      sourceStage: stage?.name ?? "",
+      players: spec.players,
+      expectedLobbies: spec.lobbies,
+      advance: spec.advance,
+      result: spec.result,
+      lobbies
+    };
+  });
+
+  return {
+    type: "group",
+    phase: groupName,
+    mode: "Lobby progression",
+    rounds
+  };
+}
+
+function buildWildcardProgression(lobbies, activeStage, feedConfig) {
+  const pool = lobbies.flatMap((lobby) => lobby.players ?? []);
+  const poolLobbies = pool.length ?
+    lobbies.map((lobby, index) => normalizeWildcardPoolCard(lobby, index)) :
+    wildcardPlaceholderPool();
+  const qualifiers = pool
+    .filter((player) => {
+      return (Number.isInteger(player.rank) && player.rank >= 1 && player.rank <= 4) || player.qualified;
+    })
+    .sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99))
+    .slice(0, 4);
+
+  const finalSlots = Array.from({ length: 4 }, (_, index) => {
+    const player = qualifiers[index];
+    return player ? {
+      seed: `WQ${index + 1}`,
+      name: player.name,
+      city: player.city,
+      placement: index + 1,
+      pending: false,
+      state: "qualified",
+      stateLabel: "Finals"
+    } : {
+      seed: `WQ${index + 1}`,
+      name: "Awaiting qualifier",
+      city: "",
+      placement: index + 1,
+      pending: true,
+      state: "pending",
+      stateLabel: "Pending"
+    };
+  });
+
+  return {
+    type: "wildcard",
+    phase: feedConfig.shortLabel ?? feedConfig.label ?? "Wildcard",
+    mode: "12-player last chance",
+    sourceStage: activeStage?.name ?? "Wildcard",
+    poolCount: pool.length,
+    expectedPoolCount: 12,
+    finalSlots,
+    rounds: [
+      {
+        id: "wildcard-pool",
+        title: "Wildcard Pool",
+        sourceStage: activeStage?.name ?? "Wildcard",
+        players: pool.length,
+        expectedLobbies: 3,
+        advance: "Top 4 advance",
+        result: "4 Finals slots",
+        lobbies: poolLobbies
+      }
+    ]
+  };
+}
+
+function findStageForGroupRound(stages, roundNumber) {
+  return stages.find((stage) => inferGroupRoundNumber(stage) === roundNumber) ?? null;
+}
+
+function inferGroupRoundNumber(stage) {
+  const name = cleanText(stage?.name).toLowerCase();
+  const roundOfMatch = name.match(/round\s+of\s+(\d+)/);
+  if (roundOfMatch) {
+    const entrantCount = Number.parseInt(roundOfMatch[1], 10);
+    if (entrantCount === 64) return 1;
+    if (entrantCount === 32) return 2;
+    if (entrantCount === 16) return 3;
+    if (entrantCount === 8) return 4;
+  }
+
+  if (/round\s*(1|one)\b/.test(name)) return 1;
+  if (/round\s*(2|two)\b/.test(name)) return 2;
+  if (/round\s*(3|three)\b/.test(name)) return 3;
+  if (/round\s*(4|four)\b/.test(name) || isGroupRouteStage(name)) return 4;
+
+  const byLobbyCount = new Map([
+    [16, 1],
+    [8, 2],
+    [4, 3],
+    [2, 4]
+  ]);
+
+  return byLobbyCount.get(stage?.lobbies?.length) ?? null;
+}
+
+function normalizeProgressionLobby(lobby, feedConfig, spec, index) {
+  const normalized = normalizeLobby(lobby, feedConfig);
+  const lobbyNumber = extractLobbyNumber(lobby.name, lobby.id) ?? index + 1;
+  const publicId = `${publicGroupName(feedConfig)}_R${spec.number}_L${lobbyNumber}`;
+
+  return {
+    ...normalized,
+    id: publicId,
+    name: publicId,
+    sourceName: lobby.name,
+    summary: spec.advance,
+    players: normalized.players.map((player) => {
+      const state = groupPlayerState(player, spec.number);
+      return {
+        ...player,
+        state,
+        stateLabel: groupPlayerStateLabel(state, spec.number)
+      };
+    })
+  };
+}
+
+function normalizeWildcardPoolCard(lobby, index) {
+  return {
+    ...lobby,
+    id: lobby.id?.startsWith("Wildcard_") ? lobby.id : `Wildcard_L${index + 1}`,
+    name: lobby.name ?? `Wildcard Pool ${index + 1}`,
+    players: (lobby.players ?? []).map((player) => ({
+      ...player,
+      state: player.pending ? "pending" : (player.qualified || (Number.isInteger(player.rank) && player.rank <= 4) ? "qualified" : "wildcard"),
+      stateLabel: player.pending ? "Pending" : (player.qualified || (Number.isInteger(player.rank) && player.rank <= 4) ? "Finals" : "Pool")
+    }))
+  };
+}
+
+function wildcardPlaceholderPool() {
+  return Array.from({ length: 3 }, (_, poolIndex) => {
+    const start = poolIndex * 4 + 1;
+    return {
+      id: `Wildcard_Pool_${poolIndex + 1}`,
+      name: `Wildcard Pool ${poolIndex + 1}`,
+      summary: "Awaiting group 5th-8th placements",
+      status: "Awaiting result",
+      players: Array.from({ length: 4 }, (_, offset) => {
+        const slot = start + offset;
+        return {
+          seed: `W${slot}`,
+          name: "Awaiting player",
+          city: "",
+          rank: null,
+          qualified: false,
+          pending: true,
+          state: "pending",
+          stateLabel: "Pending"
+        };
+      }),
+      qualifiers: []
+    };
+  });
+}
+
+function groupPlayerState(player, roundNumber) {
+  if (!player.qualified && !Number.isInteger(player.rank)) return "pending";
+
+  if (roundNumber === 4) {
+    if (player.qualified && !Number.isInteger(player.rank)) return "qualified";
+    if (player.rank >= 1 && player.rank <= 2) return "qualified";
+    if (player.rank >= 3 && player.rank <= 4) return "wildcard";
+    return "eliminated";
+  }
+
+  if (player.qualified && !Number.isInteger(player.rank)) return "qualified";
+  if (player.rank >= 1 && player.rank <= 2) return "qualified";
+  return "eliminated";
+}
+
+function groupPlayerStateLabel(state, roundNumber) {
+  if (state === "qualified") return roundNumber === 4 ? "Finals" : "Advance";
+  if (state === "wildcard") return "Wildcard";
+  if (state === "eliminated") return "Out";
+  return "Pending";
 }
 
 function wildcardPoolCard(feed) {
@@ -992,6 +1228,16 @@ function extractLobbyId(lobbyName) {
   const text = cleanText(lobbyName);
   const match = text.match(/([A-Z]|\d+)$/i);
   return match ? match[1].toUpperCase() : text;
+}
+
+function extractLobbyNumber(lobbyName, fallbackId) {
+  const text = cleanText(lobbyName) || cleanText(fallbackId);
+  const match = text.match(/(\d+)$/);
+  return match ? Number.parseInt(match[1], 10) : null;
+}
+
+function publicGroupName(feedConfig) {
+  return cleanText(feedConfig.shortLabel ?? feedConfig.label).replace(/^Group\s+/i, "") || "Group";
 }
 
 function formatSeedPrefix(lobbyId) {

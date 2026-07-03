@@ -56,15 +56,15 @@ Google Sheets published workbook tabs
 5. Each feed is cached in `localStorage` under a feed-specific key.
 6. Group feeds use the group/lobby parser.
 7. National Finals uses the match bracket parser.
-8. The UI renders feed tabs, status cards, qualifier slots, and bracket columns.
+8. The UI renders feed tabs, status cards, qualifier slots, custom group progression lanes, Wildcard pool cards, and National Finals bracket columns.
 9. Manual refresh bypasses the short cache window.
 10. Auto refresh runs only when the page is visible and online.
 
 ## File Ownership
 
 - `index.html`: public page shell, SEO metadata, navigation, mount points.
-- `styles.css`: visual system, responsive bracket layout, tabs, cards, status badges.
-- `app.js`: DOM rendering, feed tabs, refresh behavior, stage selector, bracket cards.
+- `styles.css`: visual system, responsive bracket/progression layout, tabs, cards, status badges.
+- `app.js`: DOM rendering, feed tabs, refresh behavior, stage selector, group progression, Wildcard pool, and Finals bracket cards.
 - `data/bracket-data.js`: safe 16-player National Finals fallback.
 - `data/sheet-config.js`: generated public workbook id, gids, CSV URLs, cache timing.
 - `data/sheet-data.js`: CSV parser, feed loaders, group parser, finals parser, cache/fallback logic.
@@ -72,7 +72,7 @@ Google Sheets published workbook tabs
 - `scripts/configure-sheet.mjs`: generates `data/sheet-config.js` from environment variables.
 - `scripts/validate-site.mjs`: validates public scope, parser behavior, docs, hosting headers.
 - `scripts/generate-rules-pdf.py`: renders copyright/ruleset PDF.
-- `.github/workflows/firebase-hosting.yml`: manual Firebase preview/live deploy workflow.
+- `.github/workflows/firebase-hosting.yml`: Firebase deploy-on-push workflow with manual preview/live dispatch.
 - `docs/*`: architecture, sheet, security, deployment, maintenance, research, ownership policy.
 
 ## Feed Configuration
@@ -112,9 +112,11 @@ Behavior:
 - Preserves public city/state/legion region if present.
 - Suppresses sheet errors such as `#REF!` from display.
 - Normalizes `Wildcart` to `Wildcard`.
-- Shows public lobby player names while using qualifier slots for bracket progression.
-- Counts ranks 1-4 as direct National Finals qualifiers for group feeds.
-- Counts ranks 5-8 as Wildcard entrants for group feeds.
+- Builds a four-round custom group progression model: Round 1, Round 2, Round 3, Round 4.
+- Uses stable public lobby ids such as `Titan_R1_L1`, `Nexus_R3_L2`, and `Dominion_R4_L2`.
+- Shows public lobby player names and city/region values in lobby cards.
+- Marks Round 1-3 top-two players as advancing and lower placements as out.
+- Marks Round 4 first/second place as National Finals and third/fourth place as Wildcard.
 - Treats the current `Round of 8` group stage as Round Four. That stage has two lobbies; top two from both lobbies are direct Finals qualifiers, while third/fourth from both lobbies become the group's 5th-8th Wildcard candidates.
 - If the dedicated Wildcard tab is empty, the Wildcard view derives its 12-player pool from Titan, Nexus, and Dominion Round Four candidates.
 
@@ -164,9 +166,13 @@ The page is intentionally viewer-first:
 - Short event branding in the hero.
 - Compact live status cards.
 - Feed tabs for Finals, Titan, Nexus, Dominion, and Wildcard.
-- Bracket rounds as columns on desktop.
-- Bracket rounds stacked on mobile.
-- Match cards with players, city/region, scores, and state badges.
+- Titan, Nexus, and Dominion as lobby progression lanes on desktop.
+- Group progression rounds stacked on mobile.
+- Wildcard as a 12-player last-chance pool with four Finals slots.
+- National Finals as classic bracket columns on desktop.
+- National Finals rounds stacked on mobile.
+- Match cards with players, city/region, scores, and state badges for National Finals.
+- Lobby cards with player advancement state for group and Wildcard views.
 - Public lobby player cards and qualifier/finalist cards for the selected feed.
 - Last sync and refresh control.
 
@@ -206,6 +212,6 @@ Future work may add:
 - A public-safe API layer.
 - A Discord bot that reads the same public bracket data.
 - Admin editing with authentication.
-- `brackets-manager.js` or a persistent bracket engine.
+- `brackets-manager.js` or a persistent bracket engine for National Finals/Wildcard only if future data requires it.
 
 These are separate scopes and should not be added to the public viewer without an explicit request.

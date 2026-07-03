@@ -141,6 +141,14 @@ if (!appHasAutoRefresh()) {
   errors.push("app.js must include manual and automatic sheet refresh behavior");
 }
 
+if (!appJs.includes("renderGroupProgression") || !appJs.includes("renderWildcardProgression")) {
+  errors.push("app.js must render custom group progression and Wildcard pool views");
+}
+
+if (appJs.includes("renderBracket(activeFeed.bracket)")) {
+  errors.push("app.js must not render every feed with the classic bracket renderer");
+}
+
 if (!deployWorkflow.includes("FIREBASE_HOSTING_TARGET") || deployWorkflow.includes("FIREBASE_SITE_ID")) {
   errors.push("Firebase deploy workflow must use FIREBASE_HOSTING_TARGET for optional non-default Hosting targets");
 }
@@ -279,6 +287,22 @@ if (selectedGroup.bracket.mode !== "Round of 8 decides Finals + Wildcard") {
   errors.push(`Group bracket mode must explain the finals/wildcard route, received ${selectedGroup.bracket.mode}`);
 }
 
+validateGroupProgression(liveGroup, "sheet-derived group");
+validateGroupProgression(roundFourGroup, "round-four group route");
+
+const roundFourVisual = roundFourGroup.progression?.rounds?.find((round) => round.title === "Round 4");
+if (!roundFourVisual?.lobbies?.some((lobby) => lobby.id === "Route_R4_L1")) {
+  errors.push("Group progression must expose stable Round Four lobby ids such as Route_R4_L1");
+}
+
+if (!roundFourVisual?.lobbies?.flatMap((lobby) => lobby.players).some((player) => player.state === "wildcard" && player.stateLabel === "Wildcard")) {
+  errors.push("Round Four progression must mark 3rd/4th place players as Wildcard");
+}
+
+if (!roundFourVisual?.lobbies?.flatMap((lobby) => lobby.players).some((player) => player.state === "qualified" && player.stateLabel === "Finals")) {
+  errors.push("Round Four progression must mark 1st/2nd place players as Finals qualifiers");
+}
+
 if (roundFourGroup.meta.routeStage !== "Round of 8") {
   errors.push(`Round Four route source expected Round of 8, received ${roundFourGroup.meta.routeStage}`);
 }
@@ -300,6 +324,10 @@ if (derivedWildcard?.lobbies?.length !== 3) {
   errors.push(`Derived Wildcard pool expected one card per group, received ${derivedWildcard?.lobbies?.length}`);
 }
 
+if (derivedWildcard?.progression?.type !== "wildcard" || derivedWildcard.progression.finalSlots?.length !== 4) {
+  errors.push("Wildcard feed must expose a 12-player pool view with four National Finals slots");
+}
+
 if (liveGroup.lobbies.some((lobby) => lobby.qualifiers.length !== 2)) {
   errors.push("Every group-derived lobby must expose exactly two qualifier slots");
 }
@@ -308,8 +336,9 @@ if (!selectedGroup.lobbies[0]?.players?.some((player) => player.name === "Asha R
   errors.push("Group parser must preserve public lobby player names and city/region values");
 }
 
-if (!liveGroup.bracket.rounds[0].matches[0].entrants[0].name.includes("Asha")) {
-  errors.push("Group-derived bracket did not place first qualifiers into the first round");
+const liveRoundThree = liveGroup.progression?.rounds?.find((round) => round.title === "Round 3");
+if (!liveRoundThree?.lobbies?.[0]?.players?.some((player) => player.name.includes("Asha"))) {
+  errors.push("Group progression did not preserve first public lobby players");
 }
 
 if (finalsFeed.bracket.rounds[0].matches[0].status !== "final") {
@@ -380,6 +409,32 @@ function appHasAutoRefresh() {
     appJs.includes("autoRefreshIntervalMs") &&
     appJs.includes("visibilityState") &&
     appJs.includes("syncInFlight");
+}
+
+function validateGroupProgression(candidate, label) {
+  if (candidate.type !== "group") return;
+
+  if (candidate.progression?.type !== "group") {
+    errors.push(`${label}: group feed must expose a group progression model`);
+    return;
+  }
+
+  const titles = candidate.progression.rounds.map((round) => round.title);
+  const expectedTitles = ["Round 1", "Round 2", "Round 3", "Round 4"];
+  if (titles.join("|") !== expectedTitles.join("|")) {
+    errors.push(`${label}: group progression expected ${expectedTitles.join(", ")}, received ${titles.join(", ")}`);
+  }
+
+  if (titles.some((title) => /Quarterfinal|Semifinal|Grand Final/i.test(title))) {
+    errors.push(`${label}: group progression must not use classic bracket labels`);
+  }
+
+  const expectedLobbyCounts = [16, 8, 4, 2];
+  candidate.progression.rounds.forEach((round, index) => {
+    if (round.expectedLobbies !== expectedLobbyCounts[index]) {
+      errors.push(`${label}: ${round.title} expected ${expectedLobbyCounts[index]} lobbies, received ${round.expectedLobbies}`);
+    }
+  });
 }
 
 function validateTournament(candidate, label) {

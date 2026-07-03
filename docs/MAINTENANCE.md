@@ -30,7 +30,9 @@ Before the event starts:
 Use the current public page to verify:
 
 - Feed tabs appear for Finals, Titan, Nexus, Dominion, and Wildcard.
-- The selected feed renders a proper bracket, not a raw table.
+- Titan, Nexus, and Dominion render Round 1-4 lobby progression, not Quarterfinal/Semifinal/Final bracket columns.
+- Wildcard renders the 12-player last-chance pool and four Finals slots.
+- National Finals renders the classic 16-player bracket.
 - Pending slots appear for unknown players.
 - Scores and winners appear in National Finals when entered.
 - Group and Wildcard feeds do not expose private rows.
@@ -85,6 +87,7 @@ The current website supports:
 
 - Group/lobby-style feeds.
 - Wildcard using the group/lobby parser.
+- Custom group lobby progression rendering.
 - 16-player National Finals match bracket.
 
 Future formats may need:

@@ -4,7 +4,7 @@ Last updated: 2026-07-03
 
 ## Purpose
 
-The website reads only public published CSV feeds from the Legion Wars Google Sheets workbook. It renders viewer-facing bracket tabs, match cards, scores, winners, and qualifier status.
+The website reads only public published CSV feeds from the Legion Wars Google Sheets workbook. It renders viewer-facing tabs, group lobby progression, Wildcard pool state, National Finals match cards, scores, winners, and qualifier status.
 
 The website must not embed the sheet or show raw tables.
 
@@ -56,13 +56,14 @@ The parser anchors on each `Player N` column, then reads the next three cells as
 
 ## Stage Column
 
-`Stage` groups rows into selectable bracket rounds.
+`Stage` groups rows into lobby progression rounds.
 
 Examples:
 
 - `Round of 64`
 - `Round of 32`
-- `Quarterfinals`
+- `Round of 16`
+- `Round of 8`
 - `Wildcard`
 
 If a `Stage` cell is blank, the row belongs to the most recent non-blank stage above it. The website normalizes the current typo `Wildcart` to `Wildcard`.
@@ -90,6 +91,8 @@ For each lobby:
 Tournament flow:
 
 - Titan, Nexus, and Dominion each progress through lobby rounds.
+- Group tabs are not classic single-elimination brackets.
+- Public group visuals use `Round 1`, `Round 2`, `Round 3`, and `Round 4`, regardless of older sheet labels such as `Quarterfinals`.
 - Top two from each lobby advance during group progression.
 - The group route stage is `Round of 8` in the current sheet. It may also be labeled `Round Four` or `Round 4`.
 - The group route stage has two lobbies per group.
@@ -98,6 +101,23 @@ Tournament flow:
 - Wildcard produces four National Finals qualifiers.
 
 If the dedicated Wildcard tab is still empty, the website can still show the Wildcard pool by deriving the 12 candidates from Titan, Nexus, and Dominion Round of 8 rows.
+
+## Public Visual IDs
+
+Group lobby IDs are rendered as:
+
+```text
+{GROUP}_R{ROUND}_L{LOBBY}
+```
+
+Examples:
+
+- `Titan_R1_L1`
+- `Titan_R4_L2`
+- `Nexus_R3_L2`
+- `Dominion_R4_L2`
+
+Wildcard slots are shown as last-chance pool entries and four `WQ` National Finals slots.
 
 ## National Finals Schema
 
@@ -122,6 +142,8 @@ National Finals is a 16-player single-elimination bracket:
 - 12 direct group qualifiers.
 - 4 wildcard qualifiers.
 - Round of 16, Quarterfinals, Semifinals, Grand Final.
+
+Only National Finals should use classic bracket labels such as Quarterfinals, Semifinals, Grand Final, and Champion.
 
 ## Public Data Boundary
 

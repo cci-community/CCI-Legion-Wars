@@ -8,6 +8,7 @@ Last updated: 2026-07-03
 2. How should the app consume a multi-tab published workbook safely?
 3. What architecture is production-ready without adding unnecessary backend, Discord, broadcast, or admin scope?
 4. What remains blocked before Firebase live hosting can be claimed complete?
+5. How should group lobbies be visualized without mislabeling them as single-elimination brackets?
 
 ## Verified Workbook State
 
@@ -63,6 +64,8 @@ Decision for this version:
 - Keep a custom lightweight renderer.
 - Reason: the current site is static, small, and only needs public bracket display from sheet feeds.
 - Avoid adding a full tournament-management data model until admin editing, persistent results, or more complex tournament formats are required.
+- Do not force Titan, Nexus, or Dominion into a head-to-head bracket library because they are four-player lobby progression rounds.
+- Keep classic Round of 16, Quarterfinals, Semifinals, and Grand Final labels only in National Finals.
 
 ## Public UI Decision
 
@@ -73,6 +76,8 @@ Public page should show:
 - Legion Wars branding.
 - Current bracket status.
 - Feed tabs.
+- Group lobby progression.
+- Wildcard pool and Finals slots.
 - Player names.
 - City/state/legion region if public-safe.
 - Scores.
@@ -147,3 +152,14 @@ Tournament rule clarified after implementation:
 - Third/fourth from both lobbies represent group placements 5th-8th and enter Wildcard.
 
 The parser supports this current label plus `Round Four`, `Round 4`, and `Round of Eight`.
+
+## Group Visual Correction
+
+Group tabs now render:
+
+- Round 1: 16 lobbies, 64 players, top 2 advance.
+- Round 2: 8 lobbies, 32 players, top 2 advance.
+- Round 3: 4 lobbies, 16 players, top 2 advance.
+- Round 4: 2 lobbies, 8 players, first/second go to Finals and third/fourth go to Wildcard.
+
+Stable public IDs follow `{GROUP}_R{ROUND}_L{LOBBY}`, for example `Titan_R4_L1`.

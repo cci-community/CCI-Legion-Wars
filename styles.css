@@ -29,6 +29,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -713,6 +717,265 @@ h1 {
   padding: 22px;
 }
 
+.bracket-rounds[data-view="group"],
+.bracket-rounds[data-view="wildcard"] {
+  display: grid;
+  min-width: 0;
+  width: 100%;
+}
+
+.bracket-rounds[data-view="group"] {
+  grid-template-columns: repeat(4, minmax(244px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.progression-round {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.progression-round__head {
+  display: grid;
+  gap: 6px;
+  min-height: 104px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.045);
+  padding: 14px;
+}
+
+.progression-round__head h3,
+.wildcard-panel h3 {
+  margin: 0;
+  color: var(--paper);
+  font-family: "Barlow Condensed", Inter, sans-serif;
+  font-size: 1.7rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.progression-round__head p,
+.wildcard-panel p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.progression-round__metrics {
+  display: grid;
+  gap: 7px;
+  border: 1px solid rgba(84, 198, 216, 0.18);
+  border-radius: var(--radius);
+  background: rgba(84, 198, 216, 0.055);
+  padding: 12px;
+}
+
+.progression-round__metrics span,
+.progression-round__metrics strong {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.progression-round__metrics strong {
+  color: var(--text);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.progression-lobby-rail,
+.wildcard-pool-grid,
+.wildcard-slot-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.progression-lobby-card,
+.wildcard-slot {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 12px;
+}
+
+.progression-lobby-card--empty {
+  min-height: 132px;
+  align-content: center;
+  border-style: dashed;
+  color: var(--muted-2);
+}
+
+.progression-lobby-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.progression-lobby-card__id,
+.wildcard-slot__seed {
+  min-width: 0;
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.progression-lobby-card__status {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--muted);
+  padding: 4px 7px;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.progression-lobby-card__source,
+.progression-lobby-card__empty {
+  margin: 0;
+  color: var(--muted-2);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.progression-player-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.progression-player-list li {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 8px;
+}
+
+.progression-player-list li[data-state="qualified"] {
+  border-color: rgba(104, 211, 145, 0.48);
+  background: rgba(104, 211, 145, 0.08);
+}
+
+.progression-player-list li[data-state="wildcard"] {
+  border-color: rgba(245, 176, 76, 0.48);
+  background: rgba(245, 176, 76, 0.08);
+}
+
+.progression-player-list li[data-state="eliminated"] {
+  opacity: 0.72;
+}
+
+.progression-player-list strong {
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
+.progression-player-list__details {
+  display: grid;
+  min-width: 0;
+}
+
+.progression-player-list__details span,
+.progression-player-list__details small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progression-player-list__details span {
+  color: var(--paper);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.progression-player-list__details small {
+  color: var(--muted-2);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.progression-player-list em,
+.wildcard-slot em {
+  justify-self: end;
+  color: var(--muted-2);
+  font-size: 0.64rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.progression-player-list li[data-state="qualified"] em,
+.wildcard-slot[data-state="qualified"] em {
+  color: var(--green);
+}
+
+.progression-player-list li[data-state="wildcard"] em {
+  color: var(--amber);
+}
+
+.wildcard-view {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(260px, 0.72fr);
+  gap: 16px;
+  width: 100%;
+}
+
+.wildcard-panel {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.035);
+  padding: 16px;
+}
+
+.wildcard-pool-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.wildcard-slot {
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.wildcard-slot strong,
+.wildcard-slot small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wildcard-slot small {
+  color: var(--muted-2);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
 .bracket-round {
   display: flex;
   flex: 0 0 280px;
@@ -1004,6 +1267,16 @@ h1 {
     padding: 16px;
   }
 
+  .bracket-rounds[data-view="group"],
+  .wildcard-view,
+  .wildcard-pool-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .progression-round__head {
+    min-height: auto;
+  }
+
   .bracket-round,
   .bracket-round:nth-child(2),
   .bracket-round:nth-child(3),
@@ -1033,6 +1306,24 @@ h1 {
 
   .legend {
     justify-content: flex-start;
+  }
+
+  .progression-player-list li {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .progression-player-list em {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .wildcard-slot {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .wildcard-slot em {
+    grid-column: 2;
+    justify-self: start;
   }
 }
 
