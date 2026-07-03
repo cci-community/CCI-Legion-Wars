@@ -2,7 +2,7 @@
 
 Production public bracket viewer for Legion Wars.
 
-The site now uses the Lovable React/TanStack UI structure as the frontend shell, wired to the existing public Google Sheets runtime from this production repo. Lovable mock data is not production truth.
+The site uses a React/TanStack tournament UI shell wired to the existing public Google Sheets runtime from this production repo. Sample data is not production truth.
 
 ## Scope
 
@@ -15,7 +15,7 @@ The public site does not expose private tabs, raw Sheets embeds, Discord operati
 
 ## Features
 
-- Lovable-style React UI: overview map, tactical tabs, group progression, Wildcard pool, Finals bracket, command palette, drawers, and mobile tab bar.
+- React tournament UI: overview map, tactical tabs, group progression, Wildcard pool, Finals bracket, command palette, drawers, and mobile tab bar.
 - Preserved multi-feed sheet fetch/cache/fallback behavior.
 - Preserved group/lobby parser, National Finals parser, Wildcard derivation, public-data safety, and workbook gids.
 - Public player names, city/region values when safe, ranks, scores, winners, and pending/ready/live/final states.
@@ -55,7 +55,7 @@ Google Sheets CSV feeds
   -> src/data/sheet-config.js
   -> src/data/sheet-data.js
   -> src/lib/live-tournament-data.ts adapter
-  -> Lovable React/TanStack components
+  -> React/TanStack tournament components
   -> Vite dist/
   -> Firebase Hosting
 ```
@@ -63,8 +63,8 @@ Google Sheets CSV feeds
 Key files:
 
 - `src/routes/index.tsx`: public app shell, tabs, refresh, overview/finals/group/wildcard routing.
-- `src/components/tournament/*`: Lovable tournament UI components.
-- `src/lib/live-tournament-data.ts`: adapter from production sheet parser output to Lovable UI shapes.
+- `src/components/tournament/*`: tournament UI components.
+- `src/lib/live-tournament-data.ts`: adapter from production sheet parser output to UI shapes.
 - `src/data/sheet-config.js`: public workbook id, gids, cache timings.
 - `src/data/sheet-data.js`: preserved public CSV parser/cache/fallback runtime.
 - `firebase.json`: Hosting config for `dist` with SPA rewrite.

@@ -4,7 +4,7 @@ Last updated: 2026-07-03
 
 ## Objective
 
-Maintain a public Legion Wars bracket viewer that looks and behaves like the Lovable React app while using the existing production Google Sheets runtime as the source of truth.
+Maintain a public Legion Wars bracket viewer that uses the production React/TanStack app while keeping the existing Google Sheets runtime as the source of truth.
 
 Out of scope:
 
@@ -27,7 +27,7 @@ Browser
   -> published Google Sheets CSV feeds
 ```
 
-The app is a static Firebase Hosting site. It does not require Functions, Firestore, Auth, a backend API, or Lovable mock data.
+The app is a static Firebase Hosting site. It does not require Functions, Firestore, Auth, a backend API, or production sample data.
 
 ## Runtime Data Flow
 
@@ -37,8 +37,8 @@ The app is a static Firebase Hosting site. It does not require Functions, Firest
 4. The hook calls the preserved `loadTournamentFeeds()` function from `src/data/sheet-data.js`.
 5. `sheet-data.js` fetches the five configured public CSV feeds from `src/data/sheet-config.js`.
 6. Feed CSV is cached in `localStorage` using the existing cache/fallback behavior.
-7. `live-tournament-data.ts` adapts parser output into Lovable UI shapes.
-8. Lovable tournament components render overview, group progression, Wildcard, Finals, command palette, drawers, and mobile tabs.
+7. `live-tournament-data.ts` adapts parser output into UI shapes.
+8. Tournament components render overview, group progression, Wildcard, Finals, command palette, drawers, and mobile tabs.
 9. Refresh bypasses the short cache window; auto refresh runs while the page is visible and online.
 
 ## File Ownership
@@ -46,10 +46,10 @@ The app is a static Firebase Hosting site. It does not require Functions, Firest
 - `index.html`: Vite SPA shell, SEO metadata, logo favicon, font links.
 - `src/main.tsx`: React bootstrap and TanStack Router provider.
 - `src/routes/index.tsx`: public page composition, view tabs, refresh state, URL search state.
-- `src/components/tournament/*`: Lovable tournament UI components.
-- `src/lib/tournament-data.ts`: Lovable UI TypeScript contracts and public-safe placeholder state.
+- `src/components/tournament/*`: tournament UI components.
+- `src/lib/tournament-data.ts`: UI TypeScript contracts and public-safe placeholder state.
 - `src/lib/tournament-helpers.ts`: search/drawer helpers over current tournament state.
-- `src/lib/live-tournament-data.ts`: production adapter from sheet parser output to Lovable UI contracts.
+- `src/lib/live-tournament-data.ts`: production adapter from sheet parser output to UI contracts.
 - `src/data/sheet-config.js`: generated public workbook id, gids, CSV URLs, cache timing.
 - `src/data/sheet-data.js`: preserved CSV parser, feed loaders, group parser, finals parser, cache/fallback logic.
 - `firebase.json`: Firebase Hosting static config for `dist`.
@@ -125,7 +125,7 @@ Excluded:
 
 ## UI Architecture
 
-The public page uses the Lovable UI structure:
+The public page uses the tournament UI structure:
 
 - Overview tournament map.
 - Tactical top tab rail.
@@ -138,7 +138,7 @@ The public page uses the Lovable UI structure:
 - Mobile bottom tab bar.
 - Per-stage accent themes.
 
-The implementation keeps the Lovable visual system but replaces mock data with the live adapter.
+The implementation keeps the current visual system and replaces sample data with the live adapter.
 
 ## Hosting Architecture
 

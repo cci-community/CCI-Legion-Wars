@@ -6,11 +6,11 @@ Last updated: 2026-07-03
 
 This document records the production UI layer for the public Legion Wars bracket viewer.
 
-The production UI is migrated to the Lovable React/TanStack app structure. Lovable mock data is not used as production truth; live public data flows through `src/lib/live-tournament-data.ts`.
+The production UI uses the React/TanStack app structure. Sample data is not used as production truth; live public data flows through `src/lib/live-tournament-data.ts`.
 
 ## Visual Direction
 
-The public page uses the Lovable esports bracket system:
+The public page uses the esports bracket UI system:
 
 - Dark tactical background.
 - Slab/skew cards.
@@ -72,7 +72,7 @@ The UI must not display:
 
 Desktop:
 
-- Overview, Finals, group, and Wildcard views render in Lovable tactical layouts.
+- Overview, Finals, group, and Wildcard views render in tactical tournament layouts.
 - Group views use four progression columns.
 - Finals uses bracket columns with champion column.
 - Command palette opens from header, `/`, or `Ctrl/Cmd+K`.
@@ -88,7 +88,7 @@ Mobile:
 ## Maintenance Rules
 
 - Do not reintroduce the old vanilla DOM renderer.
-- Do not replace `src/data/sheet-data.js` with Lovable mock data.
+- Do not replace `src/data/sheet-data.js` with sample data.
 - Keep public copy short and viewer-facing.
 - Keep technical details in docs, not the homepage.
 - Run `npm run check` and `npm run build` after UI or parser changes.
