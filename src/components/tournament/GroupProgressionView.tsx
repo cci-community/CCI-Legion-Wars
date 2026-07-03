@@ -82,7 +82,7 @@ export function GroupProgressionView({
             style={{ background: `var(${accentVar})` }}
           />
           <div className="absolute right-6 top-4 hidden font-mono text-[10px] tracking-widest text-muted-foreground/40 sm:block">
-            SYSTEM_STATUS: NOMINAL // DIVISION: {group.label.toUpperCase()}
+            PUBLIC VIEW // {group.label.toUpperCase()}
           </div>
           <div className="relative flex flex-wrap items-end justify-between gap-6 px-4 py-5 sm:px-6 sm:py-6">
             <div className="min-w-0 space-y-2">
@@ -217,7 +217,7 @@ export function GroupProgressionView({
                   {round.lobbies.length === 0 && (
                     <div className="flex h-40 flex-col items-center justify-center gap-2 border border-dashed border-border/60 clip-chamfer-sm">
                       <span className="text-tactical text-[9px] text-muted-foreground/50">
-                        Pending Bracket
+                        Awaiting bracket data
                       </span>
                     </div>
                   )}
@@ -228,7 +228,7 @@ export function GroupProgressionView({
                         style={{ color: `var(${accentVar})` }}
                       />
                       <span className="text-tactical text-[9px] text-muted-foreground/70">
-                        Awaiting Next Match
+                        Awaiting next lobby
                       </span>
                     </div>
                   )}

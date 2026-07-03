@@ -57,7 +57,7 @@ export function FinalsBracketView({
       <div className="relative overflow-hidden border border-border/70 bg-surface-1/60 slash-band">
         <div className="absolute inset-y-0 left-0 w-[3px] bg-finals" />
         <div className="absolute right-6 top-4 hidden font-mono text-[10px] tracking-widest text-muted-foreground/40 sm:block">
-          SYSTEM_STATUS: NOMINAL // BRACKET_TYPE: SINGLE_ELIM
+          PUBLIC VIEW // NATIONAL FINALS
         </div>
         <div className="relative flex flex-wrap items-end justify-between gap-6 px-4 py-5 sm:px-6 sm:py-6">
           <div className="min-w-0 space-y-2">

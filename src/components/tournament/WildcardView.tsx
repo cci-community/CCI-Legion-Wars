@@ -84,7 +84,7 @@ export function WildcardView({
       <div className="flex items-center gap-3 border-l-2 border-wildcard/70 bg-wildcard-soft/30 px-4 py-2.5">
         <span className="h-2 w-2 bg-wildcard" />
         <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-          <span className="font-bold text-foreground">Draw Pending</span>
+          <span className="font-bold text-foreground">Wildcard pending</span>
           <span className="mx-2 text-muted-foreground/40">·</span>
           Bracket locks once all three groups complete Round 04
         </div>

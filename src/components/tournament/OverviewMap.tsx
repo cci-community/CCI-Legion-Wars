@@ -16,8 +16,11 @@ function groupProgress(g: GroupView) {
   const roundIdx = g.progression.rounds.findIndex((r) =>
     r.lobbies.some((l) => l.status === "Live" || l.status === "Ready"),
   );
-  const activeRound = roundIdx >= 0 ? roundIdx : g.progression.rounds.length - 1;
-  return { decided, total, activeRound, pct: Math.round((decided / total) * 100) };
+  const firstDecidedRound = g.progression.rounds.findIndex((r) =>
+    r.lobbies.some((l) => l.players.some((p) => p.state !== "pending")),
+  );
+  const activeRound = roundIdx >= 0 ? roundIdx : firstDecidedRound >= 0 ? firstDecidedRound : 0;
+  return { decided, total, activeRound, pct: total ? Math.round((decided / total) * 100) : 0 };
 }
 
 export function OverviewMap({
@@ -34,6 +37,11 @@ export function OverviewMap({
   ];
 
   const finalsMatches = data.finalsView.bracket.rounds.reduce((a, r) => a + r.matches.length, 0);
+  const groupProgressRows = groups.map((group) => ({
+    ...group,
+    progress: groupProgress(group.data),
+  }));
+  const listedPlayers = groupProgressRows.reduce((total, group) => total + group.progress.total, 0);
 
   return (
     <div className="fade-in space-y-6">
@@ -41,7 +49,7 @@ export function OverviewMap({
       <div className="relative overflow-hidden border border-border/70 bg-surface-1/60 slash-band">
         <div className="absolute inset-y-0 left-0 w-[3px] bg-foreground" />
         <div className="absolute right-6 top-4 hidden font-mono text-[10px] tracking-widest text-muted-foreground/40 sm:block">
-          SYSTEM_STATUS: NOMINAL // MAP_TYPE: TOURNAMENT_FLOW
+          PUBLIC VIEW // TOURNAMENT ROUTE
         </div>
         <div className="relative flex flex-wrap items-end justify-between gap-6 px-4 py-5 sm:px-6 sm:py-6">
           <div className="min-w-0 space-y-2">
@@ -60,7 +68,7 @@ export function OverviewMap({
           </div>
           <div className="flex items-stretch border border-border/70 bg-surface-0/60 slab-shadow">
             <HStat label="Stages" value="04" />
-            <HStat label="Players" value="192" border />
+            <HStat label="Players" value={String(listedPlayers || "—")} border />
             <HStat label="Finalists" value="16" border accent="text-finals" />
             <HStat label="Champion" value="01" border />
           </div>
@@ -69,10 +77,14 @@ export function OverviewMap({
 
       {/* Group tier */}
       <section className="space-y-3">
-        <StageLabel n="01" title="Group Stage" sub="192 players · 3 divisions · 4 rounds" />
+        <StageLabel
+          n="01"
+          title="Group Stage"
+          sub={`${listedPlayers || "—"} public players · 3 divisions · 4 rounds`}
+        />
         <div className="grid gap-4 md:grid-cols-3">
-          {groups.map((g) => {
-            const p = groupProgress(g.data);
+          {groupProgressRows.map((g) => {
+            const p = g.progress;
             return (
               <button
                 key={g.key}

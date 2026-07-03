@@ -65,6 +65,8 @@ const TABS: {
   { key: "wildcard", label: "Wildcard", accent: "wildcard" },
 ];
 
+const AUTO_SYNC_SECONDS = 120;
+
 function useAggStats(data: TournamentData) {
   return useMemo(() => {
     let advancing = 0;
@@ -104,6 +106,13 @@ function useAggStats(data: TournamentData) {
       totalMatches,
     };
   }, [data]);
+}
+
+function formatDuration(totalSeconds: number) {
+  if (totalSeconds < 60) return `${totalSeconds}s`;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return seconds ? `${minutes}m ${seconds}s` : `${minutes}m`;
 }
 
 function Index() {
@@ -192,12 +201,33 @@ function Index() {
     : 0;
   void clockTick;
 
-  const syncInSeconds = Math.max(0, Math.ceil((120 - updatedSeconds) / 1));
-  const syncLabel = error
-    ? "SYNC WARNING"
+  const syncInSeconds = data.meta.fetchedAt
+    ? Math.max(0, AUTO_SYNC_SECONDS - updatedSeconds)
+    : AUTO_SYNC_SECONDS;
+  const syncStatus = error
+    ? "Sync issue"
     : isLoading
-      ? "LOADING"
-      : data.meta.message.toUpperCase();
+      ? "Loading brackets"
+      : isRefreshing
+        ? "Refreshing"
+        : data.meta.mode === "live"
+          ? "Live data"
+          : data.meta.mode === "cached"
+            ? "Cached data"
+            : data.meta.mode === "stale"
+              ? "Stale data"
+              : data.meta.mode === "fallback"
+                ? "Fallback view"
+                : data.meta.message;
+  const syncSummary = data.meta.fetchedAt
+    ? `Updated ${formatDuration(updatedSeconds)} ago`
+    : "Waiting for public feeds";
+  const nextSyncLabel = `Next refresh ${formatDuration(syncInSeconds)}`;
+  const syncTone = error
+    ? "border-live/50 bg-live/10 text-live"
+    : data.meta.mode === "live"
+      ? "border-advance/45 bg-advance/10 text-advance"
+      : "border-border bg-surface-1/85 text-muted-foreground";
 
   const doRefresh = async () => {
     await refresh();
@@ -232,17 +262,34 @@ function Index() {
             </div>
             <div className="min-w-0 leading-tight">
               <h1 className="truncate text-display text-[18px] uppercase tracking-tight text-white">
-                Legion Wars
+                Legion Wars <span className="text-finals">2026</span>
               </h1>
-              <div className="flex items-center gap-1.5 text-tactical text-[9px] text-muted-foreground">
-                <span>S01</span>
-                <span className="opacity-40">//</span>
-                <span>Public Bracket</span>
+              <div className="flex min-w-0 items-center gap-1.5 text-tactical text-[9px] text-muted-foreground">
+                <span className="truncate">Official public bracket viewer</span>
+                <span className="hidden opacity-40 sm:inline">//</span>
+                <span className="hidden sm:inline">CCI Volunteer Legion</span>
               </div>
             </div>
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
+            <div
+              className={cn(
+                "hidden min-w-0 items-center gap-2 px-3 py-1.5 md:flex clip-chamfer-sm",
+                syncTone,
+              )}
+            >
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 shrink-0",
+                  error ? "bg-live" : data.meta.mode === "live" ? "bg-advance" : "bg-finals",
+                )}
+              />
+              <span className="text-tactical text-[9px] text-foreground">{syncStatus}</span>
+              <span className="hidden font-mono text-[10px] text-muted-foreground/75 lg:inline">
+                {syncSummary}
+              </span>
+            </div>
             <button
               onClick={() => setPaletteOpen(true)}
               className="hidden items-center gap-2 border border-border bg-surface-1 px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:border-border-strong hover:bg-surface-2 hover:text-foreground sm:flex clip-chamfer-sm"
@@ -270,13 +317,13 @@ function Index() {
         </header>
 
         {/* Stats bar — slab rail */}
-        <div className="relative mt-3 grid grid-cols-3 gap-0 overflow-hidden border border-border bg-surface-1 clip-chamfer-sm">
+        <div className="relative mt-4 grid grid-cols-2 gap-0 overflow-hidden border border-border bg-surface-1 clip-chamfer-sm sm:grid-cols-4">
           <span
             aria-hidden
             className="absolute left-0 top-0 h-full w-[3px] bg-[color:var(--tab-accent)]/70"
           />
           <StatCell
-            label="Total Players"
+            label="Players Listed"
             value={stats.totalPlayers}
             accentBar="var(--muted-foreground)"
             border
@@ -292,6 +339,12 @@ function Index() {
             label="Eliminated"
             value={stats.eliminated}
             accentBar="var(--eliminated, var(--muted-foreground))"
+            border
+          />
+          <StatCell
+            label="Finals Matches"
+            value={`${stats.decidedMatches}/${stats.totalMatches}`}
+            accentBar="var(--finals)"
           />
         </div>
 
@@ -371,19 +424,24 @@ function Index() {
           )}
         </main>
 
-        <footer className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-border py-4 text-[10px] text-muted-foreground">
-          <div className="flex items-center gap-2 text-tactical">
+        <footer className="mt-7 grid gap-3 border-t border-border/80 py-4 text-[10px] text-muted-foreground sm:grid-cols-[1fr_auto] sm:items-center">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-tactical">
             <span className="h-1.5 w-1.5 bg-[color:var(--tab-accent)]" />
-            <span>LEGION WARS · S01</span>
+            <span>CCI VOLUNTEER LEGION</span>
             <span className="opacity-40">//</span>
-            <span>PUBLIC BRACKET</span>
+            <span>LEGION WARS 2026</span>
+            <span className="opacity-40">//</span>
+            <span>PUBLIC BRACKET VIEWER</span>
+            <span className="opacity-40">//</span>
+            <span>PUBLIC FEEDS ONLY</span>
           </div>
-          <div className="flex items-center gap-2 text-tactical">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-tactical sm:justify-end">
             <Radio className="h-3 w-3" />
-            <span>
-              {syncLabel} · UPDATED {String(updatedSeconds).padStart(2, "0")}s AGO · SYNC IN{" "}
-              {String(syncInSeconds).padStart(2, "0")}s
-            </span>
+            <span>{syncStatus}</span>
+            <span className="opacity-40">//</span>
+            <span>{syncSummary}</span>
+            <span className="opacity-40">//</span>
+            <span>{nextSyncLabel}</span>
           </div>
         </footer>
       </div>
@@ -420,7 +478,7 @@ function StatCell({
   border,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   accent?: string;
   accentBar?: string;
   border?: boolean;
