@@ -35,6 +35,7 @@ const requiredIds = [
   "sheetUpdated",
   "refreshSheetButton",
   "feedTabs",
+  "tournamentOverview",
   "stageSelect"
 ];
 
@@ -60,6 +61,10 @@ if (indexHtml.includes("rulesList") || appJs.includes("rulesList") || appJs.incl
 
 if (!/type="module" src="\.\/app\.js(\?v=[^"]+)?"/u.test(indexHtml)) {
   errors.push("index.html must load app.js as an ES module");
+}
+
+if (!indexHtml.includes("favicon.png") || !indexHtml.includes('rel="icon"')) {
+  errors.push("index.html must expose the Legion Wars logo as a favicon asset");
 }
 
 const requiredCopyrightFiles = [
@@ -143,6 +148,10 @@ if (!appHasAutoRefresh()) {
 
 if (!appJs.includes("renderGroupProgression") || !appJs.includes("renderWildcardProgression")) {
   errors.push("app.js must render custom group progression and Wildcard pool views");
+}
+
+if (!appJs.includes("renderTournamentOverview") || !appJs.includes("FEED_THEMES")) {
+  errors.push("app.js must render a compact tournament overview strip with feed accent themes");
 }
 
 if (appJs.includes("renderBracket(activeFeed.bracket)")) {
@@ -330,6 +339,10 @@ if (derivedWildcard?.lobbies?.length !== 3) {
   errors.push(`Derived Wildcard pool expected one card per group, received ${derivedWildcard?.lobbies?.length}`);
 }
 
+if (!derivedWildcard?.progression?.rounds?.[0]?.lobbies?.some((lobby) => lobby.id === "Wildcard_M1")) {
+  errors.push("Wildcard pool must expose stable compact ids such as Wildcard_M1");
+}
+
 if (derivedWildcard?.progression?.type !== "wildcard" || derivedWildcard.progression.finalSlots?.length !== 4) {
   errors.push("Wildcard feed must expose a 12-player pool view with four National Finals slots");
 }
@@ -353,6 +366,13 @@ if (finalsFeed.bracket.rounds[0].matches[0].status !== "final") {
 
 if (!finalsFeed.bracket.rounds[0].matches[0].entrants[0].winner) {
   errors.push("Finals parser must preserve winner state from the Winner column");
+}
+
+const finalsMatchIds = new Set(finalsFeed.bracket.rounds.flatMap((round) => round.matches.map((match) => match.id)));
+for (const expectedId of ["Finals_R16_M1", "Finals_QF_M1", "Finals_SF_M1", "Finals_GF_M1"]) {
+  if (!finalsMatchIds.has(expectedId)) {
+    errors.push(`Finals parser must expose stable match id ${expectedId}`);
+  }
 }
 
 if (wildcardTypoFeed.meta.stage !== "Wildcard") {

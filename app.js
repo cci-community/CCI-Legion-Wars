@@ -1,21 +1,30 @@
 // Copyright (c) 2026 CCI Volunteer Legion and ATLNO.exe.
 // Runtime rule: render public sheet-derived qualifier data only; do not expose hidden player data.
 
-import { tournament as fallbackTournament } from "./data/bracket-data.js?v=20260703-lobby-progression";
-import { sheetConfig } from "./data/sheet-config.js?v=20260703-lobby-progression";
-import { loadTournamentFeeds } from "./data/sheet-data.js?v=20260703-lobby-progression";
+import { tournament as fallbackTournament } from "./data/bracket-data.js?v=20260703-favicon-overview";
+import { sheetConfig } from "./data/sheet-config.js?v=20260703-favicon-overview";
+import { loadTournamentFeeds } from "./data/sheet-data.js?v=20260703-favicon-overview";
 
 const statusGrid = document.querySelector("#statusGrid");
 const lobbyGrid = document.querySelector("#lobbyGrid");
 const bracketRounds = document.querySelector("#bracketRounds");
+const bracketSection = document.querySelector("#bracket");
 const bracketPhase = document.querySelector("#bracketPhase");
 const bracketMode = document.querySelector("#bracketMode");
 const sheetStatus = document.querySelector("#sheetStatus");
 const sheetUpdated = document.querySelector("#sheetUpdated");
 const refreshSheetButton = document.querySelector("#refreshSheetButton");
 const feedTabs = document.querySelector("#feedTabs");
+const tournamentOverview = document.querySelector("#tournamentOverview");
 const stageSelect = document.querySelector("#stageSelect");
 const stageSelectLabel = document.querySelector('label[for="stageSelect"]');
+const FEED_THEMES = {
+  "national-finals": "finals",
+  "group-titan": "titan",
+  "group-nexus": "nexus",
+  "group-dominion": "dominion",
+  wildcard: "wildcard"
+};
 const stageSelections = {};
 let activeFeedId = sheetConfig.feeds?.[0]?.id ?? "";
 let workbookFeeds = [];
@@ -28,6 +37,16 @@ function createElement(tag, className, text) {
   if (className) element.className = className;
   if (text !== undefined) element.textContent = text;
   return element;
+}
+
+function getFeedTheme(feed) {
+  return FEED_THEMES[feed?.id] ?? (feed?.type === "finals" ? "finals" : "titan");
+}
+
+function applyFeedTheme(feed) {
+  const theme = getFeedTheme(feed);
+  document.body.dataset.feedTheme = theme;
+  if (bracketSection) bracketSection.dataset.feedTheme = theme;
 }
 
 function getWinnerIndex(entrants) {
@@ -111,13 +130,77 @@ function renderFeedTabs(feeds) {
     button.type = "button";
     button.id = `tab-${feed.id}`;
     button.dataset.feedId = feed.id;
+    button.dataset.theme = getFeedTheme(feed);
     button.setAttribute("role", "tab");
     button.setAttribute("aria-controls", "bracket");
     button.setAttribute("aria-selected", feed.id === activeFeedId ? "true" : "false");
+    button.setAttribute("aria-label", `${feed.label} bracket`);
     fragment.append(button);
   });
 
   feedTabs.replaceChildren(fragment);
+}
+
+function renderTournamentOverview(feeds, activeFeed) {
+  if (!tournamentOverview) return;
+  const groups = feeds.filter((feed) => feed.type === "group");
+  const wildcard = feeds.find((feed) => feed.type === "wildcard");
+  const finals = feeds.find((feed) => feed.type === "finals");
+  const directCount = groups.reduce((count, feed) => count + (feed.meta?.directNationalCount ?? 0), 0);
+  const wildcardPoolCount = wildcard?.meta?.wildcardPoolCount ?? 0;
+  const finalsCount = finals?.meta?.qualifiedCount ?? 0;
+  const groupTarget = groups[0]?.id ?? "group-titan";
+  const finalsTarget = finals?.id ?? "national-finals";
+  const steps = [
+    {
+      key: "groups",
+      label: `${groups.length || 3} Groups`,
+      detail: directCount ? `${directCount}/12 direct` : "R1-R4",
+      theme: "titan",
+      feedId: groupTarget,
+      active: activeFeed?.type === "group"
+    },
+    {
+      key: "wildcard",
+      label: "Wildcard",
+      detail: wildcardPoolCount ? `${wildcardPoolCount}/12 pool` : "12 to 4",
+      theme: "wildcard",
+      feedId: wildcard?.id ?? "wildcard",
+      active: activeFeed?.type === "wildcard"
+    },
+    {
+      key: "finals",
+      label: "National Finals",
+      detail: finalsCount ? `${finalsCount}/16 slots` : "16-player",
+      theme: "finals",
+      feedId: finalsTarget,
+      active: activeFeed?.type === "finals"
+    },
+    {
+      key: "champion",
+      label: "Champion",
+      detail: "Grand Final",
+      theme: "finals",
+      feedId: finalsTarget,
+      active: false
+    }
+  ];
+  const fragment = document.createDocumentFragment();
+
+  steps.forEach((step) => {
+    const button = createElement("button", "overview-step");
+    button.type = "button";
+    button.dataset.overviewStep = step.key;
+    button.dataset.theme = step.theme;
+    button.dataset.feedId = step.feedId;
+    button.dataset.active = step.active ? "true" : "false";
+    button.setAttribute("aria-pressed", step.active ? "true" : "false");
+    button.append(createElement("strong", "", step.label));
+    button.append(createElement("span", "", step.detail));
+    fragment.append(button);
+  });
+
+  tournamentOverview.replaceChildren(fragment);
 }
 
 function renderSlot(entrant, winner) {
@@ -259,8 +342,10 @@ function renderWildcardProgression(feed) {
 
   const shell = createElement("div", "wildcard-view");
   const pool = createElement("section", "wildcard-panel wildcard-panel--pool");
+  const paths = createElement("section", "wildcard-panel wildcard-panel--paths");
   const finals = createElement("section", "wildcard-panel wildcard-panel--finals");
   const poolGrid = createElement("div", "wildcard-pool-grid");
+  const pathGrid = createElement("div", "wildcard-path-grid");
   const slotGrid = createElement("div", "wildcard-slot-grid");
 
   pool.append(createElement("h3", "", "12-player pool"));
@@ -275,6 +360,17 @@ function renderWildcardProgression(feed) {
   }
   pool.append(poolGrid);
 
+  paths.append(createElement("h3", "", "Bracket paths"));
+  paths.append(createElement("p", "", "Pending sheet data"));
+  ["Winners path", "Elimination path"].forEach((label) => {
+    const card = createElement("article", "wildcard-path-card");
+    card.dataset.state = "pending";
+    card.append(createElement("strong", "", label));
+    card.append(createElement("span", "", "Pending"));
+    pathGrid.append(card);
+  });
+  paths.append(pathGrid);
+
   finals.append(createElement("h3", "", "Finals slots"));
   finals.append(createElement("p", "", "Top 4 advance"));
   (progression.finalSlots ?? []).forEach((slot) => {
@@ -282,7 +378,7 @@ function renderWildcardProgression(feed) {
   });
   finals.append(slotGrid);
 
-  shell.append(pool, finals);
+  shell.append(pool, paths, finals);
   bracketRounds.replaceChildren(shell);
 }
 
@@ -365,8 +461,10 @@ function renderActiveFeed(meta = { mode: "fallback", message: "Using fallback da
   const activeFeed = workbookFeeds.find((feed) => feed.id === activeFeedId) ?? workbookFeeds[0] ?? dashboardTournament;
   if (activeFeed?.id) activeFeedId = activeFeed.id;
 
+  applyFeedTheme(activeFeed);
   renderStatus(activeFeed.status ?? dashboardTournament.status);
   renderFeedTabs(workbookFeeds);
+  renderTournamentOverview(workbookFeeds, activeFeed);
   renderLobbies(activeFeed.lobbies ?? []);
   renderBracketView(activeFeed);
   renderStageSelect(activeFeed);
@@ -442,6 +540,17 @@ function startAutoRefresh() {
   });
 }
 
+function activateFeed(feedId) {
+  if (!feedId) return;
+  activeFeedId = feedId;
+  const selectedFeed = workbookFeeds.find((feed) => feed.id === activeFeedId);
+  renderActiveFeed({
+    mode: hasAttemptedSheetSync ? "cached" : "fallback",
+    message: hasAttemptedSheetSync ? "Showing selected bracket." : "Fallback bracket loaded.",
+    fetchedAt: selectedFeed?.meta?.fetchedAt ?? null
+  });
+}
+
 function formatDate(value) {
   return new Intl.DateTimeFormat("en-IN", {
     dateStyle: "medium",
@@ -471,12 +580,13 @@ refreshSheetButton?.addEventListener("click", () => {
 feedTabs?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-feed-id]");
   if (!button) return;
-  activeFeedId = button.dataset.feedId;
-  renderActiveFeed({
-    mode: hasAttemptedSheetSync ? "cached" : "fallback",
-    message: hasAttemptedSheetSync ? "Showing selected bracket." : "Fallback bracket loaded.",
-    fetchedAt: workbookFeeds.find((feed) => feed.id === activeFeedId)?.meta?.fetchedAt ?? null
-  });
+  activateFeed(button.dataset.feedId);
+});
+
+tournamentOverview?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-feed-id]");
+  if (!button) return;
+  activateFeed(button.dataset.feedId);
 });
 
 stageSelect?.addEventListener("change", (event) => {

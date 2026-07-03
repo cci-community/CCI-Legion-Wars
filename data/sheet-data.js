@@ -37,7 +37,7 @@ const GROUP_ROUND_SPECS = [
     title: "Round 4",
     players: 8,
     lobbies: 2,
-    advance: "1st-2nd Finals / 3rd-4th Wildcard",
+    advance: "Top 4 Finals / 5th-8th Wildcard",
     result: "4 Finals + 4 Wildcard"
   }
 ];
@@ -50,6 +50,12 @@ const FINALS_ROUND_TITLES = new Map([
   ["semifinals", "Semifinals"],
   ["grand final", "Grand Final"],
   ["final", "Grand Final"]
+]);
+const FINALS_ROUND_CODES = new Map([
+  ["Round of 16", "R16"],
+  ["Quarterfinals", "QF"],
+  ["Semifinals", "SF"],
+  ["Grand Final", "GF"]
 ]);
 const GROUP_ROUTE_STAGE_NAMES = new Set(["round of 8", "round 8", "round four", "round 4", "round of eight"]);
 
@@ -221,8 +227,10 @@ export function buildFinalsFeedFromCsv(csvText, feedConfig, fallbackTournament, 
 
     let round = rounds.find((candidate) => candidate.title === roundName);
     if (!round) {
+      const roundCode = finalsRoundCode(roundName);
       round = {
-        id: slugify(roundName),
+        id: `finals-${roundCode.toLowerCase()}`,
+        code: roundCode,
         title: roundName,
         matches: []
       };
@@ -254,7 +262,7 @@ export function buildFinalsFeedFromCsv(csvText, feedConfig, fallbackTournament, 
     ];
 
     round.matches.push({
-      id: `${round.id}-${slugify(matchLabel)}`,
+      id: finalsMatchId(round.code, matchLabel, round.matches.length),
       label: matchLabel,
       status: matchStatus,
       bestOf: roundName === "Grand Final" ? 5 : 3,
@@ -594,7 +602,7 @@ function normalizeProgressionLobby(lobby, feedConfig, spec, index) {
 function normalizeWildcardPoolCard(lobby, index) {
   return {
     ...lobby,
-    id: lobby.id?.startsWith("Wildcard_") ? lobby.id : `Wildcard_L${index + 1}`,
+    id: `Wildcard_M${index + 1}`,
     name: lobby.name ?? `Wildcard Pool ${index + 1}`,
     players: (lobby.players ?? []).map((player) => ({
       ...player,
@@ -608,9 +616,9 @@ function wildcardPlaceholderPool() {
   return Array.from({ length: 3 }, (_, poolIndex) => {
     const start = poolIndex * 4 + 1;
     return {
-      id: `Wildcard_Pool_${poolIndex + 1}`,
+      id: `Wildcard_M${poolIndex + 1}`,
       name: `Wildcard Pool ${poolIndex + 1}`,
-      summary: "Awaiting group 5th-8th placements",
+      summary: "Awaiting Round 4 5th-8th placements",
       status: "Awaiting result",
       players: Array.from({ length: 4 }, (_, offset) => {
         const slot = start + offset;
@@ -659,7 +667,7 @@ function wildcardPoolCard(feed) {
   return {
     id: feed.shortLabel ?? feed.label,
     name: `${feed.shortLabel ?? feed.label} Wildcard`,
-    summary: "Round of 8 placements 5th-8th",
+    summary: "Round 4 placements 5th-8th",
     status: candidates.length >= 4 ? "Pool ready" : "Awaiting result",
     players: candidates.map((candidate, index) => ({
       seed: candidate.seed ?? `${feed.shortLabel ?? feed.label}-W${index + 1}`,
@@ -1135,6 +1143,20 @@ function groupRoundTitle(entrantCount) {
 function roundTitle(value) {
   const text = cleanText(value);
   return FINALS_ROUND_TITLES.get(text.toLowerCase()) ?? text;
+}
+
+function finalsRoundCode(roundName) {
+  return FINALS_ROUND_CODES.get(roundName) ?? slugify(roundName).toUpperCase();
+}
+
+function finalsMatchId(roundCode, matchLabel, fallbackIndex) {
+  const matchNumber = extractMatchNumber(matchLabel) ?? fallbackIndex + 1;
+  return `Finals_${roundCode}_M${matchNumber}`;
+}
+
+function extractMatchNumber(value) {
+  const match = cleanText(value).match(/(\d+)$/);
+  return match ? Number.parseInt(match[1], 10) : null;
 }
 
 function nextPowerOfTwo(value) {
