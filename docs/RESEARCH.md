@@ -20,13 +20,13 @@ Public workbook id:
 
 Direct CSV checks succeeded for:
 
-| Feed | gid | Observed state |
-| --- | --- | --- |
-| National Finals | `126700734` | Header is `Round, Match, Player A, Score, Player B, Score, Winner`; rows are pending placeholders. |
-| Group Titan | `1994318444` | Group/lobby schema; contains `#REF!` cells. |
-| Group Nexus | `612483539` | Group/lobby schema; contains `#REF!` cells. |
-| Group Dominion | `945411688` | Group/lobby schema; contains `#REF!` cells. |
-| Wildcard | `1564963263` | Group/lobby schema; current stage label is `Wildcart`. |
+| Feed            | gid          | Observed state                                                                                     |
+| --------------- | ------------ | -------------------------------------------------------------------------------------------------- |
+| National Finals | `126700734`  | Header is `Round, Match, Player A, Score, Player B, Score, Winner`; rows are pending placeholders. |
+| Group Titan     | `1994318444` | Group/lobby schema; contains `#REF!` cells.                                                        |
+| Group Nexus     | `612483539`  | Group/lobby schema; contains `#REF!` cells.                                                        |
+| Group Dominion  | `945411688`  | Group/lobby schema; contains `#REF!` cells.                                                        |
+| Wildcard        | `1564963263` | Group/lobby schema; current stage label is `Wildcart`.                                             |
 
 Implementation response:
 

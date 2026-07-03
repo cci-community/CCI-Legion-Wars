@@ -1,11 +1,21 @@
 // Copyright (c) 2026 CCI Volunteer Legion and ATLNO.exe.
 // This module intentionally derives only public qualifier/bracket state from published sheet tabs.
 
-const TRUTHY_QUALIFIER_VALUES = new Set(["1", "yes", "y", "true", "qualified", "qualify", "winner", "win", "w"]);
+const TRUTHY_QUALIFIER_VALUES = new Set([
+  "1",
+  "yes",
+  "y",
+  "true",
+  "qualified",
+  "qualify",
+  "winner",
+  "win",
+  "w",
+]);
 const GROUP_ROUND_BY_ENTRANT_COUNT = new Map([
   [2, "Grand Final"],
   [4, "Semifinals"],
-  [8, "Quarterfinals"]
+  [8, "Quarterfinals"],
 ]);
 const GROUP_ROUND_SPECS = [
   {
@@ -14,7 +24,7 @@ const GROUP_ROUND_SPECS = [
     players: 64,
     lobbies: 16,
     advance: "Top 2 advance",
-    result: "32 advance"
+    result: "32 advance",
   },
   {
     number: 2,
@@ -22,7 +32,7 @@ const GROUP_ROUND_SPECS = [
     players: 32,
     lobbies: 8,
     advance: "Top 2 advance",
-    result: "16 advance"
+    result: "16 advance",
   },
   {
     number: 3,
@@ -30,7 +40,7 @@ const GROUP_ROUND_SPECS = [
     players: 16,
     lobbies: 4,
     advance: "Top 2 advance",
-    result: "8 advance"
+    result: "8 advance",
   },
   {
     number: 4,
@@ -38,8 +48,8 @@ const GROUP_ROUND_SPECS = [
     players: 8,
     lobbies: 2,
     advance: "Top 4 Finals / 5th-8th Wildcard",
-    result: "4 Finals + 4 Wildcard"
-  }
+    result: "4 Finals + 4 Wildcard",
+  },
 ];
 const FINALS_ROUND_TITLES = new Map([
   ["ro16", "Round of 16"],
@@ -49,15 +59,21 @@ const FINALS_ROUND_TITLES = new Map([
   ["semifinal", "Semifinals"],
   ["semifinals", "Semifinals"],
   ["grand final", "Grand Final"],
-  ["final", "Grand Final"]
+  ["final", "Grand Final"],
 ]);
 const FINALS_ROUND_CODES = new Map([
   ["Round of 16", "R16"],
   ["Quarterfinals", "QF"],
   ["Semifinals", "SF"],
-  ["Grand Final", "GF"]
+  ["Grand Final", "GF"],
 ]);
-const GROUP_ROUTE_STAGE_NAMES = new Set(["round of 8", "round 8", "round four", "round 4", "round of eight"]);
+const GROUP_ROUTE_STAGE_NAMES = new Set([
+  "round of 8",
+  "round 8",
+  "round four",
+  "round 4",
+  "round of eight",
+]);
 
 export function parseCsv(csvText) {
   const rows = [];
@@ -103,17 +119,34 @@ export function parseCsv(csvText) {
   return rows;
 }
 
-export function buildTournamentFromSheet(csvText, fallbackTournament, fetchedAt = new Date(), requestedStageName = "") {
-  return buildGroupFeedFromCsv(csvText, {
-    id: "legacy-group",
-    label: "Google Sheet",
-    shortLabel: "Sheet",
-    type: "group",
-    summary: "Public qualifier slots from the published sheet"
-  }, fallbackTournament, fetchedAt, requestedStageName);
+export function buildTournamentFromSheet(
+  csvText,
+  fallbackTournament,
+  fetchedAt = new Date(),
+  requestedStageName = "",
+) {
+  return buildGroupFeedFromCsv(
+    csvText,
+    {
+      id: "legacy-group",
+      label: "Google Sheet",
+      shortLabel: "Sheet",
+      type: "group",
+      summary: "Public qualifier slots from the published sheet",
+    },
+    fallbackTournament,
+    fetchedAt,
+    requestedStageName,
+  );
 }
 
-export function buildGroupFeedFromCsv(csvText, feedConfig, fallbackTournament, fetchedAt = new Date(), requestedStageName = "") {
+export function buildGroupFeedFromCsv(
+  csvText,
+  feedConfig,
+  fallbackTournament,
+  fetchedAt = new Date(),
+  requestedStageName = "",
+) {
   const rows = parseCsv(csvText);
   if (rows.length < 2) {
     throw new Error(`${feedConfig.label} did not include enough rows to build a bracket.`);
@@ -134,41 +167,50 @@ export function buildGroupFeedFromCsv(csvText, feedConfig, fallbackTournament, f
   const availableStages = parsedStages.map((stage) => ({
     name: stage.name,
     lobbyCount: stage.lobbies.length,
-    qualifierCount: countStageQualifiers(stage)
+    qualifierCount: countStageQualifiers(stage),
   }));
   const lobbies = activeStage.lobbies.map((lobby) => normalizeLobby(lobby, feedConfig));
-  const progression = feedConfig.type === "wildcard" ?
-    buildWildcardProgression(lobbies, activeStage, feedConfig) :
-    buildGroupProgression(parsedStages, feedConfig);
+  const progression =
+    feedConfig.type === "wildcard"
+      ? buildWildcardProgression(lobbies, activeStage, feedConfig)
+      : buildGroupProgression(parsedStages, feedConfig);
   const bracket = buildGroupBracket(lobbies, activeStage.name, feedConfig);
   const qualifiedCount = lobbies.reduce((count, lobby) => {
     return count + lobby.qualifiers.filter((qualifier) => !qualifier.pending).length;
   }, 0);
   const expectedCount = lobbies.length * 2;
-  const routeStage = feedConfig.type === "group" ? chooseGroupRouteStage(parsedStages) : activeStage;
+  const routeStage =
+    feedConfig.type === "group" ? chooseGroupRouteStage(parsedStages) : activeStage;
   const rankedPlayers = rankedStagePlayers(routeStage);
   const routeCounts = calculateRouteCounts(routeStage, qualifiedCount, feedConfig);
-  const routeCandidates = feedConfig.type === "group" ? extractGroupRouteCandidates(routeStage, feedConfig) : {
-    directCandidates: [],
-    wildcardCandidates: []
-  };
+  const routeCandidates =
+    feedConfig.type === "group"
+      ? extractGroupRouteCandidates(routeStage, feedConfig)
+      : {
+          directCandidates: [],
+          wildcardCandidates: [],
+        };
   const directNationalCount = routeCounts.directNationalCount;
   const wildcardCount = routeCounts.wildcardCount;
   const nationalCount = routeCounts.nationalCount;
-  const wildcardPoolCount = feedConfig.type === "wildcard" ? countPublicPlayers(activeStage) : wildcardCount;
+  const wildcardPoolCount =
+    feedConfig.type === "wildcard" ? countPublicPlayers(activeStage) : wildcardCount;
   const visibleProgressCount = feedConfig.type === "wildcard" ? nationalCount : qualifiedCount;
   const visibleExpectedCount = feedConfig.type === "wildcard" ? 4 : expectedCount;
-  const status = feedConfig.type === "wildcard" ? [
-    { label: "Feed", value: feedConfig.shortLabel ?? feedConfig.label },
-    { label: "Stage", value: activeStage.name },
-    { label: "Pool", value: `${wildcardPoolCount}/12` },
-    { label: "Final slots", value: `${visibleProgressCount}/${visibleExpectedCount}` }
-  ] : [
-    { label: "Feed", value: feedConfig.shortLabel ?? feedConfig.label },
-    { label: "Stage", value: activeStage.name },
-    { label: "Advancing", value: `${qualifiedCount}/${expectedCount}` },
-    { label: "Route", value: `${routeStageLabel(routeStage.name)}: Top 4 / 5-8` }
-  ];
+  const status =
+    feedConfig.type === "wildcard"
+      ? [
+          { label: "Feed", value: feedConfig.shortLabel ?? feedConfig.label },
+          { label: "Stage", value: activeStage.name },
+          { label: "Pool", value: `${wildcardPoolCount}/12` },
+          { label: "Final slots", value: `${visibleProgressCount}/${visibleExpectedCount}` },
+        ]
+      : [
+          { label: "Feed", value: feedConfig.shortLabel ?? feedConfig.label },
+          { label: "Stage", value: activeStage.name },
+          { label: "Advancing", value: `${qualifiedCount}/${expectedCount}` },
+          { label: "Route", value: `${routeStageLabel(routeStage.name)}: Top 4 / 5-8` },
+        ];
 
   return {
     ...fallbackTournament,
@@ -202,12 +244,17 @@ export function buildGroupFeedFromCsv(csvText, feedConfig, fallbackTournament, f
       wildcardCandidates: routeCandidates.wildcardCandidates,
       wildcardPoolCount,
       expectedWildcardPoolCount: feedConfig.type === "wildcard" ? 12 : undefined,
-      summary: feedConfig.summary
-    }
+      summary: feedConfig.summary,
+    },
   };
 }
 
-export function buildFinalsFeedFromCsv(csvText, feedConfig, fallbackTournament, fetchedAt = new Date()) {
+export function buildFinalsFeedFromCsv(
+  csvText,
+  feedConfig,
+  fallbackTournament,
+  fetchedAt = new Date(),
+) {
   const rows = parseCsv(csvText);
   if (rows.length < 2) {
     throw new Error(`${feedConfig.label} did not include enough rows to build finals.`);
@@ -222,7 +269,9 @@ export function buildFinalsFeedFromCsv(csvText, feedConfig, fallbackTournament, 
     const roundCell = cleanText(row[columns.round]);
     if (roundCell) currentRound = roundCell;
     const roundName = roundTitle(currentRound);
-    const matchLabel = cleanText(row[columns.match]) || `Match ${rounds.reduce((count, round) => count + round.matches.length, 0) + 1}`;
+    const matchLabel =
+      cleanText(row[columns.match]) ||
+      `Match ${rounds.reduce((count, round) => count + round.matches.length, 0) + 1}`;
     if (!roundName || !matchLabel) return;
 
     let round = rounds.find((candidate) => candidate.title === roundName);
@@ -232,7 +281,7 @@ export function buildFinalsFeedFromCsv(csvText, feedConfig, fallbackTournament, 
         id: `finals-${roundCode.toLowerCase()}`,
         code: roundCode,
         title: roundName,
-        matches: []
+        matches: [],
       };
       rounds.push(round);
     }
@@ -243,22 +292,28 @@ export function buildFinalsFeedFromCsv(csvText, feedConfig, fallbackTournament, 
     const scoreB = parseScore(row[columns.scoreB]);
     const winner = normalizeName(row[columns.winner]);
     const hasScore = Number.isInteger(scoreA) || Number.isInteger(scoreB);
-    const matchStatus = winner ? "final" : (playerA === "Awaiting qualifier" || playerB === "Awaiting qualifier" ? "pending" : (hasScore ? "live" : "ready"));
+    const matchStatus = winner
+      ? "final"
+      : playerA === "Awaiting qualifier" || playerB === "Awaiting qualifier"
+        ? "pending"
+        : hasScore
+          ? "live"
+          : "ready";
     const entrants = [
       {
         seed: "A",
         name: playerA,
         score: scoreA,
         pending: playerA === "Awaiting qualifier",
-        winner: namesMatch(playerA, winner)
+        winner: namesMatch(playerA, winner),
       },
       {
         seed: "B",
         name: playerB,
         score: scoreB,
         pending: playerB === "Awaiting qualifier",
-        winner: namesMatch(playerB, winner)
-      }
+        winner: namesMatch(playerB, winner),
+      },
     ];
 
     round.matches.push({
@@ -268,7 +323,7 @@ export function buildFinalsFeedFromCsv(csvText, feedConfig, fallbackTournament, 
       bestOf: roundName === "Grand Final" ? 5 : 3,
       feed: winner ? `Winner: ${winner}` : "Winner advances",
       starts: roundName,
-      entrants
+      entrants,
     });
   });
 
@@ -293,12 +348,12 @@ export function buildFinalsFeedFromCsv(csvText, feedConfig, fallbackTournament, 
       { label: "Feed", value: "National Finals" },
       { label: "Format", value: "16-player final" },
       { label: "Rounds", value: `${rounds.length}` },
-      { label: "Players", value: `${entrantNames.size}/${feedConfig.finalistSlots ?? 16}` }
+      { label: "Players", value: `${entrantNames.size}/${feedConfig.finalistSlots ?? 16}` },
     ],
     bracket: {
       phase: "National Finals",
       mode: "16-player single elimination",
-      rounds
+      rounds,
     },
     lobbies: finalistCards(entrantNames, pendingSlots),
     meta: {
@@ -316,36 +371,59 @@ export function buildFinalsFeedFromCsv(csvText, feedConfig, fallbackTournament, 
       nationalCount: entrantNames.size,
       wildcardCount: 0,
       directNationalCount: Math.min(12, entrantNames.size),
-      summary: feedConfig.summary
-    }
+      summary: feedConfig.summary,
+    },
   };
 }
 
-export async function loadTournamentFeeds({ config, fallbackTournament, force = false, stageSelections = {} }) {
-  const results = await Promise.all(config.feeds.map(async (feed) => {
-    return loadFeed({ config, feed, fallbackTournament, force, stageName: stageSelections[feed.id] ?? "" });
-  }));
+export async function loadTournamentFeeds({
+  config,
+  fallbackTournament,
+  force = false,
+  stageSelections = {},
+}) {
+  const results = await Promise.all(
+    config.feeds.map(async (feed) => {
+      return loadFeed({
+        config,
+        feed,
+        fallbackTournament,
+        force,
+        stageName: stageSelections[feed.id] ?? "",
+      });
+    }),
+  );
   const feeds = applyDerivedWildcardPool(results.map((result) => result.tournament));
   return {
     tournament: buildWorkbookTournament(feeds, fallbackTournament),
     feeds,
-    meta: mergeFeedMeta(results)
+    meta: mergeFeedMeta(results),
   };
 }
 
-export async function loadTournamentFromSheet({ config, fallbackTournament, force = false, stageName = "" }) {
+export async function loadTournamentFromSheet({
+  config,
+  fallbackTournament,
+  force = false,
+  stageName = "",
+}) {
   if (Array.isArray(config.feeds) && config.feeds.length) {
-    const result = await loadTournamentFeeds({ config, fallbackTournament, force, stageSelections: { [config.feeds[0].id]: stageName } });
+    const result = await loadTournamentFeeds({
+      config,
+      fallbackTournament,
+      force,
+      stageSelections: { [config.feeds[0].id]: stageName },
+    });
     return {
       tournament: result.feeds[0] ?? result.tournament,
-      meta: result.meta
+      meta: result.meta,
     };
   }
   const legacyFeed = {
     id: "legacy-feed",
     label: config.sourceLabel ?? "Google Sheet",
     type: "group",
-    csvUrl: config.csvUrl
+    csvUrl: config.csvUrl,
   };
   return loadFeed({ config, feed: legacyFeed, fallbackTournament, force, stageName });
 }
@@ -358,13 +436,19 @@ async function loadFeed({ config, feed, fallbackTournament, force = false, stage
 
   if (!force && cacheIsFresh) {
     return {
-      tournament: buildFeedFromCsv(cache.csvText, feed, fallbackTournament, new Date(cache.fetchedAt), stageName),
+      tournament: buildFeedFromCsv(
+        cache.csvText,
+        feed,
+        fallbackTournament,
+        new Date(cache.fetchedAt),
+        stageName,
+      ),
       meta: {
         mode: "cached",
         message: "Showing recent bracket data.",
         fetchedAt: cache.fetchedAt,
-        feedId: feed.id
-      }
+        feedId: feed.id,
+      },
     };
   }
 
@@ -374,7 +458,7 @@ async function loadFeed({ config, feed, fallbackTournament, force = false, stage
     writeCache(cacheKey, {
       csvText,
       fetchedAt: fetchedAt.toISOString(),
-      savedAt: now
+      savedAt: now,
     });
 
     return {
@@ -383,19 +467,25 @@ async function loadFeed({ config, feed, fallbackTournament, force = false, stage
         mode: "live",
         message: "Brackets updated.",
         fetchedAt: fetchedAt.toISOString(),
-        feedId: feed.id
-      }
+        feedId: feed.id,
+      },
     };
   } catch (error) {
     if (cache?.csvText) {
       return {
-        tournament: buildFeedFromCsv(cache.csvText, feed, fallbackTournament, new Date(cache.fetchedAt), stageName),
+        tournament: buildFeedFromCsv(
+          cache.csvText,
+          feed,
+          fallbackTournament,
+          new Date(cache.fetchedAt),
+          stageName,
+        ),
         meta: {
           mode: "stale",
           message: `Showing saved ${feed.shortLabel ?? feed.label} data. Refresh failed.`,
           fetchedAt: cache.fetchedAt,
-          feedId: feed.id
-        }
+          feedId: feed.id,
+        },
       };
     }
 
@@ -410,21 +500,22 @@ async function loadFeed({ config, feed, fallbackTournament, force = false, stage
           sourceLabel: feed.label,
           feedId: feed.id,
           feedType: feed.type,
-          fetchedAt: null
-        }
+          fetchedAt: null,
+        },
       },
       meta: {
         mode: "fallback",
         message: `Showing fallback ${feed.shortLabel ?? feed.label} bracket.`,
         fetchedAt: null,
-        feedId: feed.id
-      }
+        feedId: feed.id,
+      },
     };
   }
 }
 
 function buildFeedFromCsv(csvText, feed, fallbackTournament, fetchedAt, stageName) {
-  if (feed.type === "finals") return buildFinalsFeedFromCsv(csvText, feed, fallbackTournament, fetchedAt);
+  if (feed.type === "finals")
+    return buildFinalsFeedFromCsv(csvText, feed, fallbackTournament, fetchedAt);
   return buildGroupFeedFromCsv(csvText, feed, fallbackTournament, fetchedAt, stageName);
 }
 
@@ -446,7 +537,7 @@ function applyDerivedWildcardPool(feeds) {
       { label: "Feed", value: wildcard.shortLabel ?? wildcard.label },
       { label: "Stage", value: "Wildcard Pool" },
       { label: "Pool", value: `${candidates.length}/12` },
-      { label: "Final slots", value: `${wildcard.meta?.nationalCount ?? 0}/4` }
+      { label: "Final slots", value: `${wildcard.meta?.nationalCount ?? 0}/4` },
     ],
     lobbies: candidateCards,
     progression: buildWildcardProgression(candidateCards, { name: "Wildcard Pool" }, wildcard),
@@ -456,19 +547,20 @@ function applyDerivedWildcardPool(feeds) {
       derivedFromGroups: true,
       wildcardPoolCount: candidates.length,
       expectedWildcardPoolCount: 12,
-      wildcardCandidates: candidates
-    }
+      wildcardCandidates: candidates,
+    },
   };
 
-  return feeds.map((feed) => feed.id === wildcard.id ? enhancedWildcard : feed);
+  return feeds.map((feed) => (feed.id === wildcard.id ? enhancedWildcard : feed));
 }
 
 function buildGroupProgression(stages, feedConfig) {
   const groupName = publicGroupName(feedConfig);
   const rounds = GROUP_ROUND_SPECS.map((spec) => {
     const stage = findStageForGroupRound(stages, spec.number);
+    const rankMode = spec.number === 4 && hasGlobalWildcardPlacements(stage) ? "global" : "local";
     const lobbies = (stage?.lobbies ?? []).map((lobby, index) => {
-      return normalizeProgressionLobby(lobby, feedConfig, spec, index);
+      return normalizeProgressionLobby(lobby, feedConfig, spec, index, rankMode);
     });
 
     return {
@@ -479,7 +571,7 @@ function buildGroupProgression(stages, feedConfig) {
       expectedLobbies: spec.lobbies,
       advance: spec.advance,
       result: spec.result,
-      lobbies
+      lobbies,
     };
   });
 
@@ -487,41 +579,45 @@ function buildGroupProgression(stages, feedConfig) {
     type: "group",
     phase: groupName,
     mode: "Lobby progression",
-    rounds
+    rounds,
   };
 }
 
 function buildWildcardProgression(lobbies, activeStage, feedConfig) {
   const pool = lobbies.flatMap((lobby) => lobby.players ?? []);
-  const poolLobbies = pool.length ?
-    lobbies.map((lobby, index) => normalizeWildcardPoolCard(lobby, index)) :
-    wildcardPlaceholderPool();
+  const poolLobbies = pool.length
+    ? lobbies.map((lobby, index) => normalizeWildcardPoolCard(lobby, index))
+    : wildcardPlaceholderPool();
   const qualifiers = pool
     .filter((player) => {
-      return (Number.isInteger(player.rank) && player.rank >= 1 && player.rank <= 4) || player.qualified;
+      return (
+        (Number.isInteger(player.rank) && player.rank >= 1 && player.rank <= 4) || player.qualified
+      );
     })
     .sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99))
     .slice(0, 4);
 
   const finalSlots = Array.from({ length: 4 }, (_, index) => {
     const player = qualifiers[index];
-    return player ? {
-      seed: `WQ${index + 1}`,
-      name: player.name,
-      city: player.city,
-      placement: index + 1,
-      pending: false,
-      state: "qualified",
-      stateLabel: "Finals"
-    } : {
-      seed: `WQ${index + 1}`,
-      name: "Awaiting qualifier",
-      city: "",
-      placement: index + 1,
-      pending: true,
-      state: "pending",
-      stateLabel: "Pending"
-    };
+    return player
+      ? {
+          seed: `WQ${index + 1}`,
+          name: player.name,
+          city: player.city,
+          placement: index + 1,
+          pending: false,
+          state: "qualified",
+          stateLabel: "Finals",
+        }
+      : {
+          seed: `WQ${index + 1}`,
+          name: "Awaiting qualifier",
+          city: "",
+          placement: index + 1,
+          pending: true,
+          state: "pending",
+          stateLabel: "Pending",
+        };
   });
 
   return {
@@ -541,9 +637,9 @@ function buildWildcardProgression(lobbies, activeStage, feedConfig) {
         expectedLobbies: 3,
         advance: "Top 4 advance",
         result: "4 Finals slots",
-        lobbies: poolLobbies
-      }
-    ]
+        lobbies: poolLobbies,
+      },
+    ],
   };
 }
 
@@ -571,13 +667,13 @@ function inferGroupRoundNumber(stage) {
     [16, 1],
     [8, 2],
     [4, 3],
-    [2, 4]
+    [2, 4],
   ]);
 
   return byLobbyCount.get(stage?.lobbies?.length) ?? null;
 }
 
-function normalizeProgressionLobby(lobby, feedConfig, spec, index) {
+function normalizeProgressionLobby(lobby, feedConfig, spec, index, rankMode = "local") {
   const normalized = normalizeLobby(lobby, feedConfig);
   const lobbyNumber = extractLobbyNumber(lobby.name, lobby.id) ?? index + 1;
   const publicId = `${publicGroupName(feedConfig)}_R${spec.number}_L${lobbyNumber}`;
@@ -589,13 +685,13 @@ function normalizeProgressionLobby(lobby, feedConfig, spec, index) {
     sourceName: lobby.name,
     summary: spec.advance,
     players: normalized.players.map((player) => {
-      const state = groupPlayerState(player, spec.number);
+      const state = groupPlayerState(player, spec.number, rankMode);
       return {
         ...player,
         state,
-        stateLabel: groupPlayerStateLabel(state, spec.number)
+        stateLabel: groupPlayerStateLabel(state, spec.number),
       };
-    })
+    }),
   };
 }
 
@@ -606,9 +702,17 @@ function normalizeWildcardPoolCard(lobby, index) {
     name: lobby.name ?? `Wildcard Pool ${index + 1}`,
     players: (lobby.players ?? []).map((player) => ({
       ...player,
-      state: player.pending ? "pending" : (player.qualified || (Number.isInteger(player.rank) && player.rank <= 4) ? "qualified" : "wildcard"),
-      stateLabel: player.pending ? "Pending" : (player.qualified || (Number.isInteger(player.rank) && player.rank <= 4) ? "Finals" : "Pool")
-    }))
+      state: player.pending
+        ? "pending"
+        : player.qualified || (Number.isInteger(player.rank) && player.rank <= 4)
+          ? "qualified"
+          : "wildcard",
+      stateLabel: player.pending
+        ? "Pending"
+        : player.qualified || (Number.isInteger(player.rank) && player.rank <= 4)
+          ? "Finals"
+          : "Pool",
+    })),
   };
 }
 
@@ -630,19 +734,24 @@ function wildcardPlaceholderPool() {
           qualified: false,
           pending: true,
           state: "pending",
-          stateLabel: "Pending"
+          stateLabel: "Pending",
         };
       }),
-      qualifiers: []
+      qualifiers: [],
     };
   });
 }
 
-function groupPlayerState(player, roundNumber) {
+function groupPlayerState(player, roundNumber, rankMode = "local") {
   if (!player.qualified && !Number.isInteger(player.rank)) return "pending";
 
   if (roundNumber === 4) {
     if (player.qualified && !Number.isInteger(player.rank)) return "qualified";
+    if (rankMode === "global") {
+      if (player.rank >= 1 && player.rank <= 4) return "qualified";
+      if (player.rank >= 5 && player.rank <= 8) return "wildcard";
+      return "eliminated";
+    }
     if (player.rank >= 1 && player.rank <= 2) return "qualified";
     if (player.rank >= 3 && player.rank <= 4) return "wildcard";
     return "eliminated";
@@ -660,6 +769,12 @@ function groupPlayerStateLabel(state, roundNumber) {
   return "Pending";
 }
 
+function hasGlobalWildcardPlacements(stage) {
+  if (!stage) return false;
+  const globalWildcardCount = countUniqueGlobalPlacements(rankedStagePlayers(stage), 5, 8);
+  return Number.isInteger(globalWildcardCount) && globalWildcardCount > 0;
+}
+
 function wildcardPoolCard(feed) {
   const candidates = feed.meta?.wildcardCandidates ?? [];
   if (!candidates.length) return null;
@@ -675,12 +790,22 @@ function wildcardPoolCard(feed) {
       city: candidate.city,
       rank: candidate.placement,
       qualified: false,
-      pending: false
+      pending: false,
     })),
     qualifiers: [
-      { seed: `${feed.shortLabel ?? feed.label}-W1`, name: "Awaiting wildcard result", placement: 1, pending: true },
-      { seed: `${feed.shortLabel ?? feed.label}-W2`, name: "Awaiting wildcard result", placement: 2, pending: true }
-    ]
+      {
+        seed: `${feed.shortLabel ?? feed.label}-W1`,
+        name: "Awaiting wildcard result",
+        placement: 1,
+        pending: true,
+      },
+      {
+        seed: `${feed.shortLabel ?? feed.label}-W2`,
+        name: "Awaiting wildcard result",
+        placement: 2,
+        pending: true,
+      },
+    ],
   };
 }
 
@@ -688,7 +813,10 @@ function buildWorkbookTournament(feeds, fallbackTournament) {
   const finals = feeds.find((feed) => feed.type === "finals");
   const groups = feeds.filter((feed) => feed.type === "group");
   const wildcard = feeds.find((feed) => feed.type === "wildcard");
-  const directCount = groups.reduce((count, feed) => count + (feed.meta?.directNationalCount ?? 0), 0);
+  const directCount = groups.reduce(
+    (count, feed) => count + (feed.meta?.directNationalCount ?? 0),
+    0,
+  );
   const wildcardFinalCount = wildcard?.meta?.nationalCount ?? 0;
   const finalsCount = finals?.meta?.qualifiedCount ?? 0;
 
@@ -698,7 +826,7 @@ function buildWorkbookTournament(feeds, fallbackTournament) {
       { label: "Feeds", value: `${feeds.length} public tabs` },
       { label: "Groups", value: `${groups.length}` },
       { label: "Finalists", value: `${finalsCount}/16` },
-      { label: "Wildcard", value: `${wildcardFinalCount}/4` }
+      { label: "Wildcard", value: `${wildcardFinalCount}/4` },
     ],
     bracket: finals?.bracket ?? fallbackTournament.bracket,
     lobbies: finals?.lobbies ?? fallbackTournament.lobbies,
@@ -709,24 +837,33 @@ function buildWorkbookTournament(feeds, fallbackTournament) {
       feedCount: feeds.length,
       directNationalCount: directCount,
       wildcardFinalCount,
-      finalsCount
-    }
+      finalsCount,
+    },
   };
 }
 
 function mergeFeedMeta(results) {
-  const failed = results.filter((result) => result.meta.mode === "fallback" || result.meta.mode === "stale");
-  const latest = results
-    .map((result) => result.meta.fetchedAt)
-    .filter(Boolean)
-    .sort()
-    .at(-1) ?? null;
+  const failed = results.filter(
+    (result) => result.meta.mode === "fallback" || result.meta.mode === "stale",
+  );
+  const latest =
+    results
+      .map((result) => result.meta.fetchedAt)
+      .filter(Boolean)
+      .sort()
+      .at(-1) ?? null;
   return {
-    mode: failed.length ? (failed.length === results.length ? "fallback" : "stale") : (results.some((result) => result.meta.mode === "cached") ? "cached" : "live"),
-    message: failed.length ?
-      `${results.length - failed.length}/${results.length} feeds updated; ${failed.length} using saved data.` :
-      "Brackets updated.",
-    fetchedAt: latest
+    mode: failed.length
+      ? failed.length === results.length
+        ? "fallback"
+        : "stale"
+      : results.some((result) => result.meta.mode === "cached")
+        ? "cached"
+        : "live",
+    message: failed.length
+      ? `${results.length - failed.length}/${results.length} feeds updated; ${failed.length} using saved data.`
+      : "Brackets updated.",
+    fetchedAt: latest,
   };
 }
 
@@ -765,7 +902,7 @@ function parseGroupStages(rows, playerColumns) {
       id: extractLobbyId(lobbyName),
       name: lobbyName,
       summary: "Qualifier slots",
-      players
+      players,
     });
   });
 
@@ -786,7 +923,7 @@ function readPlayerSlot(row, index, slot) {
     city,
     rank,
     qualified,
-    qualifiedText
+    qualifiedText,
   };
 }
 
@@ -798,14 +935,18 @@ function chooseActiveStage(stages, requestedStageName = "") {
   }
 
   const stagesWithQualifiers = stages.filter((stage) => {
-    return stage.lobbies.some((lobby) => lobby.players.some((player) => player.qualified || player.rank));
+    return stage.lobbies.some((lobby) =>
+      lobby.players.some((player) => player.qualified || player.rank),
+    );
   });
   return stagesWithQualifiers.at(-1) ?? stages[0];
 }
 
 function countStageQualifiers(stage) {
   return stage.lobbies.reduce((total, lobby) => {
-    return total + lobby.players.filter((player) => player.qualified || player.rank !== null).length;
+    return (
+      total + lobby.players.filter((player) => player.qualified || player.rank !== null).length
+    );
   }, 0);
 }
 
@@ -820,7 +961,7 @@ function extractGroupRouteCandidates(stage, feedConfig) {
   if (!stage) {
     return {
       directCandidates: [],
-      wildcardCandidates: []
+      wildcardCandidates: [],
     };
   }
 
@@ -850,7 +991,7 @@ function extractGroupRouteCandidates(stage, feedConfig) {
         }
 
         if (player.rank >= 3 && player.rank <= 4) {
-          const placement = 5 + (lobbyIndex * 2) + (player.rank - 3);
+          const placement = 5 + lobbyIndex * 2 + (player.rank - 3);
           wildcardCandidates.push(routeCandidate(player, feedConfig, lobby, placement));
         }
       });
@@ -858,7 +999,7 @@ function extractGroupRouteCandidates(stage, feedConfig) {
 
   return {
     directCandidates: directCandidates.sort((a, b) => a.placement - b.placement),
-    wildcardCandidates: wildcardCandidates.sort((a, b) => a.placement - b.placement)
+    wildcardCandidates: wildcardCandidates.sort((a, b) => a.placement - b.placement),
   };
 }
 
@@ -870,14 +1011,16 @@ function routeCandidate(player, feedConfig, lobby, placement) {
     name: player.name,
     city: player.city,
     rank: player.rank,
-    placement
+    placement,
   };
 }
 
 function chooseGroupRouteStage(stages) {
-  return stages.find((stage) => isGroupRouteStage(stage.name)) ??
+  return (
+    stages.find((stage) => isGroupRouteStage(stage.name)) ??
     stages.find((stage) => stage.lobbies.length === 2) ??
-    stages.at(-1);
+    stages.at(-1)
+  );
 }
 
 function isGroupRouteStage(stageName) {
@@ -895,29 +1038,36 @@ function calculateRouteCounts(stage, qualifiedCount, feedConfig) {
 
   if (feedConfig.type === "wildcard") {
     const winnerCount = stage.lobbies.reduce((count, lobby) => {
-      return count + lobby.players.filter((player) => player.rank === 1 || isTruthyQualifier(player.qualifiedText)).length;
+      return (
+        count +
+        lobby.players.filter(
+          (player) => player.rank === 1 || isTruthyQualifier(player.qualifiedText),
+        ).length
+      );
     }, 0);
     const nationalCount = globalDirectCount ?? Math.min(4, winnerCount || qualifiedCount);
     return {
       directNationalCount: 0,
       wildcardCount: 0,
-      nationalCount
+      nationalCount,
     };
   }
 
   const localRouteCounts = countRoundFourLocalPlacements(stage);
   const hasGlobalWildcardRanks = Number.isInteger(globalWildcardCount) && globalWildcardCount > 0;
-  const directNationalCount = hasGlobalWildcardRanks ?
-    (globalDirectCount ?? 0) :
-    (localRouteCounts.directNationalCount ?? globalDirectCount ?? (stage.lobbies.length <= 2 ? Math.min(4, qualifiedCount) : 0));
-  const wildcardCount = hasGlobalWildcardRanks ?
-    globalWildcardCount :
-    (localRouteCounts.wildcardCount ?? globalWildcardCount ?? 0);
+  const directNationalCount = hasGlobalWildcardRanks
+    ? (globalDirectCount ?? 0)
+    : (localRouteCounts.directNationalCount ??
+      globalDirectCount ??
+      (stage.lobbies.length <= 2 ? Math.min(4, qualifiedCount) : 0));
+  const wildcardCount = hasGlobalWildcardRanks
+    ? globalWildcardCount
+    : (localRouteCounts.wildcardCount ?? globalWildcardCount ?? 0);
 
   return {
     directNationalCount,
     wildcardCount,
-    nationalCount: directNationalCount
+    nationalCount: directNationalCount,
   };
 }
 
@@ -925,7 +1075,7 @@ function countRoundFourLocalPlacements(stage) {
   if (!stage || stage.lobbies.length !== 2) {
     return {
       directNationalCount: null,
-      wildcardCount: null
+      wildcardCount: null,
     };
   }
 
@@ -933,13 +1083,14 @@ function countRoundFourLocalPlacements(stage) {
   if (!rankedPlayers.length) {
     return {
       directNationalCount: 0,
-      wildcardCount: 0
+      wildcardCount: 0,
     };
   }
 
   return {
-    directNationalCount: rankedPlayers.filter((player) => player.rank >= 1 && player.rank <= 2).length,
-    wildcardCount: rankedPlayers.filter((player) => player.rank >= 3 && player.rank <= 4).length
+    directNationalCount: rankedPlayers.filter((player) => player.rank >= 1 && player.rank <= 2)
+      .length,
+    wildcardCount: rankedPlayers.filter((player) => player.rank >= 3 && player.rank <= 4).length,
   };
 }
 
@@ -952,7 +1103,9 @@ function countFeedPlayers(feed) {
 }
 
 function countUniqueGlobalPlacements(rankedPlayers, minRank, maxRank) {
-  const playersInRange = rankedPlayers.filter((player) => player.rank >= minRank && player.rank <= maxRank);
+  const playersInRange = rankedPlayers.filter(
+    (player) => player.rank >= minRank && player.rank <= maxRank,
+  );
   if (!playersInRange.length) return 0;
 
   const ranks = new Set();
@@ -971,7 +1124,7 @@ function normalizeLobby(lobby, feedConfig) {
     city: player.city,
     rank: player.rank,
     qualified: player.qualified,
-    pending: false
+    pending: false,
   }));
   const ranked = lobby.players
     .filter((player) => player.qualified || player.rank === 1 || player.rank === 2)
@@ -980,19 +1133,22 @@ function normalizeLobby(lobby, feedConfig) {
       name: player.name,
       city: player.city,
       placement: player.rank || index + 1,
-      pending: false
+      pending: false,
     }))
     .sort((a, b) => a.placement - b.placement)
     .slice(0, 2);
 
   const qualifiers = [1, 2].map((placement) => {
-    return ranked.find((player) => player.placement === placement) ?? ranked[placement - 1] ?? {
-      seed: `${formatSeedPrefix(lobby.id)}-${placement}`,
-      name: `Awaiting ${placement === 1 ? "1st" : "2nd"} place`,
-      city: "",
-      placement,
-      pending: true
-    };
+    return (
+      ranked.find((player) => player.placement === placement) ??
+      ranked[placement - 1] ?? {
+        seed: `${formatSeedPrefix(lobby.id)}-${placement}`,
+        name: `Awaiting ${placement === 1 ? "1st" : "2nd"} place`,
+        city: "",
+        placement,
+        pending: true,
+      }
+    );
   });
 
   return {
@@ -1001,7 +1157,7 @@ function normalizeLobby(lobby, feedConfig) {
     summary: feedConfig.type === "wildcard" ? "Last-chance qualifiers" : "Top two advance",
     status: qualifiers.every((qualifier) => !qualifier.pending) ? "Qualified" : "Awaiting result",
     players,
-    qualifiers
+    qualifiers,
   };
 }
 
@@ -1012,8 +1168,11 @@ function buildGroupBracket(lobbies, stageName, feedConfig) {
   const firstRoundMatches = [];
 
   for (let index = 0; index < slotCount; index += 1) {
-    const first = firstPlacers[index] ?? placeholderEntrant(`G${index + 1}1`, "Awaiting group winner");
-    const second = secondPlacers[index] ?? placeholderEntrant(`G${slotCount - index}2`, "Awaiting group runner-up");
+    const first =
+      firstPlacers[index] ?? placeholderEntrant(`G${index + 1}1`, "Awaiting group winner");
+    const second =
+      secondPlacers[index] ??
+      placeholderEntrant(`G${slotCount - index}2`, "Awaiting group runner-up");
     firstRoundMatches.push({
       id: `R1M${index + 1}`,
       label: `M${index + 1}`,
@@ -1021,15 +1180,17 @@ function buildGroupBracket(lobbies, stageName, feedConfig) {
       bestOf: 3,
       feed: "Winner advances",
       starts: "After group lock",
-      entrants: [first, second]
+      entrants: [first, second],
     });
   }
 
-  const rounds = [{
-    id: "round-1",
-    title: groupRoundTitle(firstRoundMatches.length * 2),
-    matches: firstRoundMatches
-  }];
+  const rounds = [
+    {
+      id: "round-1",
+      title: groupRoundTitle(firstRoundMatches.length * 2),
+      matches: firstRoundMatches,
+    },
+  ];
 
   let previousRound = firstRoundMatches;
   let roundIndex = 2;
@@ -1049,15 +1210,15 @@ function buildGroupBracket(lobbies, stageName, feedConfig) {
         starts: `After ${sourceA}/${sourceB}`,
         entrants: [
           placeholderEntrant(`W-${sourceA}`, `Winner ${sourceA}`),
-          placeholderEntrant(`W-${sourceB}`, `Winner ${sourceB}`)
-        ]
+          placeholderEntrant(`W-${sourceB}`, `Winner ${sourceB}`),
+        ],
       });
     }
 
     rounds.push({
       id: `round-${roundIndex}`,
       title: groupRoundTitle(matchCount * 2),
-      matches
+      matches,
     });
 
     previousRound = matches;
@@ -1066,8 +1227,11 @@ function buildGroupBracket(lobbies, stageName, feedConfig) {
 
   return {
     phase: `${feedConfig.shortLabel ?? feedConfig.label} - ${stageName}`,
-    mode: feedConfig.type === "wildcard" ? "Wildcard to Finals" : "Round of 8 decides Finals + Wildcard",
-    rounds
+    mode:
+      feedConfig.type === "wildcard"
+        ? "Wildcard to Finals"
+        : "Round of 8 decides Finals + Wildcard",
+    rounds,
   };
 }
 
@@ -1079,8 +1243,8 @@ function finalistCards(names, pendingSlots) {
     status: "Qualified",
     qualifiers: [
       { seed: `F${index + 1}`, name, placement: 1, pending: false },
-      { seed: "-", name: "National Finals slot locked", placement: 2, pending: false }
-    ]
+      { seed: "-", name: "National Finals slot locked", placement: 2, pending: false },
+    ],
   }));
 
   for (let index = 0; index < pendingSlots; index += 1) {
@@ -1092,8 +1256,8 @@ function finalistCards(names, pendingSlots) {
       status: "Awaiting result",
       qualifiers: [
         { seed: `F${slot}`, name: "Awaiting qualifier", placement: 1, pending: true },
-        { seed: "-", name: "National Finals slot pending", placement: 2, pending: true }
-      ]
+        { seed: "-", name: "National Finals slot pending", placement: 2, pending: true },
+      ],
     });
   }
 
@@ -1110,11 +1274,23 @@ function findFinalsColumns(headers) {
   const scoreColumns = normalized
     .map((header, index) => ({ header, index }))
     .filter(({ header }) => header === "score" || header === "score a" || header === "score b");
-  const scoreA = normalized.indexOf("score a") !== -1 ? normalized.indexOf("score a") : scoreColumns.find(({ index }) => index > playerA)?.index;
-  const scoreB = normalized.indexOf("score b") !== -1 ? normalized.indexOf("score b") : scoreColumns.find(({ index }) => index > playerB)?.index;
+  const scoreA =
+    normalized.indexOf("score a") !== -1
+      ? normalized.indexOf("score a")
+      : scoreColumns.find(({ index }) => index > playerA)?.index;
+  const scoreB =
+    normalized.indexOf("score b") !== -1
+      ? normalized.indexOf("score b")
+      : scoreColumns.find(({ index }) => index > playerB)?.index;
 
-  if ([round, match, playerA, playerB, winner, scoreA, scoreB].some((index) => index === -1 || index === undefined)) {
-    throw new Error("National Finals feed must include Round, Match, Player A, Score A, Player B, Score B, and Winner columns.");
+  if (
+    [round, match, playerA, playerB, winner, scoreA, scoreB].some(
+      (index) => index === -1 || index === undefined,
+    )
+  ) {
+    throw new Error(
+      "National Finals feed must include Round, Match, Player A, Score A, Player B, Score B, and Winner columns.",
+    );
   }
 
   return { round, match, playerA, scoreA, playerB, scoreB, winner };
@@ -1122,13 +1298,14 @@ function findFinalsColumns(headers) {
 
 function qualifierToEntrant(lobby, qualifierIndex) {
   const qualifier = lobby.qualifiers[qualifierIndex];
-  if (!qualifier) return placeholderEntrant(`${lobby.id}${qualifierIndex + 1}`, "Awaiting qualifier");
+  if (!qualifier)
+    return placeholderEntrant(`${lobby.id}${qualifierIndex + 1}`, "Awaiting qualifier");
   return {
     seed: qualifier.seed,
     name: qualifier.name,
     city: qualifier.city,
     score: null,
-    pending: qualifier.pending
+    pending: qualifier.pending,
   };
 }
 
@@ -1171,7 +1348,7 @@ async function fetchCsv(baseUrl, timeoutMs, force) {
   try {
     const response = await fetch(url, {
       signal: controller.signal,
-      cache: force ? "reload" : "no-store"
+      cache: force ? "reload" : "no-store",
     });
 
     if (!response.ok) {
@@ -1267,5 +1444,10 @@ function formatSeedPrefix(lobbyId) {
 }
 
 function slugify(value) {
-  return cleanText(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "match";
+  return (
+    cleanText(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "match"
+  );
 }

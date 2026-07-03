@@ -1,150 +1,29 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Copyright (c) 2026 CCI Volunteer Legion and ATLNO.exe. Public event page; do not embed private player data. -->
-  <meta name="description" content="CCI Volunteer Legion Wars live public bracket viewer." />
-  <meta name="theme-color" content="#0b0d12" />
-  <meta property="og:title" content="CCI Volunteer Legion Wars" />
-  <meta property="og:description" content="Live brackets, scores, winners, and qualifier status for Legion Wars." />
-  <meta property="og:image" content="./CCI-Volunteer-Legion-Logo-01.png" />
-  <meta property="og:type" content="website" />
-  <title>CCI Volunteer Legion Wars</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
-  <link rel="icon" type="image/png" sizes="64x64" href="./favicon.png?v=20260703-interactions" />
-  <link rel="shortcut icon" type="image/png" href="./favicon.png?v=20260703-interactions" />
-  <link rel="apple-touch-icon" href="./CCI-Volunteer-Legion-Logo-01.png" />
-  <link rel="stylesheet" href="./styles.css?v=20260703-interactions" />
-</head>
-<body>
-  <a class="skip-link" href="#bracket">Skip to bracket</a>
-
-  <header class="site-header" aria-label="Primary navigation">
-    <a class="brand" href="#top" aria-label="CCI Volunteer Legion Wars home">
-      <img class="brand__mark" src="./CCI-Volunteer-Legion-Logo-01.png" alt="" width="46" height="46" />
-      <span class="brand__text">
-        <span>CCI Volunteer</span>
-        <strong>Legion Wars</strong>
-      </span>
-    </a>
-    <nav class="nav-links" aria-label="Page sections">
-      <button class="nav-action" id="openSearchButton" type="button">Search</button>
-      <a href="#bracket">Brackets</a>
-      <a href="#qualifiers">Qualifiers</a>
-    </nav>
-  </header>
-
-  <main id="top">
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero__copy">
-        <p class="event-line">Comic Con India Volunteer Legion</p>
-        <h1 id="hero-title">Legion Wars Live Bracket</h1>
-        <p class="hero__summary">
-          Group Titan, Group Nexus, Group Dominion, Wildcard, and National Finals.
-        </p>
-        <div class="hero__actions" aria-label="Primary actions">
-          <a class="button button--primary" href="#bracket">View brackets</a>
-        </div>
-      </div>
-
-      <aside class="command-panel" aria-label="Tournament status">
-        <div class="command-panel__top">
-          <img src="./CCI-Volunteer-Legion-Logo-01.png" alt="" width="74" height="74" />
-          <div>
-            <span class="panel-kicker">Legion Wars 2026</span>
-            <strong>Live Status</strong>
-          </div>
-        </div>
-        <dl class="status-grid" id="statusGrid"></dl>
-      </aside>
-    </section>
-
-    <section class="bracket-section" id="bracket" aria-labelledby="bracket-title">
-      <div class="section-heading section-heading--light">
-        <p>Brackets</p>
-        <h2 id="bracket-title">Live Tournament Brackets</h2>
-      </div>
-      <div class="tournament-overview" id="tournamentOverview" aria-label="Tournament flow"></div>
-      <div class="feed-tabs" id="feedTabs" role="tablist" aria-label="Public bracket feeds"></div>
-      <div class="data-panel" aria-live="polite">
-        <div>
-          <span>Sync</span>
-          <strong id="sheetStatus">Preparing sheet sync...</strong>
-          <small id="sheetUpdated">Last sync: not connected</small>
-        </div>
-        <div class="data-panel__controls">
-          <label class="stage-select-label" for="stageSelect">Bracket</label>
-          <select class="stage-select" id="stageSelect" hidden></select>
-          <button class="button button--secondary button--compact" id="refreshSheetButton" type="button">Refresh</button>
-        </div>
-      </div>
-      <div class="bracket-toolbar">
-        <div>
-          <span id="bracketPhase">Working format</span>
-          <strong id="bracketMode">Single elimination</strong>
-        </div>
-        <div class="legend" aria-label="Bracket legend">
-          <span><i class="legend-dot legend-dot--ready"></i>Ready</span>
-          <span><i class="legend-dot legend-dot--pending"></i>Pending</span>
-          <span><i class="legend-dot legend-dot--final"></i>Final</span>
-        </div>
-      </div>
-      <div class="bracket-viewport" tabindex="0" aria-label="Tournament bracket">
-        <div class="bracket-rounds" id="bracketRounds"></div>
-      </div>
-    </section>
-
-    <section class="section-shell section-shell--split" id="qualifiers" aria-labelledby="qualifiers-title">
-      <div class="section-heading">
-        <p>Qualifiers</p>
-        <h2 id="qualifiers-title">Selected Feed Slots</h2>
-      </div>
-      <div class="lobby-grid" id="lobbyGrid"></div>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <span>CCI Volunteer Legion</span>
-    <span>Legion Wars 2026</span>
-  </footer>
-
-  <nav class="mobile-tab-bar" id="mobileTabBar" aria-label="Bracket views"></nav>
-
-  <div class="command-overlay" id="commandOverlay" hidden>
-    <div class="command-dialog" role="dialog" aria-modal="true" aria-labelledby="commandTitle">
-      <div class="command-dialog__head">
-        <div>
-          <span>Jump</span>
-          <h2 id="commandTitle">Search Brackets</h2>
-        </div>
-        <button class="icon-button" id="closeSearchButton" type="button" aria-label="Close search">x</button>
-      </div>
-      <label class="command-search" for="commandSearchInput">
-        <span>Search</span>
-        <input id="commandSearchInput" type="search" placeholder="Player, city, lobby, match, or view" autocomplete="off" />
-      </label>
-      <div class="command-results" id="commandResults" role="listbox" aria-label="Search results"></div>
-      <div class="command-dialog__foot">
-        <span>Enter opens</span>
-        <span>Esc closes</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="detail-drawer" id="detailDrawer" hidden>
-    <div class="detail-drawer__scrim" id="detailDrawerScrim"></div>
-    <aside class="detail-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="detailDrawerTitle">
-      <button class="icon-button detail-drawer__close" id="closeDetailDrawerButton" type="button" aria-label="Close details">x</button>
-      <div class="detail-drawer__content" id="detailDrawerContent"></div>
-    </aside>
-  </div>
-
-  <noscript>
-    <div class="noscript">JavaScript is required to render the live bracket data.</div>
-  </noscript>
-  <script type="module" src="./app.js?v=20260703-interactions"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="CCI Volunteer Legion Wars live public bracket viewer." />
+    <meta name="theme-color" content="#080b10" />
+    <meta property="og:title" content="Legion Wars Live Bracket" />
+    <meta
+      property="og:description"
+      content="Public brackets, scores, winners, and qualifier status for Legion Wars."
+    />
+    <meta property="og:image" content="/CCI-Volunteer-Legion-Logo-01.png" />
+    <meta property="og:type" content="website" />
+    <title>Legion Wars Live Bracket</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/CCI-Volunteer-Legion-Logo-01.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;600;700&family=Rajdhani:wght@500;600;700&family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

@@ -1,0 +1,371 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@source inline("border-titan/60 border-titan/50 border-titan/40 border-titan/30 border-titan/20 bg-titan-soft text-titan border-nexus/60 border-nexus/50 border-nexus/40 border-nexus/30 border-nexus/20 bg-nexus-soft text-nexus border-dominion/60 border-dominion/50 border-dominion/40 border-dominion/30 border-dominion/20 bg-dominion-soft text-dominion border-wildcard/60 border-wildcard/50 border-wildcard/40 border-wildcard/30 border-wildcard/20 bg-wildcard-soft text-wildcard border-finals/60 border-finals/50 border-finals/40 border-finals/30 border-finals/20 bg-finals-soft text-finals");
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 3px);
+  --radius-md: calc(var(--radius) - 1px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-panel: var(--surface-1);
+  --color-panel-elevated: var(--surface-2);
+  --color-titan: var(--titan);
+  --color-titan-soft: var(--titan-soft);
+  --color-nexus: var(--nexus);
+  --color-nexus-soft: var(--nexus-soft);
+  --color-dominion: var(--dominion);
+  --color-dominion-soft: var(--dominion-soft);
+  --color-wildcard: var(--wildcard);
+  --color-wildcard-soft: var(--wildcard-soft);
+  --color-finals: var(--finals);
+  --color-finals-soft: var(--finals-soft);
+  --color-live: var(--live);
+  --color-advance: var(--advance);
+  --color-eliminated: var(--eliminated);
+  --color-hex-gold: var(--hex-gold);
+  --font-display: "Barlow Condensed", "Bebas Neue", "Oswald", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Barlow Condensed", "Oswald", ui-sans-serif, system-ui, sans-serif;
+  --font-tactical: "Rajdhani", "Oswald", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+:root {
+  --radius: 0.5rem;
+
+  /* Elevation — Valorant-inspired deep charcoal with cool undertone */
+  --surface-0: oklch(0.135 0.008 250); /* page — near-black cool */
+  --surface-1: oklch(0.175 0.01 250); /* panel */
+  --surface-2: oklch(0.21 0.012 250); /* elevated card */
+  --surface-3: oklch(0.245 0.014 250); /* drawer / popover */
+
+  --background: var(--surface-0);
+  --foreground: oklch(0.97 0.005 250);
+  --card: var(--surface-1);
+  --card-foreground: oklch(0.97 0.005 250);
+  --popover: var(--surface-3);
+  --popover-foreground: oklch(0.97 0.005 250);
+  --primary: oklch(0.82 0.14 80); /* hextech gold */
+  --primary-foreground: oklch(0.16 0.005 260);
+  --secondary: oklch(0.26 0.01 250);
+  --secondary-foreground: oklch(0.97 0.005 250);
+  --muted: oklch(0.23 0.008 250);
+  --muted-foreground: oklch(0.64 0.014 250);
+  --accent: oklch(0.28 0.012 250);
+  --accent-foreground: oklch(0.97 0.005 250);
+  --destructive: oklch(0.66 0.24 22);
+  --destructive-foreground: oklch(0.98 0.005 250);
+  --border: oklch(1 0 0 / 0.08);
+  --border-strong: oklch(1 0 0 / 0.15);
+  --input: oklch(1 0 0 / 0.08);
+  --ring: oklch(0.82 0.14 80);
+
+  /* Section accents — Riot-flavored: cool cyan Titan, arcane violet Nexus,
+     hextech emerald Dominion, valorant orange Wildcard, hex gold Finals */
+  --titan: oklch(0.78 0.15 220);
+  --titan-soft: oklch(0.78 0.15 220 / 0.14);
+  --nexus: oklch(0.72 0.19 300);
+  --nexus-soft: oklch(0.72 0.19 300 / 0.14);
+  --dominion: oklch(0.76 0.17 155);
+  --dominion-soft: oklch(0.76 0.17 155 / 0.14);
+  --wildcard: oklch(0.75 0.18 50);
+  --wildcard-soft: oklch(0.75 0.18 50 / 0.14);
+  --finals: oklch(0.83 0.15 82); /* hextech gold */
+  --finals-soft: oklch(0.83 0.15 82 / 0.14);
+  --hex-gold: oklch(0.83 0.15 82);
+
+  /* Status semantics — Valorant red for LIVE */
+  --live: oklch(0.67 0.25 22);
+  --advance: oklch(0.76 0.17 155);
+  --eliminated: oklch(0.45 0.01 250);
+
+  /* Per-tab accent — swapped from JS */
+  --tab-accent: var(--finals);
+  --tab-accent-soft: var(--finals-soft);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "ss01", "cv11";
+  }
+  body {
+    background-image:
+      radial-gradient(ellipse 70% 40% at 50% -10%, oklch(0.32 0.04 250 / 0.55), transparent 70%),
+      radial-gradient(ellipse 40% 30% at 100% 100%, oklch(0.3 0.06 22 / 0.14), transparent 60%);
+    background-attachment: fixed;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+    letter-spacing: 0.005em;
+    font-weight: 600;
+  }
+  ::selection {
+    background: oklch(0.83 0.15 82 / 0.28);
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(1 0 0 / 0.1);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(1 0 0 / 0.22);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+}
+
+/* Cards */
+@utility card-raised {
+  background-color: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  box-shadow: inset 0 1px 0 0 oklch(1 0 0 / 0.05);
+}
+
+@utility card-flat {
+  background-color: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+}
+
+/* Riot-style chamfered corners — top-left + bottom-right notch (Valorant hallmark) */
+@utility clip-chamfer {
+  clip-path: polygon(
+    10px 0,
+    100% 0,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    0 100%,
+    0 10px
+  );
+}
+@utility clip-chamfer-sm {
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+/* One-sided notch — top-right corner cut, tab / header vibe */
+@utility clip-notch-tr {
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+}
+/* Deep asymmetric — used on hero headers */
+@utility clip-blade {
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 100%, 18px 100%);
+}
+
+/* Ambient hex-grid — LoL / Hextech nod */
+@utility hex-grid {
+  background-color: transparent;
+  background-image: radial-gradient(circle at 50% 50%, oklch(1 0 0 / 0.035) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse 80% 65% at 50% 30%, black, transparent 92%);
+}
+
+@utility grid-lines {
+  background-image:
+    linear-gradient(to right, oklch(1 0 0 / 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(1 0 0 / 0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, black, transparent 90%);
+}
+
+/* Diagonal scanlines — HUD overlay */
+@utility scanlines {
+  background-image: repeating-linear-gradient(
+    135deg,
+    oklch(1 0 0 / 0.015) 0 1px,
+    transparent 1px 6px
+  );
+}
+
+/* Live tag glow */
+@utility live-dot {
+  animation: live-dot 1.4s ease-in-out infinite;
+}
+@keyframes live-dot {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 6px 0 var(--live);
+  }
+  50% {
+    opacity: 0.4;
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@utility pulse-ring {
+  animation: pulse-ring 2s ease-out infinite;
+}
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--live) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 8px color-mix(in oklab, var(--live) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@utility fade-up {
+  animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility fade-in {
+  animation: fade-in 0.22s ease-out both;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@utility marquee {
+  animation: marquee 40s linear infinite;
+}
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@utility hairline {
+  border: 1px solid var(--color-border);
+}
+@utility hairline-strong {
+  border: 1px solid var(--color-border-strong);
+}
+
+/* Riot-style tactical text block */
+@utility text-tactical {
+  font-family: var(--font-tactical);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+@utility text-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+}
+
+/* Focus ring — global */
+@layer base {
+  :focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 3.5px oklch(0.83 0.15 82 / 0.6);
+    border-radius: calc(var(--radius) - 2px);
+  }
+  kbd {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border-strong);
+    color: var(--color-muted-foreground);
+  }
+}
+
+/* Skewed slab — tactical parallelogram card.
+   Wrap outer with .slab-skew, children with .slab-unskew to
+   keep text upright. */
+@utility slab-skew {
+  transform: skewX(-8deg);
+}
+@utility slab-unskew {
+  transform: skewX(8deg);
+}
+@utility slab-shadow {
+  box-shadow:
+    0 1px 0 0 oklch(1 0 0 / 0.04) inset,
+    0 12px 32px -18px oklch(0 0 0 / 0.7);
+}
+
+/* Diagonal accent band on hero header — Riot-style italic slice */
+@utility slash-band {
+  background-image: repeating-linear-gradient(
+    -8deg,
+    oklch(1 0 0 / 0.045) 0 2px,
+    transparent 2px 10px
+  );
+}
+
+/* Grain / noise (subtle) */
+@utility grain {
+  background-image: radial-gradient(oklch(1 0 0 / 0.045) 1px, transparent 1px);
+  background-size: 3px 3px;
+  mix-blend-mode: overlay;
+  opacity: 0.35;
+}
+
+/* Hide scrollbars while keeping scrollability (used on tab rails and mobile round scrollers) */
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

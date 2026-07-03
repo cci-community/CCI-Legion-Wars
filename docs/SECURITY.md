@@ -32,7 +32,7 @@ The website must not display or fetch:
 - No private API keys are used in browser code.
 - Google Sheets data is accessed only through public published CSV endpoints.
 - `.env.local` is used only to generate public runtime configuration.
-- `data/sheet-config.js` contains public workbook id and gid values only.
+- `src/data/sheet-config.js` contains public workbook id and gid values only.
 - Sheet values are normalized before rendering.
 - `#REF!` and other cells starting with `#` are suppressed from player display.
 - If a feed fails, the app falls back to cached public feed data or safe placeholders.
@@ -61,6 +61,6 @@ Sensitive ownership areas:
 
 - `firebase.json`: hosting, headers, deploy surface.
 - `.github/workflows/`: deployment automation.
-- `data/sheet-config.js`: public source selection.
-- `data/sheet-data.js`: data normalization and public rendering boundary.
+- `src/data/sheet-config.js`: public source selection.
+- `src/data/sheet-data.js`: data normalization and public rendering boundary.
 - `docs/COPYRIGHT_AND_RULESET.md`: disclosure and usage policy.

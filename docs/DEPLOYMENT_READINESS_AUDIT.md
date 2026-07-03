@@ -21,23 +21,21 @@ Excluded from this audit:
 - Admin dashboard.
 - Private registration data.
 
-## Current Evidence
+## Current Evidence To Re-Verify
 
-| Area | Evidence | Status |
-| --- | --- | --- |
-| Static app validation | `npm run check` passed locally and in GitHub Actions before deploy. | Ready |
-| Public page boundary | Validation blocks iframe embeds, Discord/broadcast copy, and private-tab copy in `index.html`. | Ready |
-| Workbook config | `data/sheet-config.js` defines five public gid feeds. | Ready |
-| Group parser | Fixture validates multi-stage group/lobby parsing and qualifier slots. | Ready |
-| National Finals parser | Fixture validates duplicate `Score` headers, scores, winners, and final state. | Ready |
-| Wildcard parser | Fixture validates `Wildcart` typo normalization. | Ready |
-| Current sheet state | Direct CSV checks returned HTTP 200 for all five public feeds. | Ready with sheet cleanup needed |
-| Known sheet cleanup | `#REF!` in group feeds, duplicate Finals `Score` headers, `Wildcart` typo. | Data cleanup pending |
-| Firebase config | `firebase.json` has Hosting config, cache headers, and security headers. | Ready locally |
-| Firebase project | `cci-legion-wars` exists and has default Hosting URL `https://cci-legion-wars.web.app`. | Ready |
-| Firebase live deploy | GitHub Actions deploys live Hosting on pushes to `main`; run `28628489855` deployed commit `9b0765f`. | Ready |
-| Live URL health | `https://cci-legion-wars.web.app` returned 200 for the page, app assets, logo favicon asset, and PDF. | Ready |
-| Rendered QA | Desktop and mobile browser checks rendered bracket tabs without console errors. | Ready |
+| Area                   | Required evidence before launch                                                                         | Status               |
+| ---------------------- | ------------------------------------------------------------------------------------------------------- | -------------------- |
+| Static app validation  | `npm run check` passes after the React/Vite migration.                                                  | Pending latest run   |
+| Production build       | `npm run build` emits `dist/index.html` and hashed assets.                                              | Pending latest run   |
+| Public page boundary   | Validation blocks iframe embeds, private-tab copy, and internal operations copy in public HTML.         | Pending latest run   |
+| Workbook config        | `src/data/sheet-config.js` defines only the five allowed public gid feeds.                              | Pending latest run   |
+| Group parser           | Fixtures validate group/lobby parsing plus Round Four local and global Wildcard routing.                | Pending latest run   |
+| National Finals parser | Fixture validates scores, winners, and final state.                                                     | Pending latest run   |
+| Wildcard parser        | Fixture validates `Wildcart` typo normalization and derived Wildcard pool behavior.                     | Pending latest run   |
+| Firebase config        | `firebase.json` serves `dist` with SPA rewrite, headers, and no raw source exposure.                    | Pending latest run   |
+| Firebase project       | CLI/GitHub config confirm project id, Hosting site/target, and `.firebaserc`.                           | Pending latest run   |
+| Preview deploy         | Firebase preview channel serves the built React app and loads live public Google Sheets data.           | Required before live |
+| Rendered QA            | Desktop and mobile browser checks render tabs, drawers, command palette, and sheet sync without errors. | Pending latest run   |
 
 ## Verified Public Feed State
 
@@ -49,26 +47,29 @@ Direct CSV checks succeeded for:
 - Group Dominion: `gid=945411688`
 - Wildcard: `gid=1564963263`
 
-## Remaining Live Deploy Requirements
+## Preview-First Launch Requirements
 
-The initial live deploy requirements are satisfied:
+Do not deploy live until all of these are verified:
 
-- GitHub repository variable `FIREBASE_PROJECT_ID=cci-legion-wars` is configured.
-- GitHub repository secret `FIREBASE_SERVICE_ACCOUNT_JSON` is configured.
-- The website/workflow changes were pushed to `main`.
-- Firebase Hosting workflow run `28628489855` completed successfully.
-- The live Firebase URL was verified directly.
+1. Firebase project id is `cci-legion-wars`.
+2. `.firebaserc` points default deploys at `cci-legion-wars`.
+3. Hosting site/target is confirmed.
+4. GitHub variable `FIREBASE_PROJECT_ID` is configured.
+5. GitHub secret `FIREBASE_SERVICE_ACCOUNT_JSON` is configured.
+6. Firebase preview deploy succeeds from the built `dist` output.
+7. Public preview URL loads the React bracket app, not raw source files. SPA fallback may return `index.html` for unknown paths, but it must not serve repository files.
+8. Preview fetches only the five public Google Sheets gids.
+9. Browser console and network checks show no private data, secrets, local paths, or Lovable production metadata.
 
-For each future production code push:
+After preview passes:
 
-1. Confirm `npm run check` passes locally for parser, public boundary, docs, and Firebase config checks.
-2. Push to `main`.
-3. Watch the `Firebase Hosting Deploy` GitHub Actions run.
-4. Verify the live Firebase URL renders the public bracket state.
-5. Confirm internal files such as `firebase.json` and `docs/**` are not publicly served.
+1. Push/merge to `main`.
+2. Watch the `Firebase Hosting Deploy` GitHub Actions run.
+3. Verify the live Firebase URL renders the public bracket state.
+4. Confirm internal paths such as `firebase.json`, `docs/**`, `src/**`, and `package.json` do not expose raw repository content.
 
 ## Not Complete Until
 
-The hosting goal is complete only when the latest pushed commit has a successful `Firebase Hosting Deploy` workflow and the live URL has been checked directly.
+The launch readiness goal is complete only when the Firebase preview URL has been checked directly and the public-data boundary is verified there.
 
-Local validation and emulator success prove hosting compatibility, not public deployment.
+Local validation and emulator success prove hosting compatibility, not public preview or live deployment.

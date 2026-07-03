@@ -65,7 +65,8 @@ npm run pdf:rules
 Then preview locally:
 
 ```powershell
-npm run serve
+npm run build
+npm run preview
 ```
 
 For Firebase config changes:

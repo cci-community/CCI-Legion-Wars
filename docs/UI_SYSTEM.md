@@ -6,56 +6,47 @@ Last updated: 2026-07-03
 
 This document records the production UI layer for the public Legion Wars bracket viewer.
 
-The Lovable prototype is used only as a visual reference. The production source of truth remains the static site runtime:
-
-- `index.html`
-- `styles.css`
-- `app.js`
-- `data/sheet-config.js`
-- `data/sheet-data.js`
-
-No React runtime, mock data, Discord flow, admin tooling, private sheet tabs, or staff planning copy is part of the public website scope.
+The production UI is migrated to the Lovable React/TanStack app structure. Lovable mock data is not used as production truth; live public data flows through `src/lib/live-tournament-data.ts`.
 
 ## Visual Direction
 
-The public page uses a dark esports broadcast style:
+The public page uses the Lovable esports bracket system:
 
-- Tactical uppercase labels.
+- Dark tactical background.
+- Slab/skew cards.
 - Chamfered panels.
-- Slab-style match and lobby cards.
-- Per-feed accent themes.
-- Compact status rails.
-- Search/jump palette.
-- Public detail drawer.
+- Mono uppercase tactical labels.
+- Stage accent colors.
+- Overview map.
+- Command/search palette.
+- Public lobby/match drawers.
 - Mobile bottom feed tabs.
-- Short viewer-facing copy only.
 
 Accent themes:
 
-| Feed | Accent |
-| --- | --- |
-| National Finals | Gold |
-| Group Titan | Cyan |
-| Group Nexus | Violet |
-| Group Dominion | Green |
-| Wildcard | Orange |
+| View            | Accent        |
+| --------------- | ------------- |
+| National Finals | Gold          |
+| Group Titan     | Cyan/blue     |
+| Group Nexus     | Purple        |
+| Group Dominion  | Green         |
+| Wildcard        | Violet/orange |
 
 ## Component Mapping
 
-| Production Surface | Source Data | Renderer |
-| --- | --- | --- |
-| Feed tabs | `sheetConfig.feeds` and loaded feeds | `renderFeedTabs()` |
-| Tournament flow | loaded feed metadata | `renderTournamentOverview()` |
-| Group progression | `feed.progression` | `renderGroupProgression()` |
-| Group lobby cards | `progression.rounds[].lobbies[]` | `renderProgressionLobby()` |
-| Wildcard pool | `feed.progression` or derived Round Four candidates | `renderWildcardProgression()` |
-| National Finals bracket | `feed.bracket` | `renderBracket()` and `renderMatch()` |
-| Qualifier/finalist cards | `feed.lobbies` | `renderLobbies()` |
-| Sync status | `loadTournamentFeeds()` metadata | `renderSheetMeta()` |
-| Search/jump palette | loaded public feeds | `buildCommandItems()` |
-| Lobby details drawer | `feed.progression` lobby data | `openLobbyDrawer()` |
-| Match details drawer | `feed.bracket` match data | `openMatchDrawer()` |
-| Mobile feed tabs | loaded public feeds | `renderMobileTabBar()` |
+| Surface                   | Component                         | Data source                      |
+| ------------------------- | --------------------------------- | -------------------------------- |
+| App shell/tabs            | `src/routes/index.tsx`            | `useLiveTournamentData()`        |
+| Overview map              | `OverviewMap`                     | adapted `TournamentData`         |
+| Group progression         | `GroupProgressionView`            | `GroupView.progression`          |
+| Lobby card                | `LobbyCard`                       | adapted public lobby data        |
+| Wildcard pool             | `WildcardView`                    | group Round Four candidates/feed |
+| Finals bracket            | `FinalsBracketView` + `MatchCard` | adapted National Finals feed     |
+| Command palette           | `CommandPalette`                  | `flattenPlayers(data)`           |
+| Lobby drawer              | `LobbyDrawer`                     | `findLobbyById(id, data)`        |
+| Match drawer              | `MatchDrawer`                     | `findMatchById(id, data)`        |
+| Mobile feed tabs          | `MobileTabBar`                    | route tab state                  |
+| Sheet sync/cache/fallback | `src/data/sheet-data.js`          | published public CSV feeds       |
 
 ## Public Data Boundary
 
@@ -63,8 +54,8 @@ The UI can display:
 
 - Player display names.
 - Public-safe city, state, or legion region values.
-- Lobby, stage, round, match, score, winner, and status.
-- Last sync and refresh state.
+- Lobby, stage, round, match, score, winner, rank, and status.
+- Last updated and refresh state.
 
 The UI must not display:
 
@@ -81,28 +72,24 @@ The UI must not display:
 
 Desktop:
 
-- Feed tabs stay as a tactical rail.
+- Overview, Finals, group, and Wildcard views render in Lovable tactical layouts.
 - Group views use four progression columns.
-- Wildcard uses pool, path, and finals-slot panels.
-- National Finals uses bracket columns.
-- Search opens from the header button, `/`, or `Ctrl/Cmd+K`.
-- Lobby and match cards open a public detail drawer.
+- Finals uses bracket columns with champion column.
+- Command palette opens from header, `/`, or `Ctrl/Cmd+K`.
+- Lobby and match cards open drawers.
 
 Mobile:
 
-- Feed tabs become a horizontal scroll rail.
-- A bottom feed tab bar stays available for quick bracket switching.
-- Broadcast headers stack.
-- Group rounds stack vertically.
-- National Finals rounds stack vertically.
-- Wildcard panels stack vertically.
-- The detail drawer expands to full width.
+- Top tabs remain horizontally scrollable.
+- Bottom tab bar provides fast view switching.
+- Group, Wildcard, and Finals views stack vertically.
+- Drawers use full-width mobile sheets.
 
 ## Maintenance Rules
 
-- Do not replace `data/sheet-data.js` with prototype/mock data.
-- Do not add framework dependencies for visual-only changes.
+- Do not reintroduce the old vanilla DOM renderer.
+- Do not replace `src/data/sheet-data.js` with Lovable mock data.
 - Keep public copy short and viewer-facing.
-- Keep docs technical details out of `index.html`.
-- Run `npm run check` after any UI or parser change.
+- Keep technical details in docs, not the homepage.
+- Run `npm run check` and `npm run build` after UI or parser changes.
 - Run rendered desktop and mobile QA before deploying.

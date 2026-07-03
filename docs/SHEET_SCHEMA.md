@@ -16,13 +16,13 @@ Published workbook id:
 2PACX-1vSs11px-8Fl8S-FvFYdg_lx-ep4mxx0RGzXi54s5kmEFGsc95UW3i5Nxrc63SzrsmOK0gd_5uJivxOQ
 ```
 
-| Public feed | Parser mode | gid |
-| --- | --- | --- |
-| Group Titan Bracket | group/lobby | `1994318444` |
-| Group Nexus Bracket | group/lobby | `612483539` |
-| Group Dominion Bracket | group/lobby | `945411688` |
-| Wildcard | group/lobby | `1564963263` |
-| National Finals / Main Bracket | match bracket | `126700734` |
+| Public feed                    | Parser mode   | gid          |
+| ------------------------------ | ------------- | ------------ |
+| Group Titan Bracket            | group/lobby   | `1994318444` |
+| Group Nexus Bracket            | group/lobby   | `612483539`  |
+| Group Dominion Bracket         | group/lobby   | `945411688`  |
+| Wildcard                       | group/lobby   | `1564963263` |
+| National Finals / Main Bracket | match bracket | `126700734`  |
 
 CSV URL pattern:
 
@@ -96,8 +96,10 @@ Tournament flow:
 - Top two from each lobby advance during group progression.
 - The group route stage is `Round of 8` in the current sheet. It may also be labeled `Round Four` or `Round 4`.
 - The group route stage has two lobbies per group.
-- Top two from both Round of 8 lobbies become the group's top four direct National Finals qualifiers.
-- The remaining ranked third/fourth players from both Round of 8 lobbies are the group's 5th-8th placements and enter Wildcard.
+- Preferred Round of 8 ranking: use global group placements `1` through `8` across the two lobbies.
+- Global placements `1` through `4` become the group's direct National Finals qualifiers.
+- Global placements `5` through `8` enter Wildcard.
+- If the sheet uses lobby-local ranks instead, first/second from each lobby map to direct Finals and third/fourth from each lobby map to the group's 5th-8th Wildcard placements.
 - Wildcard produces four National Finals qualifiers.
 
 If the dedicated Wildcard tab is still empty, the website can still show the Wildcard pool by deriving the 12 candidates from Titan, Nexus, and Dominion Round of 8 rows.

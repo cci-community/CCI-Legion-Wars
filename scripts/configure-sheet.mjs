@@ -6,9 +6,10 @@ import { existsSync } from "node:fs";
 
 const root = new URL("../", import.meta.url);
 const envLocalUrl = new URL(".env.local", root);
-const outputUrl = new URL("data/sheet-config.js", root);
+const outputUrl = new URL("src/data/sheet-config.js", root);
 const defaults = {
-  PUBLIC_GOOGLE_SHEET_WORKBOOK_ID: "2PACX-1vSs11px-8Fl8S-FvFYdg_lx-ep4mxx0RGzXi54s5kmEFGsc95UW3i5Nxrc63SzrsmOK0gd_5uJivxOQ",
+  PUBLIC_GOOGLE_SHEET_WORKBOOK_ID:
+    "2PACX-1vSs11px-8Fl8S-FvFYdg_lx-ep4mxx0RGzXi54s5kmEFGsc95UW3i5Nxrc63SzrsmOK0gd_5uJivxOQ",
   PUBLIC_TITAN_GID: "1994318444",
   PUBLIC_NEXUS_GID: "612483539",
   PUBLIC_DOMINION_GID: "945411688",
@@ -17,22 +18,27 @@ const defaults = {
   PUBLIC_SHEET_CACHE_MS: "120000",
   PUBLIC_SHEET_AUTO_REFRESH_MS: "120000",
   PUBLIC_SHEET_TIMEOUT_MS: "8000",
-  PUBLIC_SHEET_SOURCE_LABEL: "Google Sheet"
+  PUBLIC_SHEET_SOURCE_LABEL: "Google Sheet",
 };
 
 const env = {
   ...defaults,
   ...process.env,
-  ...(await readLocalEnv(envLocalUrl))
+  ...(await readLocalEnv(envLocalUrl)),
 };
 
 const workbookId = required(env.PUBLIC_GOOGLE_SHEET_WORKBOOK_ID, "PUBLIC_GOOGLE_SHEET_WORKBOOK_ID");
 if (!/^[A-Za-z0-9_-]+$/.test(workbookId)) {
-  fail("PUBLIC_GOOGLE_SHEET_WORKBOOK_ID must be the published workbook id from the /d/e/<id>/ URL.");
+  fail(
+    "PUBLIC_GOOGLE_SHEET_WORKBOOK_ID must be the published workbook id from the /d/e/<id>/ URL.",
+  );
 }
 
 const cacheMs = parsePositiveInteger(env.PUBLIC_SHEET_CACHE_MS, "PUBLIC_SHEET_CACHE_MS");
-const autoRefreshMs = parsePositiveInteger(env.PUBLIC_SHEET_AUTO_REFRESH_MS, "PUBLIC_SHEET_AUTO_REFRESH_MS");
+const autoRefreshMs = parsePositiveInteger(
+  env.PUBLIC_SHEET_AUTO_REFRESH_MS,
+  "PUBLIC_SHEET_AUTO_REFRESH_MS",
+);
 const timeoutMs = parsePositiveInteger(env.PUBLIC_SHEET_TIMEOUT_MS, "PUBLIC_SHEET_TIMEOUT_MS");
 const sourceLabel = env.PUBLIC_SHEET_SOURCE_LABEL?.trim() || defaults.PUBLIC_SHEET_SOURCE_LABEL;
 const gids = {
@@ -40,7 +46,7 @@ const gids = {
   nexus: requiredGid(env.PUBLIC_NEXUS_GID, "PUBLIC_NEXUS_GID"),
   dominion: requiredGid(env.PUBLIC_DOMINION_GID, "PUBLIC_DOMINION_GID"),
   wildcard: requiredGid(env.PUBLIC_WILDCARD_GID, "PUBLIC_WILDCARD_GID"),
-  finals: requiredGid(env.PUBLIC_FINALS_GID, "PUBLIC_FINALS_GID")
+  finals: requiredGid(env.PUBLIC_FINALS_GID, "PUBLIC_FINALS_GID"),
 };
 
 const content = `// Copyright (c) 2026 CCI Volunteer Legion and ATLNO.exe.
@@ -135,7 +141,10 @@ async function readLocalEnv(url) {
 }
 
 function stripQuotes(value) {
-  if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
     return value.slice(1, -1);
   }
   return value;

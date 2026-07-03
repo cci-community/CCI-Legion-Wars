@@ -1,127 +1,96 @@
 # CCI Legion Wars Live Bracket Website
 
-Production-ready static public bracket viewer for Legion Wars.
+Production public bracket viewer for Legion Wars.
 
-The site renders five public bracket feeds from a published Google Sheets workbook:
+The site now uses the Lovable React/TanStack UI structure as the frontend shell, wired to the existing public Google Sheets runtime from this production repo. Lovable mock data is not production truth.
 
-- Group Titan Bracket
-- Group Nexus Bracket
-- Group Dominion Bracket
-- Wildcard Bracket
-- National Finals / Main Bracket
+## Scope
 
-The public page does not embed Google Sheets, show raw private tabs, or include Discord/broadcast/admin operations.
+- Public live bracket viewer only.
+- Group Titan, Group Nexus, Group Dominion, Wildcard, and National Finals views.
+- Live data from published public Google Sheets CSV feeds.
+- Firebase Hosting static deployment from the Vite `dist` build.
+
+The public site does not expose private tabs, raw Sheets embeds, Discord operations, staff notes, emails, phone numbers, or registration data.
 
 ## Features
 
-- Multi-tab published Google Sheets CSV sync.
-- Separate group/lobby and National Finals parser modes.
-- Public tabs with group lobby progression, Wildcard pool state, National Finals match cards, scores, winners, and pending/live/final states.
-- Search/jump palette, lobby/match detail drawer, and mobile feed tab bar.
-- City/state/legion region display when present in public feeds.
-- Local browser cache, manual refresh, and low-frequency auto refresh.
-- Safe fallback bracket when a feed is unavailable.
-- Firebase Hosting configuration and GitHub Actions deploy-on-push workflow.
-- Documentation for architecture, sheet schema, deployment, maintenance, security, and copyright/ruleset policy.
+- Lovable-style React UI: overview map, tactical tabs, group progression, Wildcard pool, Finals bracket, command palette, drawers, and mobile tab bar.
+- Preserved multi-feed sheet fetch/cache/fallback behavior.
+- Preserved group/lobby parser, National Finals parser, Wildcard derivation, public-data safety, and workbook gids.
+- Public player names, city/region values when safe, ranks, scores, winners, and pending/ready/live/final states.
+- Logo favicon and Firebase Hosting deploy-on-push workflow.
 
 ## Quick Start
 
 ```powershell
+npm install
 npm run check
-npm run serve
+npm run dev
 ```
 
-Local URL:
+Vite dev URL:
+
+```text
+http://127.0.0.1:5173
+```
+
+Production build:
+
+```powershell
+npm run build
+npm run preview
+```
+
+Vite preview URL:
 
 ```text
 http://127.0.0.1:4173
 ```
 
-Preview Firebase Hosting locally:
-
-```powershell
-npx -y firebase-tools@latest emulators:start --only hosting --project demo-cci-legion-wars
-```
-
-## Folder Structure
+## Architecture
 
 ```text
-.
-|-- index.html
-|-- styles.css
-|-- app.js
-|-- data/
-|   |-- bracket-data.js
-|   |-- sheet-config.js
-|   `-- sheet-data.js
-|-- docs/
-|   |-- ARCHITECTURE.md
-|   |-- COPYRIGHT_AND_RULESET.md
-|   |-- DEPLOYMENT_READINESS_AUDIT.md
-|   |-- FIREBASE_DEPLOYMENT.md
-|   |-- MAINTENANCE.md
-|   |-- RESEARCH.md
-|   |-- SECURITY.md
-|   |-- SHEET_SCHEMA.md
-|   `-- UI_SYSTEM.md
-|-- output/pdf/
-|   `-- cci-legion-wars-copyright-ruleset.pdf
-|-- scripts/
-|   |-- fixtures/sample-finals.csv
-|   |-- fixtures/sample-sheet.csv
-|   |-- configure-sheet.mjs
-|   |-- generate-rules-pdf.py
-|   `-- validate-site.mjs
-|-- firebase.json
-`-- package.json
+Google Sheets CSV feeds
+  -> src/data/sheet-config.js
+  -> src/data/sheet-data.js
+  -> src/lib/live-tournament-data.ts adapter
+  -> Lovable React/TanStack components
+  -> Vite dist/
+  -> Firebase Hosting
 ```
 
-## Environment Setup
+Key files:
 
-Copy the public workbook configuration template:
+- `src/routes/index.tsx`: public app shell, tabs, refresh, overview/finals/group/wildcard routing.
+- `src/components/tournament/*`: Lovable tournament UI components.
+- `src/lib/live-tournament-data.ts`: adapter from production sheet parser output to Lovable UI shapes.
+- `src/data/sheet-config.js`: public workbook id, gids, cache timings.
+- `src/data/sheet-data.js`: preserved public CSV parser/cache/fallback runtime.
+- `firebase.json`: Hosting config for `dist` with SPA rewrite.
+- `scripts/validate-site.mjs`: architecture/parser/hosting validation.
 
-```powershell
-Copy-Item .env.example .env.local
-```
+## Google Sheets Feeds
 
-Edit `.env.local` only if the published workbook or tab gids change:
+| Feed                           | Parser               | gid          |
+| ------------------------------ | -------------------- | ------------ |
+| Group Titan Bracket            | group/lobby          | `1994318444` |
+| Group Nexus Bracket            | group/lobby          | `612483539`  |
+| Group Dominion Bracket         | group/lobby          | `945411688`  |
+| Wildcard                       | group/lobby          | `1564963263` |
+| National Finals / Main Bracket | finals match bracket | `126700734`  |
 
-```text
-PUBLIC_GOOGLE_SHEET_WORKBOOK_ID=2PACX-...
-PUBLIC_TITAN_GID=1994318444
-PUBLIC_NEXUS_GID=612483539
-PUBLIC_DOMINION_GID=945411688
-PUBLIC_WILDCARD_GID=1564963263
-PUBLIC_FINALS_GID=126700734
-PUBLIC_SHEET_CACHE_MS=120000
-PUBLIC_SHEET_AUTO_REFRESH_MS=120000
-PUBLIC_SHEET_TIMEOUT_MS=8000
-PUBLIC_SHEET_SOURCE_LABEL=Google Sheet
-```
+Do not consume `Master Sheet`, `Player Details`, or `Overview` from the public website unless a separate public-safe tab is created.
 
-Generate the runtime config:
+## Config
+
+Edit `.env.local` only if workbook id or gids change, then regenerate:
 
 ```powershell
 npm run config:sheet
 ```
 
-The generated file is `data/sheet-config.js`. These values are public by design. Do not place private credentials, private player data, or staff notes in `.env.local` or browser-readable files.
-
-## Google Sheets Setup
-
-See [docs/SHEET_SCHEMA.md](docs/SHEET_SCHEMA.md).
-
-Current public workbook feeds:
-
-| Feed | Parser | gid |
-| --- | --- | --- |
-| Group Titan Bracket | group/lobby | `1994318444` |
-| Group Nexus Bracket | group/lobby | `612483539` |
-| Group Dominion Bracket | group/lobby | `945411688` |
-| Wildcard | group/lobby | `1564963263` |
-| National Finals / Main Bracket | finals match bracket | `126700734` |
-
-Do not consume `Master Sheet`, `Player Details`, or `Overview` from the public website unless a separate public-safe tab is created.
+The generated runtime config is `src/data/sheet-config.js`.
 
 ## Validation
 
@@ -131,22 +100,28 @@ npm run check
 
 The check verifies:
 
-- Required public-page mount points.
-- No iframe/raw sheet embed.
-- No Discord/broadcast/private-data copy on the homepage.
-- Five-feed workbook config.
-- Group/lobby parser behavior.
-- Custom group progression rendering requirements.
-- National Finals parser behavior, including current duplicate `Score` headers.
-- Wildcard typo normalization from `Wildcart` to `Wildcard`.
-- Firebase Hosting headers.
-- Required docs and PDF artifact.
+- React migration structure.
+- Firebase `dist` hosting config and SPA rewrite.
+- Five public feed IDs/gids.
+- No raw Sheets iframe.
+- Preserved parser behavior, including Round Four Wildcard routing and `Wildcart` normalization.
+- TypeScript and ESLint health.
 
 ## Deployment
 
-Firebase deployment details are in [docs/FIREBASE_DEPLOYMENT.md](docs/FIREBASE_DEPLOYMENT.md).
+Preview before live:
 
-The repo is bound to Firebase project `cci-legion-wars`. Pushes to `main` run validation and deploy the live Firebase Hosting channel.
+```powershell
+npm run firebase:preview
+```
+
+Do not push to `main` for live deployment until the Firebase preview channel has been verified.
+
+Pushes to `main` run GitHub Actions live deployment:
+
+```text
+npm ci -> npm run check -> npm run build -> Firebase Hosting deploy
+```
 
 Live URL:
 
@@ -154,17 +129,4 @@ Live URL:
 https://cci-legion-wars.web.app
 ```
 
-## Maintenance
-
-Normal event updates happen in Google Sheets, not in code.
-
-Redeploy only when changing:
-
-- Website code or styles.
-- Workbook id, tab gids, or schema.
-- Firebase Hosting config.
-- Copyright/ruleset docs or PDF artifact.
-
-## Ownership and Usage
-
-See [docs/COPYRIGHT_AND_RULESET.md](docs/COPYRIGHT_AND_RULESET.md) and the generated [ruleset PDF](output/pdf/cci-legion-wars-copyright-ruleset.pdf).
+Normal bracket updates happen in Google Sheets and do not require redeploys.
