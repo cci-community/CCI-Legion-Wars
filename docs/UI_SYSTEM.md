@@ -25,6 +25,9 @@ The public page uses a dark esports broadcast style:
 - Slab-style match and lobby cards.
 - Per-feed accent themes.
 - Compact status rails.
+- Search/jump palette.
+- Public detail drawer.
+- Mobile bottom feed tabs.
 - Short viewer-facing copy only.
 
 Accent themes:
@@ -49,6 +52,10 @@ Accent themes:
 | National Finals bracket | `feed.bracket` | `renderBracket()` and `renderMatch()` |
 | Qualifier/finalist cards | `feed.lobbies` | `renderLobbies()` |
 | Sync status | `loadTournamentFeeds()` metadata | `renderSheetMeta()` |
+| Search/jump palette | loaded public feeds | `buildCommandItems()` |
+| Lobby details drawer | `feed.progression` lobby data | `openLobbyDrawer()` |
+| Match details drawer | `feed.bracket` match data | `openMatchDrawer()` |
+| Mobile feed tabs | loaded public feeds | `renderMobileTabBar()` |
 
 ## Public Data Boundary
 
@@ -78,14 +85,18 @@ Desktop:
 - Group views use four progression columns.
 - Wildcard uses pool, path, and finals-slot panels.
 - National Finals uses bracket columns.
+- Search opens from the header button, `/`, or `Ctrl/Cmd+K`.
+- Lobby and match cards open a public detail drawer.
 
 Mobile:
 
 - Feed tabs become a horizontal scroll rail.
+- A bottom feed tab bar stays available for quick bracket switching.
 - Broadcast headers stack.
 - Group rounds stack vertically.
 - National Finals rounds stack vertically.
 - Wildcard panels stack vertically.
+- The detail drawer expands to full width.
 
 ## Maintenance Rules
 

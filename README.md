@@ -17,6 +17,7 @@ The public page does not embed Google Sheets, show raw private tabs, or include 
 - Multi-tab published Google Sheets CSV sync.
 - Separate group/lobby and National Finals parser modes.
 - Public tabs with group lobby progression, Wildcard pool state, National Finals match cards, scores, winners, and pending/live/final states.
+- Search/jump palette, lobby/match detail drawer, and mobile feed tab bar.
 - City/state/legion region display when present in public feeds.
 - Local browser cache, manual refresh, and low-frequency auto refresh.
 - Safe fallback bracket when a feed is unavailable.

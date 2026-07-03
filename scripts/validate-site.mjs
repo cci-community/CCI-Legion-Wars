@@ -36,7 +36,14 @@ const requiredIds = [
   "refreshSheetButton",
   "feedTabs",
   "tournamentOverview",
-  "stageSelect"
+  "stageSelect",
+  "openSearchButton",
+  "commandOverlay",
+  "commandSearchInput",
+  "commandResults",
+  "detailDrawer",
+  "detailDrawerContent",
+  "mobileTabBar"
 ];
 
 for (const id of requiredIds) {
@@ -152,6 +159,14 @@ if (!appJs.includes("renderGroupProgression") || !appJs.includes("renderWildcard
 
 if (!appJs.includes("renderTournamentOverview") || !appJs.includes("FEED_THEMES")) {
   errors.push("app.js must render a compact tournament overview strip with feed accent themes");
+}
+
+if (!appJs.includes("buildCommandItems") || !appJs.includes("openLobbyDrawer") || !appJs.includes("openMatchDrawer")) {
+  errors.push("app.js must include public search/jump and detail drawer behavior for live feed data");
+}
+
+if (!appJs.includes("renderMobileTabBar") || !indexHtml.includes("mobileTabBar")) {
+  errors.push("app.js and index.html must include the mobile feed tab bar");
 }
 
 if (appJs.includes("renderBracket(activeFeed.bracket)")) {

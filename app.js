@@ -1,9 +1,9 @@
 // Copyright (c) 2026 CCI Volunteer Legion and ATLNO.exe.
 // Runtime rule: render public sheet-derived qualifier data only; do not expose hidden player data.
 
-import { tournament as fallbackTournament } from "./data/bracket-data.js?v=20260703-tactical-ui";
-import { sheetConfig } from "./data/sheet-config.js?v=20260703-tactical-ui";
-import { loadTournamentFeeds } from "./data/sheet-data.js?v=20260703-tactical-ui";
+import { tournament as fallbackTournament } from "./data/bracket-data.js?v=20260703-interactions";
+import { sheetConfig } from "./data/sheet-config.js?v=20260703-interactions";
+import { loadTournamentFeeds } from "./data/sheet-data.js?v=20260703-interactions";
 
 const statusGrid = document.querySelector("#statusGrid");
 const lobbyGrid = document.querySelector("#lobbyGrid");
@@ -18,6 +18,16 @@ const feedTabs = document.querySelector("#feedTabs");
 const tournamentOverview = document.querySelector("#tournamentOverview");
 const stageSelect = document.querySelector("#stageSelect");
 const stageSelectLabel = document.querySelector('label[for="stageSelect"]');
+const openSearchButton = document.querySelector("#openSearchButton");
+const closeSearchButton = document.querySelector("#closeSearchButton");
+const commandOverlay = document.querySelector("#commandOverlay");
+const commandSearchInput = document.querySelector("#commandSearchInput");
+const commandResults = document.querySelector("#commandResults");
+const detailDrawer = document.querySelector("#detailDrawer");
+const detailDrawerContent = document.querySelector("#detailDrawerContent");
+const detailDrawerScrim = document.querySelector("#detailDrawerScrim");
+const closeDetailDrawerButton = document.querySelector("#closeDetailDrawerButton");
+const mobileTabBar = document.querySelector("#mobileTabBar");
 const FEED_THEMES = {
   "national-finals": "finals",
   "group-titan": "titan",
@@ -31,6 +41,8 @@ let workbookFeeds = [];
 let dashboardTournament = fallbackTournament;
 let syncInFlight = false;
 let hasAttemptedSheetSync = false;
+let activeCommandIndex = 0;
+let lastFocusedElement = null;
 
 function createElement(tag, className, text) {
   const element = document.createElement(tag);
@@ -90,6 +102,123 @@ function getWinnerIndex(entrants) {
   if (scores.some((score) => typeof score !== "number")) return -1;
   if (scores[0] === scores[1]) return -1;
   return scores[0] > scores[1] ? 0 : 1;
+}
+
+function getFeedById(feedId) {
+  return workbookFeeds.find((feed) => feed.id === feedId);
+}
+
+function feedKindLabel(feed) {
+  if (feed?.type === "finals") return "Finals";
+  if (feed?.type === "wildcard") return "Wildcard";
+  return "Group";
+}
+
+function normalizeSearchText(value) {
+  return String(value ?? "").toLowerCase().trim();
+}
+
+function commandLabelForPlayer(player) {
+  const city = player.city ? ` / ${player.city}` : "";
+  return `${player.name}${city}`;
+}
+
+function buildCommandItems() {
+  const items = [];
+
+  workbookFeeds.forEach((feed) => {
+    items.push({
+      type: "view",
+      title: feed.label,
+      meta: `${feedKindLabel(feed)} view`,
+      feedId: feed.id,
+      action: { type: "feed", feedId: feed.id }
+    });
+
+    if (feed.type === "finals") {
+      (feed.bracket?.rounds ?? []).forEach((round) => {
+        (round.matches ?? []).forEach((match) => {
+          items.push({
+            type: "match",
+            title: match.id,
+            meta: `${round.title} / ${match.label}`,
+            feedId: feed.id,
+            action: { type: "match", feedId: feed.id, matchId: match.id }
+          });
+
+          (match.entrants ?? []).forEach((entrant) => {
+            if (entrant.pending || !entrant.name || /^awaiting/i.test(entrant.name)) return;
+            items.push({
+              type: "player",
+              title: commandLabelForPlayer(entrant),
+              meta: `${round.title} / ${match.id}`,
+              feedId: feed.id,
+              action: { type: "match", feedId: feed.id, matchId: match.id }
+            });
+          });
+        });
+      });
+      return;
+    }
+
+    (feed.progression?.rounds ?? []).forEach((round) => {
+      (round.lobbies ?? []).forEach((lobby) => {
+        items.push({
+          type: "lobby",
+          title: lobby.id,
+          meta: `${feed.shortLabel ?? feed.label} / ${round.title}`,
+          feedId: feed.id,
+          action: { type: "lobby", feedId: feed.id, lobbyId: lobby.id }
+        });
+
+        (lobby.players ?? []).forEach((player) => {
+          if (player.pending || !player.name || /^awaiting/i.test(player.name)) return;
+          items.push({
+            type: "player",
+            title: commandLabelForPlayer(player),
+            meta: `${feed.shortLabel ?? feed.label} / ${round.title} / ${lobby.id}`,
+            feedId: feed.id,
+            action: { type: "lobby", feedId: feed.id, lobbyId: lobby.id }
+          });
+        });
+      });
+    });
+  });
+
+  return items;
+}
+
+function findLobbyDetails(lobbyId, feedId = "") {
+  const feeds = feedId ? [getFeedById(feedId)].filter(Boolean) : workbookFeeds;
+  for (const feed of feeds) {
+    for (const round of feed.progression?.rounds ?? []) {
+      const lobby = (round.lobbies ?? []).find((candidate) => candidate.id === lobbyId);
+      if (lobby) return { feed, round, lobby };
+    }
+  }
+  return null;
+}
+
+function findMatchDetails(matchId, feedId = "national-finals") {
+  const feed = getFeedById(feedId) ?? workbookFeeds.find((candidate) => candidate.type === "finals");
+  if (!feed) return null;
+  for (const round of feed.bracket?.rounds ?? []) {
+    const match = (round.matches ?? []).find((candidate) => candidate.id === matchId);
+    if (match) return { feed, round, match };
+  }
+  return null;
+}
+
+function navigateCommandAction(action) {
+  if (!action) return;
+  activateFeed(action.feedId);
+  document.querySelector("#bracket")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  if (action.type === "lobby") {
+    window.setTimeout(() => openLobbyDrawer(action.lobbyId, action.feedId), 80);
+  } else if (action.type === "match") {
+    window.setTimeout(() => openMatchDrawer(action.matchId, action.feedId), 80);
+  }
 }
 
 function renderStatus(items) {
@@ -178,6 +307,24 @@ function renderFeedTabs(feeds) {
   feedTabs.replaceChildren(fragment);
 }
 
+function renderMobileTabBar(feeds) {
+  if (!mobileTabBar) return;
+  const fragment = document.createDocumentFragment();
+
+  feeds.forEach((feed) => {
+    const button = createElement("button", "mobile-tab");
+    button.type = "button";
+    button.dataset.feedId = feed.id;
+    button.dataset.theme = getFeedTheme(feed);
+    button.setAttribute("aria-current", feed.id === activeFeedId ? "page" : "false");
+    button.append(createElement("span", "mobile-tab__mark", feed.shortLabel?.slice(0, 1) ?? "?"));
+    button.append(createElement("strong", "", feed.shortLabel ?? feed.label));
+    fragment.append(button);
+  });
+
+  mobileTabBar.replaceChildren(fragment);
+}
+
 function renderTournamentOverview(feeds, activeFeed) {
   if (!tournamentOverview) return;
   const groups = feeds.filter((feed) => feed.type === "group");
@@ -257,6 +404,9 @@ function renderMatch(match) {
   const winnerIndex = getWinnerIndex(match.entrants);
   const card = createElement("article", "match-card");
   card.dataset.status = match.status;
+  card.dataset.matchId = match.id;
+  card.tabIndex = 0;
+  card.setAttribute("role", "button");
   card.setAttribute("aria-label", `${match.label}, ${match.status}, best of ${match.bestOf}`);
 
   const meta = createElement("div", "match-card__meta");
@@ -302,6 +452,10 @@ function renderProgressionPlayer(player) {
 
 function renderProgressionLobby(lobby) {
   const card = createElement("article", "progression-lobby-card");
+  card.dataset.lobbyId = lobby.id;
+  card.tabIndex = 0;
+  card.setAttribute("role", "button");
+  card.setAttribute("aria-label", `${lobby.id}, ${lobby.status}`);
   const meta = createElement("div", "progression-lobby-card__meta");
   const slab = createElement("div", "progression-lobby-card__slab");
   const content = createElement("div", "progression-lobby-card__content");
@@ -530,6 +684,197 @@ function renderBracketView(feed) {
   renderBracket(feed.bracket, feed);
 }
 
+function openCommandPalette() {
+  if (!commandOverlay || !commandSearchInput) return;
+  lastFocusedElement = document.activeElement;
+  commandOverlay.hidden = false;
+  commandSearchInput.value = "";
+  renderCommandResults("");
+  window.setTimeout(() => commandSearchInput.focus(), 0);
+}
+
+function closeCommandPalette() {
+  if (!commandOverlay) return;
+  commandOverlay.hidden = true;
+  if (lastFocusedElement instanceof HTMLElement) {
+    lastFocusedElement.focus();
+  }
+}
+
+function renderCommandResults(query) {
+  if (!commandResults) return;
+  const normalized = normalizeSearchText(query);
+  const items = buildCommandItems();
+  const filtered = normalized ?
+    items.filter((item) => normalizeSearchText(`${item.title} ${item.meta} ${item.type}`).includes(normalized)) :
+    items.filter((item) => item.type !== "player").slice(0, 12);
+  const limited = filtered.slice(0, 24);
+  const fragment = document.createDocumentFragment();
+  activeCommandIndex = 0;
+
+  if (!limited.length) {
+    const empty = createElement("p", "command-empty", "No public results found");
+    fragment.append(empty);
+  }
+
+  limited.forEach((item, index) => {
+    const button = createElement("button", "command-item");
+    button.type = "button";
+    button.setAttribute("role", "option");
+    button.setAttribute("aria-selected", index === activeCommandIndex ? "true" : "false");
+    button.dataset.commandIndex = String(index);
+    button.dataset.feedId = item.feedId;
+    button.dataset.active = index === activeCommandIndex ? "true" : "false";
+    button.append(createElement("span", "command-item__type", item.type));
+    const copy = createElement("span", "command-item__copy");
+    copy.append(createElement("strong", "", item.title));
+    copy.append(createElement("small", "", item.meta));
+    button.append(copy);
+    button.addEventListener("click", () => {
+      closeCommandPalette();
+      navigateCommandAction(item.action);
+    });
+    fragment.append(button);
+  });
+
+  commandResults.replaceChildren(fragment);
+}
+
+function updateCommandActiveIndex(nextIndex) {
+  if (!commandResults) return;
+  const buttons = [...commandResults.querySelectorAll(".command-item")];
+  if (!buttons.length) return;
+  activeCommandIndex = (nextIndex + buttons.length) % buttons.length;
+  buttons.forEach((button, index) => {
+    button.dataset.active = index === activeCommandIndex ? "true" : "false";
+    button.setAttribute("aria-selected", index === activeCommandIndex ? "true" : "false");
+  });
+  buttons[activeCommandIndex]?.scrollIntoView({ block: "nearest" });
+}
+
+function openActiveCommandResult() {
+  if (!commandResults) return;
+  const buttons = [...commandResults.querySelectorAll(".command-item")];
+  const button = buttons[activeCommandIndex];
+  if (button) button.click();
+}
+
+function openDetailDrawer() {
+  if (!detailDrawer) return;
+  detailDrawer.hidden = false;
+  document.body.dataset.drawerOpen = "true";
+}
+
+function closeDetailDrawer() {
+  if (!detailDrawer) return;
+  detailDrawer.hidden = true;
+  document.body.dataset.drawerOpen = "false";
+}
+
+function detailHeader({ kicker, title, meta }) {
+  const header = createElement("header", "detail-drawer__header");
+  header.append(createElement("span", "", kicker));
+  const titleElement = createElement("h2", "", title);
+  titleElement.id = "detailDrawerTitle";
+  header.append(titleElement);
+  if (meta) header.append(createElement("p", "", meta));
+  return header;
+}
+
+function detailStatus(value) {
+  return createElement("span", "detail-status", value);
+}
+
+function renderDetailPlayerRow(player) {
+  const row = createElement("li", "detail-player-row");
+  row.dataset.state = player.state ?? (player.qualified ? "qualified" : "pending");
+  const rank = player.rank ? ordinal(player.rank) : player.seed;
+  row.append(createElement("strong", "", rank));
+  const copy = createElement("span", "detail-player-row__copy");
+  copy.append(createElement("span", "", player.name));
+  if (player.city) copy.append(createElement("small", "", player.city));
+  row.append(copy);
+  row.append(detailStatus(player.stateLabel ?? (player.qualified ? "Qualified" : "Pending")));
+  return row;
+}
+
+function openLobbyDrawer(lobbyId, feedId = "") {
+  const details = findLobbyDetails(lobbyId, feedId);
+  if (!details || !detailDrawerContent) return;
+  const { feed, round, lobby } = details;
+  const fragment = document.createDocumentFragment();
+  const route = round.title === "Round 4" ? "1st/2nd Finals / 3rd/4th Wildcard" : "Top two advance";
+  fragment.append(detailHeader({
+    kicker: `${feed.shortLabel ?? feed.label} / ${round.title}`,
+    title: lobby.id,
+    meta: route
+  }));
+
+  const summary = createElement("div", "detail-summary");
+  summary.append(createElement("span", "", "Status"));
+  summary.append(detailStatus(lobby.status));
+  summary.append(createElement("span", "", "Players"));
+  summary.append(createElement("strong", "", String((lobby.players ?? []).length)));
+  fragment.append(summary);
+
+  const list = createElement("ul", "detail-player-list");
+  (lobby.players ?? []).forEach((player) => list.append(renderDetailPlayerRow(player)));
+  fragment.append(list);
+
+  if (round.title === "Round 4") {
+    const note = createElement("p", "detail-note", "Round 4 sends first and second to National Finals, third and fourth to Wildcard.");
+    fragment.append(note);
+  }
+
+  detailDrawerContent.replaceChildren(fragment);
+  openDetailDrawer();
+}
+
+function renderDetailEntrant(entrant, winner) {
+  const row = createElement("li", "detail-entrant-row");
+  row.dataset.winner = winner ? "true" : "false";
+  row.dataset.pending = entrant.pending ? "true" : "false";
+  row.append(createElement("strong", "", entrant.seed));
+  const copy = createElement("span", "detail-player-row__copy");
+  copy.append(createElement("span", "", entrant.name));
+  if (entrant.city) copy.append(createElement("small", "", entrant.city));
+  row.append(copy);
+  row.append(createElement("em", "", entrant.score ?? "-"));
+  return row;
+}
+
+function openMatchDrawer(matchId, feedId = "national-finals") {
+  const details = findMatchDetails(matchId, feedId);
+  if (!details || !detailDrawerContent) return;
+  const { round, match } = details;
+  const winnerIndex = getWinnerIndex(match.entrants);
+  const fragment = document.createDocumentFragment();
+  fragment.append(detailHeader({
+    kicker: `National Finals / ${round.title}`,
+    title: match.id,
+    meta: `${match.label} / Best of ${match.bestOf}`
+  }));
+
+  const summary = createElement("div", "detail-summary");
+  summary.append(createElement("span", "", "Status"));
+  summary.append(detailStatus(match.status));
+  summary.append(createElement("span", "", "Route"));
+  summary.append(createElement("strong", "", match.feed));
+  fragment.append(summary);
+
+  const list = createElement("ul", "detail-player-list");
+  match.entrants.forEach((entrant, index) => {
+    list.append(renderDetailEntrant(entrant, winnerIndex === index));
+  });
+  fragment.append(list);
+
+  const note = createElement("p", "detail-note", round.title === "Grand Final" ? "Winner becomes Legion Wars champion." : "Winner advances to the next National Finals round.");
+  fragment.append(note);
+
+  detailDrawerContent.replaceChildren(fragment);
+  openDetailDrawer();
+}
+
 function renderSheetMeta(meta) {
   if (!sheetStatus || !sheetUpdated) return;
   sheetStatus.textContent = meta.message;
@@ -572,11 +917,13 @@ function renderActiveFeed(meta = { mode: "fallback", message: "Using fallback da
   applyFeedTheme(activeFeed);
   renderStatus(activeFeed.status ?? dashboardTournament.status);
   renderFeedTabs(workbookFeeds);
+  renderMobileTabBar(workbookFeeds);
   renderTournamentOverview(workbookFeeds, activeFeed);
   renderLobbies(activeFeed.lobbies ?? []);
   renderBracketView(activeFeed);
   renderStageSelect(activeFeed);
   renderSheetMeta(meta);
+  buildCommandItems();
 }
 
 function renderTournament(tournament, meta = { mode: "fallback", message: "Using fallback data.", fetchedAt: null }) {
@@ -691,15 +1038,92 @@ feedTabs?.addEventListener("click", (event) => {
   activateFeed(button.dataset.feedId);
 });
 
+mobileTabBar?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-feed-id]");
+  if (!button) return;
+  activateFeed(button.dataset.feedId);
+  document.querySelector("#bracket")?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
 tournamentOverview?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-feed-id]");
   if (!button) return;
   activateFeed(button.dataset.feedId);
 });
 
+bracketRounds?.addEventListener("click", (event) => {
+  const matchCard = event.target.closest("[data-match-id]");
+  if (matchCard) {
+    openMatchDrawer(matchCard.dataset.matchId, activeFeedId);
+    return;
+  }
+
+  const lobbyCard = event.target.closest("[data-lobby-id]");
+  if (lobbyCard) {
+    openLobbyDrawer(lobbyCard.dataset.lobbyId, activeFeedId);
+  }
+});
+
+bracketRounds?.addEventListener("keydown", (event) => {
+  if (!["Enter", " "].includes(event.key)) return;
+  const card = event.target.closest("[data-match-id], [data-lobby-id]");
+  if (!card) return;
+  event.preventDefault();
+  if (card.dataset.matchId) {
+    openMatchDrawer(card.dataset.matchId, activeFeedId);
+  } else if (card.dataset.lobbyId) {
+    openLobbyDrawer(card.dataset.lobbyId, activeFeedId);
+  }
+});
+
 stageSelect?.addEventListener("change", (event) => {
   if (activeFeedId) stageSelections[activeFeedId] = event.target.value;
   syncSheet({ force: false }).catch(renderFatalError);
+});
+
+openSearchButton?.addEventListener("click", openCommandPalette);
+closeSearchButton?.addEventListener("click", closeCommandPalette);
+commandOverlay?.addEventListener("click", (event) => {
+  if (event.target === commandOverlay) closeCommandPalette();
+});
+commandSearchInput?.addEventListener("input", (event) => {
+  renderCommandResults(event.target.value);
+});
+commandSearchInput?.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    updateCommandActiveIndex(activeCommandIndex + 1);
+  } else if (event.key === "ArrowUp") {
+    event.preventDefault();
+    updateCommandActiveIndex(activeCommandIndex - 1);
+  } else if (event.key === "Enter") {
+    event.preventDefault();
+    openActiveCommandResult();
+  } else if (event.key === "Escape") {
+    event.preventDefault();
+    closeCommandPalette();
+  }
+});
+detailDrawerScrim?.addEventListener("click", closeDetailDrawer);
+closeDetailDrawerButton?.addEventListener("click", closeDetailDrawer);
+
+document.addEventListener("keydown", (event) => {
+  const typingTarget = event.target instanceof HTMLElement &&
+    ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName);
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+    event.preventDefault();
+    openCommandPalette();
+    return;
+  }
+  if (event.key === "/" && !typingTarget && commandOverlay?.hidden) {
+    event.preventDefault();
+    openCommandPalette();
+    return;
+  }
+  if (event.key === "Escape") {
+    if (!commandOverlay?.hidden) closeCommandPalette();
+    if (!detailDrawer?.hidden) closeDetailDrawer();
+  }
 });
 
 syncSheet().catch(renderFatalError);

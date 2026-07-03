@@ -64,7 +64,7 @@ Google Sheets published workbook tabs
 
 - `index.html`: public page shell, SEO metadata, navigation, mount points.
 - `styles.css`: visual system, responsive bracket/progression layout, tabs, cards, status badges.
-- `app.js`: DOM rendering, feed tabs, refresh behavior, stage selector, group progression, Wildcard pool, and Finals bracket cards.
+- `app.js`: DOM rendering, feed tabs, refresh behavior, stage selector, group progression, Wildcard pool, Finals bracket cards, public search/jump palette, mobile feed tab bar, and lobby/match detail drawer.
 - `data/bracket-data.js`: safe 16-player National Finals fallback.
 - `data/sheet-config.js`: generated public workbook id, gids, CSV URLs, cache timing.
 - `data/sheet-data.js`: CSV parser, feed loaders, group parser, finals parser, cache/fallback logic.
@@ -168,6 +168,9 @@ The page is intentionally viewer-first:
 - Feed tabs for Finals, Titan, Nexus, Dominion, and Wildcard.
 - Tactical broadcast headers for the selected bracket view.
 - Chamfered tabs, status rails, and slab-style lobby/match cards.
+- Search/jump palette for public players, lobbies, matches, and views.
+- Detail drawer for selected public lobby or match data.
+- Mobile bottom tab bar for quick feed switching.
 - Titan, Nexus, and Dominion as lobby progression lanes on desktop.
 - Group progression rounds stacked on mobile.
 - Wildcard as a 12-player last-chance pool with four Finals slots.
