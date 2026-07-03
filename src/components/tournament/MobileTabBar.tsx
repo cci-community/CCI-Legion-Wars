@@ -13,9 +13,9 @@ const TABS: {
   { key: "overview", label: "Map", accent: "finals", icon: Map },
   { key: "titan", label: "Titan", accent: "titan", icon: Users },
   { key: "nexus", label: "Nexus", accent: "nexus", icon: Users },
-  { key: "finals", label: "Finals", accent: "finals", icon: Trophy },
   { key: "dominion", label: "Dom", accent: "dominion", icon: Users },
   { key: "wildcard", label: "Wild", accent: "wildcard", icon: Zap },
+  { key: "finals", label: "Finals", accent: "finals", icon: Trophy },
 ];
 
 export function MobileTabBar({
