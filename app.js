@@ -1,9 +1,9 @@
 // Copyright (c) 2026 CCI Volunteer Legion and ATLNO.exe.
 // Runtime rule: render public sheet-derived qualifier data only; do not expose hidden player data.
 
-import { tournament as fallbackTournament } from "./data/bracket-data.js?v=20260703-favicon-overview";
-import { sheetConfig } from "./data/sheet-config.js?v=20260703-favicon-overview";
-import { loadTournamentFeeds } from "./data/sheet-data.js?v=20260703-favicon-overview";
+import { tournament as fallbackTournament } from "./data/bracket-data.js?v=20260703-tactical-ui";
+import { sheetConfig } from "./data/sheet-config.js?v=20260703-tactical-ui";
+import { loadTournamentFeeds } from "./data/sheet-data.js?v=20260703-tactical-ui";
 
 const statusGrid = document.querySelector("#statusGrid");
 const lobbyGrid = document.querySelector("#lobbyGrid");
@@ -47,6 +47,40 @@ function applyFeedTheme(feed) {
   const theme = getFeedTheme(feed);
   document.body.dataset.feedTheme = theme;
   if (bracketSection) bracketSection.dataset.feedTheme = theme;
+}
+
+function createBroadcastHeader({ eyebrow, title, accentText = "", system = "", stats = [], route = [] }) {
+  const header = createElement("header", "broadcast-header");
+  const copy = createElement("div", "broadcast-header__copy");
+  const kicker = createElement("span", "broadcast-header__kicker", eyebrow);
+  const heading = createElement("h3");
+  const statRail = createElement("dl", "broadcast-header__stats");
+
+  heading.append(document.createTextNode(title));
+  if (accentText) heading.append(createElement("span", "", ` ${accentText}`));
+  copy.append(kicker, heading);
+  if (system) copy.append(createElement("small", "", system));
+
+  stats.slice(0, 4).forEach((stat) => {
+    const item = createElement("div");
+    item.append(createElement("dt", "", stat.label));
+    item.append(createElement("dd", "", stat.value));
+    statRail.append(item);
+  });
+
+  header.append(copy);
+  if (statRail.childElementCount) header.append(statRail);
+
+  if (route.length) {
+    const routeRail = createElement("div", "broadcast-route");
+    route.forEach((label, index) => {
+      routeRail.append(createElement("span", "", label));
+      if (index < route.length - 1) routeRail.append(createElement("i", "", "->"));
+    });
+    header.append(routeRail);
+  }
+
+  return header;
 }
 
 function getWinnerIndex(entrants) {
@@ -126,7 +160,9 @@ function renderFeedTabs(feeds) {
   const fragment = document.createDocumentFragment();
 
   feeds.forEach((feed) => {
-    const button = createElement("button", "feed-tab", feed.shortLabel ?? feed.label);
+    const button = createElement("button", "feed-tab");
+    const label = createElement("span", "feed-tab__label", feed.shortLabel ?? feed.label);
+    const type = feed.type === "finals" ? "Main" : feed.type === "wildcard" ? "Last Chance" : "Group";
     button.type = "button";
     button.id = `tab-${feed.id}`;
     button.dataset.feedId = feed.id;
@@ -135,6 +171,7 @@ function renderFeedTabs(feeds) {
     button.setAttribute("aria-controls", "bracket");
     button.setAttribute("aria-selected", feed.id === activeFeedId ? "true" : "false");
     button.setAttribute("aria-label", `${feed.label} bracket`);
+    button.append(label, createElement("small", "", type));
     fragment.append(button);
   });
 
@@ -222,21 +259,29 @@ function renderMatch(match) {
   card.dataset.status = match.status;
   card.setAttribute("aria-label", `${match.label}, ${match.status}, best of ${match.bestOf}`);
 
+  const meta = createElement("div", "match-card__meta");
+  const metaGroup = createElement("div", "match-card__meta-group");
+  const slab = createElement("div", "match-card__slab");
+  const feed = createElement("div", "match-card__feed");
+  metaGroup.append(createElement("code", "", match.id));
+  metaGroup.append(createElement("span", "", `Bo${match.bestOf}`));
+  meta.append(metaGroup);
+  meta.append(createElement("span", "match-card__status", match.status));
+
   const header = createElement("div", "match-card__header");
   header.append(createElement("span", "match-card__label", match.label));
-  header.append(createElement("span", "match-card__status", match.status));
+  header.append(createElement("span", "", match.starts));
 
-  const meta = createElement("div", "match-card__meta", `Best of ${match.bestOf} / ${match.starts}`);
-  const feed = createElement("div", "match-card__feed");
   feed.append(createElement("span", "", "Route"));
   feed.append(createElement("strong", "", match.feed));
 
   card.append(header, meta);
 
   match.entrants.forEach((entrant, index) => {
-    card.append(renderSlot(entrant, winnerIndex === index));
+    slab.append(renderSlot(entrant, winnerIndex === index));
   });
 
+  card.append(slab);
   card.append(feed);
   return card;
 }
@@ -257,15 +302,16 @@ function renderProgressionPlayer(player) {
 
 function renderProgressionLobby(lobby) {
   const card = createElement("article", "progression-lobby-card");
-  const head = createElement("div", "progression-lobby-card__head");
+  const meta = createElement("div", "progression-lobby-card__meta");
+  const slab = createElement("div", "progression-lobby-card__slab");
+  const content = createElement("div", "progression-lobby-card__content");
   const players = createElement("ul", "progression-player-list");
 
-  head.append(createElement("span", "progression-lobby-card__id", lobby.id));
-  head.append(createElement("span", "progression-lobby-card__status", lobby.status));
+  meta.append(createElement("code", "progression-lobby-card__id", lobby.id));
+  meta.append(createElement("span", "progression-lobby-card__status", lobby.status));
 
-  card.append(head);
   if (lobby.sourceName && lobby.sourceName !== lobby.name) {
-    card.append(createElement("p", "progression-lobby-card__source", lobby.sourceName));
+    content.append(createElement("p", "progression-lobby-card__source", lobby.sourceName));
   }
 
   (lobby.players ?? []).forEach((player) => {
@@ -273,33 +319,66 @@ function renderProgressionLobby(lobby) {
   });
 
   if (players.childElementCount) {
-    card.append(players);
+    content.append(players);
   } else {
-    card.append(createElement("p", "progression-lobby-card__empty", "Awaiting lobby data"));
+    content.append(createElement("p", "progression-lobby-card__empty", "Awaiting lobby data"));
+  }
+
+  slab.append(content);
+  card.append(meta, slab);
+
+  if ((lobby.players ?? []).some((player) => player.state === "wildcard" || player.stateLabel === "Finals")) {
+    const route = createElement("div", "progression-lobby-card__route");
+    route.append(createElement("span", "", "1-2 Finals"));
+    route.append(createElement("span", "", "3-4 Wildcard"));
+    card.append(route);
   }
 
   return card;
 }
 
-function renderGroupProgression(progression) {
+function roundCompletion(round) {
+  const players = (round.lobbies ?? []).flatMap((lobby) => lobby.players ?? []);
+  const decided = players.filter((player) => player.state && player.state !== "pending").length;
+  const total = players.length || round.players || 0;
+  const percent = total ? Math.round((decided / total) * 100) : 0;
+  return { decided, total, percent };
+}
+
+function renderGroupProgression(progression, feed) {
   bracketPhase.textContent = progression.phase;
   bracketMode.textContent = progression.mode;
   bracketRounds.dataset.view = "group";
 
   const fragment = document.createDocumentFragment();
+  const headerStats = (feed?.status ?? []).slice(0, 4);
+  fragment.append(createBroadcastHeader({
+    eyebrow: "// Legion Wars / Group Stage",
+    title: progression.phase,
+    accentText: "Division",
+    system: "Round 4 top two -> Finals / third-fourth -> Wildcard",
+    stats: headerStats,
+    route: ["Round 1", "Round 2", "Round 3", "Round 4"]
+  }));
 
   progression.rounds.forEach((round) => {
     const section = createElement("section", "progression-round");
     const head = createElement("div", "progression-round__head");
     const metrics = createElement("div", "progression-round__metrics");
     const lobbyRail = createElement("div", "progression-lobby-rail");
+    const completion = roundCompletion(round);
+    const progress = createElement("div", "progression-round__progress");
+    const progressBar = createElement("span");
 
     head.append(createElement("h3", "", round.title));
     head.append(createElement("p", "", round.advance));
+    progressBar.style.width = `${completion.percent}%`;
+    progress.append(progressBar);
     metrics.append(createElement("span", "", `${round.players} players`));
     metrics.append(createElement("span", "", `${round.lobbies?.length ?? 0}/${round.expectedLobbies} lobbies`));
     metrics.append(createElement("strong", "", round.result));
-    section.append(head, metrics);
+    metrics.append(createElement("small", "", `${completion.decided}/${completion.total} decided`));
+    section.append(head, progress, metrics);
 
     if (round.lobbies?.length) {
       round.lobbies.forEach((lobby) => {
@@ -348,6 +427,19 @@ function renderWildcardProgression(feed) {
   const pathGrid = createElement("div", "wildcard-path-grid");
   const slotGrid = createElement("div", "wildcard-slot-grid");
 
+  shell.append(createBroadcastHeader({
+    eyebrow: "// Legion Wars / Last Chance",
+    title: "Wildcard",
+    accentText: "Pool",
+    system: progression.poolCount >= progression.expectedPoolCount ? "Pool ready" : "Awaiting group Round 4 results",
+    stats: [
+      { label: "Pool", value: `${progression.poolCount}/${progression.expectedPoolCount}` },
+      { label: "Advancing", value: "4" },
+      { label: "Source", value: progression.sourceStage ?? "Wildcard" }
+    ],
+    route: ["Pool 12", "Top 4", "National Finals"]
+  }));
+
   pool.append(createElement("h3", "", "12-player pool"));
   pool.append(createElement("p", "", `${progression.poolCount}/${progression.expectedPoolCount} players listed`));
   (progression.rounds?.[0]?.lobbies ?? []).forEach((lobby) => {
@@ -382,12 +474,27 @@ function renderWildcardProgression(feed) {
   bracketRounds.replaceChildren(shell);
 }
 
-function renderBracket(bracket) {
+function renderBracket(bracket, feed) {
   bracketPhase.textContent = bracket.phase;
   bracketMode.textContent = bracket.mode;
   bracketRounds.dataset.view = "bracket";
 
-  const fragment = document.createDocumentFragment();
+  const shell = createElement("div", "finals-view");
+  const board = createElement("div", "finals-board");
+  const matchCount = bracket.rounds.reduce((count, round) => count + round.matches.length, 0);
+  shell.append(createBroadcastHeader({
+    eyebrow: "// Legion Wars / Championship",
+    title: "National",
+    accentText: "Finals",
+    system: "16-player single elimination",
+    stats: [
+      { label: "Phase", value: bracket.phase },
+      { label: "Format", value: bracket.mode },
+      { label: "Rounds", value: String(bracket.rounds.length) },
+      { label: "Matches", value: String(matchCount) }
+    ],
+    route: ["Round of 16", "Quarterfinals", "Semifinals", "Grand Final"]
+  }));
 
   bracket.rounds.forEach((round) => {
     const roundColumn = createElement("section", "bracket-round");
@@ -402,15 +509,16 @@ function renderBracket(bracket) {
       roundColumn.append(renderMatch(match));
     });
 
-    fragment.append(roundColumn);
+    board.append(roundColumn);
   });
 
-  bracketRounds.replaceChildren(fragment);
+  shell.append(board);
+  bracketRounds.replaceChildren(shell);
 }
 
 function renderBracketView(feed) {
   if (feed.type === "group" && feed.progression?.type === "group") {
-    renderGroupProgression(feed.progression);
+    renderGroupProgression(feed.progression, feed);
     return;
   }
 
@@ -419,7 +527,7 @@ function renderBracketView(feed) {
     return;
   }
 
-  renderBracket(feed.bracket);
+  renderBracket(feed.bracket, feed);
 }
 
 function renderSheetMeta(meta) {

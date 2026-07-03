@@ -61,7 +61,8 @@ npx -y firebase-tools@latest emulators:start --only hosting --project demo-cci-l
 |   |-- MAINTENANCE.md
 |   |-- RESEARCH.md
 |   |-- SECURITY.md
-|   `-- SHEET_SCHEMA.md
+|   |-- SHEET_SCHEMA.md
+|   `-- UI_SYSTEM.md
 |-- output/pdf/
 |   `-- cci-legion-wars-copyright-ruleset.pdf
 |-- scripts/

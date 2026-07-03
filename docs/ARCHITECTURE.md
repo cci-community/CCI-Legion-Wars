@@ -73,7 +73,7 @@ Google Sheets published workbook tabs
 - `scripts/validate-site.mjs`: validates public scope, parser behavior, docs, hosting headers.
 - `scripts/generate-rules-pdf.py`: renders copyright/ruleset PDF.
 - `.github/workflows/firebase-hosting.yml`: Firebase deploy-on-push workflow with manual preview/live dispatch.
-- `docs/*`: architecture, sheet, security, deployment, maintenance, research, ownership policy.
+- `docs/*`: architecture, sheet, security, deployment, maintenance, research, UI system, ownership policy.
 
 ## Feed Configuration
 
@@ -166,6 +166,8 @@ The page is intentionally viewer-first:
 - Short event branding in the hero.
 - Compact live status cards.
 - Feed tabs for Finals, Titan, Nexus, Dominion, and Wildcard.
+- Tactical broadcast headers for the selected bracket view.
+- Chamfered tabs, status rails, and slab-style lobby/match cards.
 - Titan, Nexus, and Dominion as lobby progression lanes on desktop.
 - Group progression rounds stacked on mobile.
 - Wildcard as a 12-player last-chance pool with four Finals slots.
