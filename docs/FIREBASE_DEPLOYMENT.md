@@ -48,7 +48,7 @@ Do not put private secrets or private player data in browser-readable files.
 
 ## GitHub Actions Setup
 
-Pushes to `main` deploy live Hosting automatically. Use preview channels first and do not push to `main` until preview has been verified.
+Pull requests into `main` run validation, build the app, and deploy a Firebase preview channel. Pushes to `main` deploy live Hosting automatically. Use preview channels first and do not push to `main` until preview has been verified.
 
 Required repository secret:
 
@@ -75,7 +75,7 @@ Workflow:
 1. `npm ci`
 2. `npm run check`
 3. `npm run build`
-4. Firebase Hosting deploys `dist`
+4. Firebase Hosting deploys `dist` to a preview channel for pull requests/manual preview runs, or to live for `main` pushes.
 
 ## Live Deploy
 
@@ -84,6 +84,8 @@ Manual preview channel:
 ```powershell
 npm run firebase:preview
 ```
+
+GitHub pull request previews use the channel id `pr-<pull request number>`.
 
 Verify the preview URL loads the built React app, uses only the public Google Sheets feeds, and does not expose raw source files or private data.
 

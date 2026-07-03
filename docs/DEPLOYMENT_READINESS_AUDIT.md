@@ -21,21 +21,21 @@ Excluded from this audit:
 - Admin dashboard.
 - Private registration data.
 
-## Current Evidence To Re-Verify
+## Latest Evidence
 
 | Area                   | Required evidence before launch                                                                         | Status               |
 | ---------------------- | ------------------------------------------------------------------------------------------------------- | -------------------- |
-| Static app validation  | `npm run check` passes after the React/Vite migration.                                                  | Pending latest run   |
-| Production build       | `npm run build` emits `dist/index.html` and hashed assets.                                              | Pending latest run   |
-| Public page boundary   | Validation blocks iframe embeds, private-tab copy, and internal operations copy in public HTML.         | Pending latest run   |
-| Workbook config        | `src/data/sheet-config.js` defines only the five allowed public gid feeds.                              | Pending latest run   |
-| Group parser           | Fixtures validate group/lobby parsing plus Round Four local and global Wildcard routing.                | Pending latest run   |
-| National Finals parser | Fixture validates scores, winners, and final state.                                                     | Pending latest run   |
-| Wildcard parser        | Fixture validates `Wildcart` typo normalization and derived Wildcard pool behavior.                     | Pending latest run   |
-| Firebase config        | `firebase.json` serves `dist` with SPA rewrite, headers, and no raw source exposure.                    | Pending latest run   |
-| Firebase project       | CLI/GitHub config confirm project id, Hosting site/target, and `.firebaserc`.                           | Pending latest run   |
-| Preview deploy         | Firebase preview channel serves the built React app and loads live public Google Sheets data.           | Required before live |
-| Rendered QA            | Desktop and mobile browser checks render tabs, drawers, command palette, and sheet sync without errors. | Pending latest run   |
+| Static app validation  | `npm run check` passes after the React/Vite migration.                                                  | Verified 2026-07-03  |
+| Production build       | `npm run build` emits `dist/index.html` and hashed assets.                                              | Verified 2026-07-03  |
+| Public page boundary   | Validation blocks iframe embeds, private-tab copy, and internal operations copy in public HTML.         | Verified 2026-07-03  |
+| Workbook config        | `src/data/sheet-config.js` defines only the five allowed public gid feeds.                              | Verified 2026-07-03  |
+| Group parser           | Fixtures validate group/lobby parsing plus Round Four local and global Wildcard routing.                | Verified 2026-07-03  |
+| National Finals parser | Fixture validates scores, winners, and final state.                                                     | Verified 2026-07-03  |
+| Wildcard parser        | Fixture validates `Wildcart` typo normalization and derived Wildcard pool behavior.                     | Verified 2026-07-03  |
+| Firebase config        | `firebase.json` serves `dist` with SPA rewrite, headers, and no raw source exposure.                    | Verified 2026-07-03  |
+| Firebase project       | CLI/GitHub config confirm project id, Hosting site/target, and `.firebaserc`.                           | Verified 2026-07-03  |
+| Preview deploy         | Firebase preview channel serves the built React app and loads live public Google Sheets data.           | Verified 2026-07-03  |
+| Rendered QA            | Desktop and mobile browser checks render tabs, drawers, command palette, and sheet sync without errors. | Verified 2026-07-03  |
 
 ## Verified Public Feed State
 
@@ -68,8 +68,6 @@ After preview passes:
 3. Verify the live Firebase URL renders the public bracket state.
 4. Confirm internal paths such as `firebase.json`, `docs/**`, `src/**`, and `package.json` do not expose raw repository content.
 
-## Not Complete Until
+## Remaining Live Launch Gate
 
-The launch readiness goal is complete only when the Firebase preview URL has been checked directly and the public-data boundary is verified there.
-
-Local validation and emulator success prove hosting compatibility, not public preview or live deployment.
+Preview readiness is complete. Live release remains pending until the reviewed branch is pushed or merged to `main`, the `Firebase Hosting Deploy` GitHub Actions run succeeds, and the live Firebase URL is checked directly.
