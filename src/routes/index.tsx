@@ -220,15 +220,15 @@ function Index() {
         {/* Header */}
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="relative grid h-9 w-9 shrink-0 place-items-center bg-foreground text-background clip-chamfer-sm shadow-[0_0_18px_-6px_var(--finals)]">
+            <div className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden border border-border-strong bg-surface-2/85 clip-chamfer-sm shadow-[0_0_24px_-10px_var(--finals)]">
               <img
-                src="/CCI-Volunteer-Legion-Logo-01.png"
+                src="/legion-wars-logo-mark.png"
                 alt=""
-                className="h-7 w-7 object-contain"
+                className="h-10 w-10 object-contain brightness-110 contrast-125 drop-shadow-[0_2px_8px_rgba(0,0,0,0.55)]"
                 loading="eager"
               />
-              <span className="absolute top-0 left-0 h-[3px] w-[3px] bg-finals" />
-              <span className="absolute bottom-0 right-0 h-[3px] w-[3px] bg-finals" />
+              <span className="pointer-events-none absolute inset-x-1 top-0 h-px bg-finals/70" />
+              <span className="pointer-events-none absolute inset-y-1 right-0 w-px bg-finals/50" />
             </div>
             <div className="min-w-0 leading-tight">
               <h1 className="truncate text-display text-[18px] uppercase tracking-tight text-white">

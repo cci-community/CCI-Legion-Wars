@@ -11,6 +11,10 @@ const STATE_LABEL_TONE: Record<PlayerState, string> = {
   live: "text-muted-foreground/70",
 };
 
+function isVisibleSeededPlayer(name: string) {
+  return !/^awaiting\s+(player|qualifier)$/i.test(name.trim());
+}
+
 export function LobbyCard({
   lobby,
   accentVar,
@@ -28,6 +32,9 @@ export function LobbyCard({
   const isReady = lobby.status === "Ready" || lobby.status === "Live";
 
   const statusLabel = isFinal ? lobby.status : isPending ? "Pending" : "Ready";
+  const seededPlayers = lobby.players.filter((player) => isVisibleSeededPlayer(player.name));
+  const seededLabel =
+    seededPlayers.length === 1 ? "1 Player Seeded" : `${seededPlayers.length} Players Seeded`;
 
   const railColor = isFinal
     ? `color-mix(in oklab, var(${accentVar}) 65%, transparent)`
@@ -63,14 +70,56 @@ export function LobbyCard({
           className="relative border border-border/70 bg-surface-1/85 slab-shadow"
           style={{
             borderLeft: `4px solid ${railColor}`,
-            opacity: isPending ? 0.55 : 1,
+            opacity: isPending && seededPlayers.length === 0 ? 0.55 : 1,
           }}
         >
           {isPending ? (
-            <div className="px-3 py-3 slab-unskew">
-              <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
-                {lobby.players.length} Players Seeded
-              </span>
+            <div className="px-3 py-2.5 slab-unskew">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-muted-foreground/65">
+                  {seededLabel}
+                </span>
+                {seededPlayers.length > 0 && (
+                  <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-[color:var(--tab-accent)]/80">
+                    Seeded
+                  </span>
+                )}
+              </div>
+
+              {seededPlayers.length > 0 ? (
+                <ul className="space-y-1">
+                  {seededPlayers.map((p, i) => (
+                    <li
+                      key={`${p.seed}-${p.name}-${i}`}
+                      className="flex min-w-0 items-center justify-between gap-2 border-t border-border/35 pt-1.5 first:border-t-0 first:pt-0"
+                    >
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="w-5 shrink-0 text-center font-mono text-[9px] font-bold tabular-nums text-muted-foreground/55">
+                          {String(p.rank ?? p.seed).padStart(2, "0")}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="truncate font-heading text-[12px] font-black uppercase italic leading-tight tracking-tight text-foreground/90">
+                            {p.name}
+                          </div>
+                          {(p.city || p.region) && (
+                            <div className="mt-px truncate font-mono text-[8px] uppercase tracking-tight text-muted-foreground/55">
+                              {p.city}
+                              {p.region && <span className="ml-1 opacity-60">/ {p.region}</span>}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <span className="shrink-0 font-mono text-[8px] font-bold uppercase tracking-tighter text-muted-foreground/50">
+                        {p.stateLabel}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                  Awaiting seed data
+                </span>
+              )}
             </div>
           ) : (
             <ul>
