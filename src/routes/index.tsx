@@ -70,9 +70,9 @@ const TABS: {
   accent: string;
 }[] = [
   { key: "overview", label: "Overview", accent: "finals" },
-  { key: "titan", label: "Group A", accent: "titan" },
-  { key: "nexus", label: "Group B", accent: "nexus" },
-  { key: "dominion", label: "Group C", accent: "dominion" },
+  { key: "titan", label: "Titan", accent: "titan" },
+  { key: "nexus", label: "Nexus", accent: "nexus" },
+  { key: "dominion", label: "Dominion", accent: "dominion" },
   { key: "wildcard", label: "Wildcard", accent: "wildcard" },
   { key: "finals", label: "Finals", accent: "finals" },
 ];

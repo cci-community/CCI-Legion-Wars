@@ -14,9 +14,9 @@ import type {
 type OverlayView = "overview" | "titan" | "nexus" | "dominion" | "wildcard" | "finals";
 
 const GROUP_META = {
-  titan: { title: "Group A", division: "Titan", accent: "titan" },
-  nexus: { title: "Group B", division: "Nexus", accent: "nexus" },
-  dominion: { title: "Group C", division: "Dominion", accent: "dominion" },
+  titan: { title: "Titan", label: "Group Titan", accent: "titan" },
+  nexus: { title: "Nexus", label: "Group Nexus", accent: "nexus" },
+  dominion: { title: "Dominion", label: "Group Dominion", accent: "dominion" },
 } as const;
 
 const GROUP_ORDER = ["titan", "nexus", "dominion"] as const;
@@ -57,14 +57,29 @@ export function ObsOverlayView({
       {!transparent && (
         <>
           <div className="pointer-events-none absolute inset-0 grid-lines opacity-70" />
+          <div className="pointer-events-none absolute inset-0 scanlines opacity-40" />
           <div
             className="pointer-events-none absolute inset-0"
             style={{
               background: `radial-gradient(900px 520px at 12% 0%, color-mix(in oklab, var(--${accent}) 20%, transparent), transparent 68%), radial-gradient(1000px 620px at 100% 100%, color-mix(in oklab, var(--${accent}) 11%, transparent), transparent 62%)`,
             }}
           />
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(90deg, oklch(0 0 0 / 0.28), transparent 20%, transparent 80%, oklch(0 0 0 / 0.34))",
+            }}
+          />
         </>
       )}
+
+      <div className="pointer-events-none absolute inset-5 border border-white/10">
+        <span className="absolute -left-px -top-px h-8 w-8 border-l-2 border-t-2 border-[color:var(--tab-accent)]" />
+        <span className="absolute -right-px -top-px h-8 w-8 border-r-2 border-t-2 border-[color:var(--tab-accent)]" />
+        <span className="absolute -bottom-px -left-px h-8 w-8 border-b-2 border-l-2 border-[color:var(--tab-accent)]" />
+        <span className="absolute -bottom-px -right-px h-8 w-8 border-b-2 border-r-2 border-[color:var(--tab-accent)]" />
+      </div>
 
       <div className="relative flex h-full flex-col p-8">
         <OverlayHeader
@@ -77,7 +92,7 @@ export function ObsOverlayView({
           view={view}
         />
 
-        <main className="min-h-0 flex-1 pt-5">
+        <main className="min-h-0 flex-1 py-5">
           {view === "overview" && <OverviewOverlay data={data} />}
           {view === "titan" && (
             <GroupOverlay
@@ -106,6 +121,8 @@ export function ObsOverlayView({
           {view === "wildcard" && <WildcardOverlay data={data} />}
           {view === "finals" && <FinalsOverlay finals={data.finalsView} round={round} />}
         </main>
+
+        <BroadcastFooter accent={accent} syncSummary={syncSummary} view={view} />
       </div>
     </div>
   );
@@ -137,41 +154,83 @@ function OverlayHeader({
       : isRefreshing
         ? "Refreshing"
         : syncStatus;
+  const divisionLabel =
+    view === "titan" || view === "nexus" || view === "dominion" ? "Group Stage" : "Public Bracket";
 
   return (
-    <header className="flex shrink-0 items-center justify-between gap-8 border-b border-border/80 pb-5">
-      <div className="flex min-w-0 items-center gap-4">
-        <div className="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden border border-border-strong bg-surface-1/85 clip-chamfer-sm shadow-[0_0_32px_-12px_var(--tab-accent)]">
-          <img
-            src="/legion-wars-logo-mark.png"
-            alt=""
-            className="h-14 w-14 object-contain brightness-110 contrast-125 drop-shadow-[0_3px_10px_rgba(0,0,0,0.65)]"
-          />
-          <span className="pointer-events-none absolute inset-x-1 top-0 h-px bg-[color:var(--tab-accent)]/75" />
-          <span className="pointer-events-none absolute inset-y-1 right-0 w-px bg-[color:var(--tab-accent)]/55" />
-        </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
-            <span className="h-2 w-2" style={{ background: `var(--${accent})` }} />
-            Legion Wars 2026
-            <span className="text-muted-foreground/40">//</span>
-            Broadcast Overlay
+    <header className="relative shrink-0 overflow-hidden border border-border/80 bg-surface-0/88 shadow-[0_24px_80px_-42px_var(--tab-accent)]">
+      <div className="pointer-events-none absolute inset-0 slash-band opacity-50" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-[color:var(--tab-accent)]" />
+      <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-8 px-6 py-4">
+        <div className="flex min-w-0 items-center gap-5">
+          <div className="relative grid h-20 w-20 shrink-0 place-items-center overflow-hidden border border-border-strong bg-surface-1/90 clip-chamfer-sm shadow-[0_0_42px_-14px_var(--tab-accent)]">
+            <img
+              src="/legion-wars-logo-mark.png"
+              alt=""
+              className="h-[72px] w-[72px] object-contain brightness-110 contrast-125 drop-shadow-[0_3px_10px_rgba(0,0,0,0.65)]"
+            />
+            <span className="pointer-events-none absolute inset-x-1 top-0 h-px bg-[color:var(--tab-accent)]/75" />
+            <span className="pointer-events-none absolute inset-y-1 right-0 w-px bg-[color:var(--tab-accent)]/55" />
           </div>
-          <h1 className="mt-1 truncate font-heading text-6xl font-black uppercase italic leading-none tracking-tight text-white">
-            {title}
-          </h1>
-          <div className="mt-1 font-mono text-[13px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-            {subtitle}
+          <div className="min-w-0">
+            <div className="flex items-center gap-3 font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
+              <span className="h-2 w-2" style={{ background: `var(--${accent})` }} />
+              Legion Wars 2026
+              <span className="text-muted-foreground/40">//</span>
+              {divisionLabel}
+            </div>
+            <h1 className="mt-1 truncate font-heading text-7xl font-black uppercase italic leading-none tracking-tight text-white">
+              {title}
+            </h1>
+            <div className="mt-1 font-mono text-[13px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              {subtitle}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex shrink-0 items-stretch border border-border/80 bg-surface-0/75 slab-shadow">
-        <HeaderStat label="Source" value="Public Sheets" accent={accent} />
-        <HeaderStat label="State" value={loadingLabel} accent={error ? "live" : accent} border />
-        <HeaderStat label="Updated" value={syncSummary} accent={accent} border />
+        <div className="grid min-w-[560px] grid-cols-3 border border-border/80 bg-background/80">
+          <HeaderStat label="Feed" value="Public Sheets" accent={accent} />
+          <HeaderStat label="State" value={loadingLabel} accent={error ? "live" : accent} border />
+          <HeaderStat label="Updated" value={syncSummary} accent={accent} border />
+        </div>
       </div>
     </header>
+  );
+}
+
+function BroadcastFooter({
+  accent,
+  syncSummary,
+  view,
+}: {
+  accent: string;
+  syncSummary: string;
+  view: OverlayView;
+}) {
+  const strap =
+    view === "wildcard"
+      ? "Wildcard: top 4 advance to National Finals"
+      : view === "finals"
+        ? "National Finals: 16-player single elimination"
+        : view === "overview"
+          ? "Titan, Nexus, Dominion into Wildcard and National Finals"
+          : `${overlayTitle(view)}: top 4 to National Finals, ranks 5-8 to Wildcard`;
+
+  return (
+    <footer className="grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center border border-border/80 bg-surface-0/88">
+      <div
+        className="px-5 py-3 font-heading text-2xl font-black uppercase italic tracking-tight text-background"
+        style={{ background: `var(--${accent})` }}
+      >
+        Live Bracket
+      </div>
+      <div className="truncate px-5 font-mono text-[12px] font-bold uppercase tracking-[0.26em] text-foreground">
+        {strap}
+      </div>
+      <div className="border-l border-border/80 px-5 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
+        {syncSummary}
+      </div>
+    </footer>
   );
 }
 
@@ -181,8 +240,8 @@ function OverviewOverlay({ data }: { data: TournamentData }) {
     const progress = groupProgress(group);
     return {
       accent: GROUP_META[key].accent,
-      label: GROUP_META[key].title,
-      title: GROUP_META[key].division,
+      label: GROUP_META[key].label,
+      title: GROUP_META[key].title,
       meta: `${progress.decided}/${progress.total} decided`,
       value: `${progress.percent}%`,
     };
@@ -236,7 +295,12 @@ function OverviewOverlay({ data }: { data: TournamentData }) {
       </section>
 
       <section className="grid gap-4">
-        <RouteCard icon={Users} label="Group Stage" value="A / B / C" accent="titan" />
+        <RouteCard
+          icon={Users}
+          label="Group Stage"
+          value="Titan / Nexus / Dominion"
+          accent="titan"
+        />
         <RouteCard icon={Zap} label="Wildcard" value="12 → 4" accent="wildcard" />
         <RouteCard
           icon={Trophy}
@@ -280,30 +344,39 @@ function GroupOverlay({
     : lobbies.length <= 2
       ? "grid-cols-2"
       : "grid-cols-4 content-start";
+  const finalsPlayers = lobbies.flatMap((lobby) =>
+    lobby.players.filter((player) => player.state === "finals" || player.state === "advance"),
+  );
+  const wildcardPlayers = lobbies.flatMap((lobby) =>
+    lobby.players.filter((player) => player.state === "wildcard"),
+  );
 
   return (
-    <div className="flex h-full flex-col gap-5">
-      <section className="grid shrink-0 grid-cols-[1fr_auto] gap-5">
+    <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
+      <section className="grid shrink-0 grid-cols-[minmax(0,1fr)_520px] gap-5">
         <div
-          className="relative overflow-hidden border border-border/80 bg-surface-1/70 p-5 slash-band"
+          className="relative overflow-hidden border border-border/80 bg-surface-1/75 p-6 slash-band"
           style={{ borderLeft: `4px solid var(--${accent})` }}
         >
+          <div className="pointer-events-none absolute right-6 top-5 font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground/30">
+            {GROUP_META[groupKey].label}
+          </div>
           <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
             // Legion Wars · Group Stage
           </div>
-          <div className="mt-1 flex items-end gap-3">
-            <h2 className="font-heading text-7xl font-black uppercase italic leading-none tracking-tight text-white">
-              {GROUP_META[groupKey].title}
-            </h2>
-            <span
-              className="mb-2 font-heading text-5xl font-black uppercase italic leading-none tracking-tight"
+          <div className="mt-2 flex items-end gap-4">
+            <h2
+              className="font-heading text-8xl font-black uppercase italic leading-none tracking-tight"
               style={{ color: `var(--${accent})` }}
             >
-              {GROUP_META[groupKey].division}
+              {GROUP_META[groupKey].title}
+            </h2>
+            <span className="mb-3 font-mono text-[15px] font-bold uppercase tracking-[0.28em] text-foreground">
+              Live leaderboard
             </span>
           </div>
         </div>
-        <div className="grid min-w-[520px] grid-cols-3 border border-border/80 bg-surface-0/75 slab-shadow">
+        <div className="grid grid-cols-3 border border-border/80 bg-surface-0/80 slab-shadow">
           <HeaderStat label="Round" value={roundLabel(selectedRoundIndex)} accent={accent} />
           <HeaderStat
             label="Lobbies"
@@ -320,18 +393,160 @@ function GroupOverlay({
         </div>
       </section>
 
-      <section className={cn("min-h-0 flex-1 gap-4", "grid", lobbyGridClass)}>
-        {lobbies.map((lobby) => (
-          <OverlayLobbyCard
-            key={lobby.id}
-            accent={accent}
-            dense={!prominent && lobbies.length > 8}
-            featured={prominent}
-            lobby={lobby}
-          />
-        ))}
+      <section className="grid min-h-0 grid-cols-[minmax(0,1fr)_430px] gap-5">
+        <div className={cn("grid min-h-0 gap-4", lobbyGridClass)}>
+          {lobbies.map((lobby) => (
+            <OverlayLobbyCard
+              key={lobby.id}
+              accent={accent}
+              dense={!prominent && lobbies.length > 8}
+              featured={prominent}
+              lobby={lobby}
+            />
+          ))}
+        </div>
+        <QualificationPanel
+          accent={accent}
+          finalsPlayers={finalsPlayers}
+          wildcardPlayers={wildcardPlayers}
+        />
       </section>
     </div>
+  );
+}
+
+function QualificationPanel({
+  accent,
+  finalsPlayers,
+  wildcardPlayers,
+}: {
+  accent: string;
+  finalsPlayers: Player[];
+  wildcardPlayers: Player[];
+}) {
+  return (
+    <aside className="relative min-h-0 overflow-hidden border border-border/80 bg-surface-1/80 slab-shadow">
+      <div className="pointer-events-none absolute inset-0 slash-band opacity-35" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-[color:var(--tab-accent)]" />
+      <div className="relative flex h-full flex-col gap-3 p-4">
+        <div className="border-b border-border/70 pb-3">
+          <div className="font-mono text-[9px] font-bold uppercase tracking-[0.32em] text-muted-foreground">
+            Advancement
+          </div>
+          <h3 className="mt-1 font-heading text-3xl font-black uppercase italic leading-none tracking-tight text-white">
+            Qualification Path
+          </h3>
+        </div>
+
+        <div className="grid min-h-0 gap-3">
+          <AdvancementBucket
+            accent="finals"
+            label="National Finals"
+            players={finalsPlayers}
+            rule="Top 4"
+            expectedCount={4}
+            visibleLimit={3}
+          />
+          <AdvancementBucket
+            accent="wildcard"
+            label="Wildcard Pool"
+            players={wildcardPlayers}
+            rule="Group 5-8"
+            visibleLimit={3}
+          />
+        </div>
+
+        <div className="mt-auto grid shrink-0 grid-cols-2 gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-foreground">
+          <div className="border border-border/70 bg-background/70 px-3 py-2">
+            <div className="text-muted-foreground">Finals lock</div>
+            <div className="mt-1 text-[12px]" style={{ color: `var(--${accent})` }}>
+              Top 4
+            </div>
+          </div>
+          <div className="border border-border/70 bg-background/70 px-3 py-2">
+            <div className="text-muted-foreground">Last chance</div>
+            <div className="mt-1 text-[12px] text-wildcard">5-8</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function AdvancementBucket({
+  accent,
+  label,
+  players,
+  rule,
+  expectedCount,
+  visibleLimit = 4,
+}: {
+  accent: string;
+  label: string;
+  players: Player[];
+  rule: string;
+  expectedCount?: number;
+  visibleLimit?: number;
+}) {
+  const activePlayers = players.filter((player) => !isPlaceholderPlayer(player));
+  const visiblePlayers = activePlayers.slice(0, visibleLimit);
+  const overflowCount = Math.max(0, activePlayers.length - visiblePlayers.length);
+  const rowCount = Math.max(visibleLimit, visiblePlayers.length);
+
+  return (
+    <section
+      className="border border-border/70 bg-background/70 p-3"
+      style={{ borderLeft: `4px solid var(--${accent})` }}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="font-mono text-[8px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
+            {rule}
+          </div>
+          <div
+            className="font-heading text-xl font-black uppercase italic leading-none tracking-tight"
+            style={{ color: `var(--${accent})` }}
+          >
+            {label}
+          </div>
+        </div>
+        <div className="font-heading text-2xl font-black italic tabular-nums text-white">
+          {activePlayers.length}
+          {expectedCount != null && (
+            <span className="text-muted-foreground/40">/{expectedCount}</span>
+          )}
+        </div>
+      </div>
+      <div className="mt-2 grid gap-1.5">
+        {Array.from({ length: rowCount }, (_, index) => {
+          const player = visiblePlayers[index];
+          return (
+            <div
+              key={`${label}-${index}-${player?.name ?? "slot"}`}
+              className="flex min-w-0 items-center justify-between gap-2 border-t border-border/50 pt-1.5 first:border-t-0 first:pt-0"
+            >
+              <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <span className="min-w-0 flex-1 truncate font-heading text-lg font-black uppercase italic leading-none tracking-tight text-white">
+                {player?.name ?? "Awaiting"}
+              </span>
+              <span className="max-w-16 truncate text-right font-mono text-[8px] font-bold uppercase tracking-widest text-muted-foreground">
+                {player?.city ?? "TBD"}
+              </span>
+            </div>
+          );
+        })}
+        {overflowCount > 0 && (
+          <div
+            className="border-t border-border/50 pt-1.5 text-right font-mono text-[9px] font-bold uppercase tracking-[0.24em]"
+            style={{ color: `var(--${accent})` }}
+          >
+            +{overflowCount} queued
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -827,18 +1042,18 @@ function overlayAccent(view: OverlayView) {
 }
 
 function overlayTitle(view: OverlayView) {
-  if (view === "titan") return "Group A";
-  if (view === "nexus") return "Group B";
-  if (view === "dominion") return "Group C";
+  if (view === "titan") return "Titan";
+  if (view === "nexus") return "Nexus";
+  if (view === "dominion") return "Dominion";
   if (view === "wildcard") return "Wildcard";
   if (view === "finals") return "National Finals";
   return "Tournament Map";
 }
 
 function overlaySubtitle(view: OverlayView) {
-  if (view === "titan") return "Titan Division";
-  if (view === "nexus") return "Nexus Division";
-  if (view === "dominion") return "Dominion Division";
+  if (view === "titan") return "Group Titan";
+  if (view === "nexus") return "Group Nexus";
+  if (view === "dominion") return "Group Dominion";
   if (view === "wildcard") return "Rank 5-8 last chance pool";
   if (view === "finals") return "16-player single elimination bracket";
   return "Groups, wildcard, finals";

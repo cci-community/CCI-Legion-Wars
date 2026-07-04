@@ -23,9 +23,9 @@ flowchart LR
 
 The overlay consumes only the public-safe feeds already used by the website:
 
-- Group Titan / Group A
-- Group Nexus / Group B
-- Group Dominion / Group C
+- Group Titan
+- Group Nexus
+- Group Dominion
 - Wildcard
 - National Finals
 
@@ -83,31 +83,31 @@ Overview:
 https://cci-legion-wars.web.app/?mode=obs&view=overview
 ```
 
-Group A current/default round:
+Group Titan current/default round:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=titan
 ```
 
-Group A Round 4:
+Group Titan Round 4:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=titan&round=4
 ```
 
-Group A specific lobby:
+Group Titan specific lobby:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=titan&round=4&lobby=TITAN_R4_L1
 ```
 
-Group B Round 4:
+Group Nexus Round 4:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=nexus&round=4
 ```
 
-Group C Round 4:
+Group Dominion Round 4:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=dominion&round=4
@@ -131,7 +131,7 @@ Finals focused round:
 https://cci-legion-wars.web.app/?mode=obs&view=finals&round=1
 ```
 
-Transparent Group A Round 4:
+Transparent Group Titan Round 4:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=titan&round=4&transparent=1
@@ -156,10 +156,10 @@ For transparent overlays, use `transparent=1` in the URL and keep OBS's transpar
 Create one OBS scene or source per common tournament state:
 
 - `LW - Overview`
-- `LW - Group A Current`
-- `LW - Group A R4`
-- `LW - Group B R4`
-- `LW - Group C R4`
+- `LW - Group Titan Current`
+- `LW - Group Titan R4`
+- `LW - Group Nexus R4`
+- `LW - Group Dominion R4`
 - `LW - Wildcard`
 - `LW - Finals`
 - `LW - Finals Round Focus`
