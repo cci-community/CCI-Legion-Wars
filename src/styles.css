@@ -1020,6 +1020,174 @@
   .obs-broadcast-footer {
     min-height: 56px;
   }
+
+  body.obs-mode .obs-arcane-radial {
+    animation: obs-ambient-breathe 38s ease-in-out infinite;
+    transform-origin: 50% 45%;
+    will-change: opacity, transform;
+  }
+
+  body.obs-mode .obs-logo-crest::before {
+    animation: obs-crest-breathe 7.5s ease-in-out infinite;
+  }
+
+  body.obs-mode .obs-logo-crest-ring {
+    animation: obs-crest-ring 12s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  body.obs-mode .obs-pip::after {
+    animation: obs-pip-pulse 3.4s ease-in-out infinite;
+    will-change: opacity, transform;
+  }
+
+  body.obs-mode .obs-phase-step-active::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      105deg,
+      transparent 0 36%,
+      color-mix(in oklab, var(--phase-accent) 38%, transparent) 48%,
+      transparent 62% 100%
+    );
+    opacity: 0.16;
+    transform: translateX(-130%);
+    animation: obs-step-scan 8.5s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  body.obs-mode .obs-medallion-active {
+    animation: obs-medallion-breathe 6.8s ease-in-out infinite;
+  }
+
+  body.obs-mode .obs-route-wire {
+    overflow: hidden;
+  }
+
+  body.obs-mode .obs-route-wire::after {
+    content: "";
+    position: absolute;
+    inset: -1px 0;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--finals) 70%, transparent),
+      transparent
+    );
+    transform: translateX(-115%);
+    animation: obs-wire-current 6.4s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  body.obs-mode .obs-route-spine-line,
+  body.obs-mode .obs-route-diamond {
+    animation: obs-route-breathe 5.8s ease-in-out infinite;
+  }
+}
+
+@keyframes obs-ambient-breathe {
+  0%,
+  100% {
+    opacity: 0.62;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.88;
+    transform: scale(1.025) rotate(0.7deg);
+  }
+}
+
+@keyframes obs-crest-breathe {
+  0%,
+  100% {
+    opacity: 0.92;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.18);
+  }
+}
+
+@keyframes obs-crest-ring {
+  0%,
+  100% {
+    transform: rotate(45deg) scale(1);
+  }
+  50% {
+    transform: rotate(45deg) scale(1.045);
+  }
+}
+
+@keyframes obs-pip-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.82);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+}
+
+@keyframes obs-step-scan {
+  0%,
+  38% {
+    transform: translateX(-130%);
+  }
+  72%,
+  100% {
+    transform: translateX(130%);
+  }
+}
+
+@keyframes obs-medallion-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 24px -10px var(--finals);
+  }
+  50% {
+    box-shadow: 0 0 34px -8px var(--finals);
+  }
+}
+
+@keyframes obs-wire-current {
+  0%,
+  28% {
+    transform: translateX(-115%);
+  }
+  70%,
+  100% {
+    transform: translateX(115%);
+  }
+}
+
+@keyframes obs-route-breathe {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.18);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.obs-mode .obs-arcane-radial,
+  body.obs-mode .obs-logo-crest::before,
+  body.obs-mode .obs-logo-crest-ring,
+  body.obs-mode .obs-pip::after,
+  body.obs-mode .obs-phase-step-active::after,
+  body.obs-mode .obs-medallion-active,
+  body.obs-mode .obs-route-wire::after,
+  body.obs-mode .obs-route-spine-line,
+  body.obs-mode .obs-route-diamond {
+    animation: none;
+  }
 }
 
 /* Hide scrollbars while keeping scrollability (used on tab rails and mobile round scrollers) */

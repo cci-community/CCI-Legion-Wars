@@ -251,6 +251,7 @@ The committed thumbnail folder mirrors the primary OBS scene list:
 - Use the Wildcard board while last-chance qualifiers are being resolved.
 - Use one Finals source per round. Do not use a scrolling full bracket during active match coverage.
 - If sheet data is pending, the screens show pending/awaiting states instead of inventing players.
+- OBS motion is intentionally limited to ambient background breathing, active phase scans, route current, crest pulse, and live-status pulse. Player names, scores, lobby cards, and match rows stay static for stream readability.
 
 ## Architecture Notes
 
