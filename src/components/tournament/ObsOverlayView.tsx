@@ -1,5 +1,5 @@
 import { Crown, GitBranch, Shield, Trophy, Users, Zap } from "lucide-react";
-import type { CSSProperties, ElementType, ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ElementType, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import type {
   FinalsView,
@@ -14,6 +14,9 @@ import type {
 type OverlayView = "overview" | "titan" | "nexus" | "dominion" | "wildcard" | "finals";
 type ObsSource = "bracket" | "route" | "round";
 type RoutedPlayer = Player & { lobbyId: string };
+
+const OBS_BASE_WIDTH = 1920;
+const OBS_BASE_HEIGHT = 1080;
 
 const GROUP_META = {
   titan: { title: "Titan", label: "Group Titan", accent: "titan" },
@@ -38,6 +41,26 @@ function accentVarStyle(accent: string): CSSProperties {
 
 function accentValueStyle(value: string): CSSProperties {
   return { "--panel-accent": value } as CSSProperties;
+}
+
+function useObsViewportScale() {
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const updateScale = () => {
+      const nextScale = Math.min(
+        window.innerWidth / OBS_BASE_WIDTH,
+        window.innerHeight / OBS_BASE_HEIGHT,
+      );
+      setScale(Number.isFinite(nextScale) && nextScale > 0 ? nextScale : 1);
+    };
+
+    updateScale();
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
+  }, []);
+
+  return scale;
 }
 
 function ObsBackdrop({ accent }: { accent: string }) {
@@ -80,15 +103,20 @@ function FrameCorner({ className }: { className?: string }) {
       fill="none"
       viewBox="0 0 96 96"
     >
-      <path d="M3 58V3h55" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M15 70V15h58" stroke="currentColor" strokeOpacity=".34" strokeWidth="1.2" />
-      <path d="M3 25h22V3" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M45 3 3 45" stroke="currentColor" strokeOpacity=".3" strokeWidth="1.2" />
+      <path d="M4 58V20C4 11.2 11.2 4 20 4h38" stroke="currentColor" strokeWidth="1.8" />
       <path
-        d="M26 20h28l12 12-34 34-12-12V26z"
+        d="M16 70V27c0-6.1 4.9-11 11-11h46"
         stroke="currentColor"
         strokeOpacity=".34"
-        strokeLinejoin="miter"
+        strokeWidth="1.2"
+      />
+      <path d="M4 26h16c3.3 0 6-2.7 6-6V4" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M45 4C34 12 18 28 4 45" stroke="currentColor" strokeOpacity=".3" strokeWidth="1.2" />
+      <path
+        d="M27 20h26c5 0 10 2.3 13 6.3l4 5.2-35 35.5-11.5-10.8C21.2 54 20 51 20 47.8V27c0-3.9 3.1-7 7-7Z"
+        stroke="currentColor"
+        strokeOpacity=".34"
+        strokeLinejoin="round"
         strokeWidth="1.2"
       />
       <path d="M31 30h26M30 41h17" stroke="currentColor" strokeOpacity=".52" strokeWidth="1.2" />
@@ -242,6 +270,7 @@ export function ObsOverlayView({
   const effectiveView = view === "overview" ? "titan" : view;
   const activeSource = resolveObsSource(effectiveView, source, round, lobbyId);
   const accent = overlayAccent(effectiveView);
+  const viewportScale = useObsViewportScale();
 
   return (
     <div
@@ -249,71 +278,77 @@ export function ObsOverlayView({
         "obs-overlay-root relative h-screen w-screen overflow-hidden text-foreground",
         transparent ? "bg-transparent" : "bg-background",
       )}
-      style={{ "--tab-accent": `var(--${accent})` } as CSSProperties}
+      style={
+        {
+          "--obs-viewport-scale": viewportScale,
+          "--tab-accent": `var(--${accent})`,
+        } as CSSProperties
+      }
     >
-      {!transparent && (
-        <>
-          <ObsBackdrop accent={accent} />
-        </>
-      )}
+      <div className="obs-scale-frame absolute left-0 top-0 h-[1080px] w-[1920px] overflow-hidden">
+        {!transparent && <ObsBackdrop accent={accent} />}
 
-      <BroadcastOrnamentFrame />
+        <BroadcastOrnamentFrame />
 
-      <div className="relative flex h-full flex-col p-8">
-        <OverlayHeader
-          accent={accent}
-          error={error}
-          isLoading={isLoading}
-          isRefreshing={isRefreshing}
-          syncStatus={syncStatus}
-          syncSummary={syncSummary}
-          round={round}
-          source={activeSource}
-          view={effectiveView}
-        />
+        <div className="relative flex h-full flex-col p-8">
+          <OverlayHeader
+            accent={accent}
+            error={error}
+            isLoading={isLoading}
+            isRefreshing={isRefreshing}
+            syncStatus={syncStatus}
+            syncSummary={syncSummary}
+            round={round}
+            source={activeSource}
+            view={effectiveView}
+          />
 
-        <main className="min-h-0 flex-1 py-5">
-          {isGroupView(effectiveView) && activeSource === "bracket" && (
-            <GroupBracketOverlay group={groupByKey(data, effectiveView)} groupKey={effectiveView} />
-          )}
-          {isGroupView(effectiveView) && activeSource === "route" && (
-            <GroupRouteOverlay group={groupByKey(data, effectiveView)} groupKey={effectiveView} />
-          )}
-          {effectiveView === "titan" && activeSource === "round" && (
-            <GroupOverlay
-              group={data.groupTitan}
-              groupKey="titan"
-              lobbyId={lobbyId}
-              round={round}
-            />
-          )}
-          {effectiveView === "nexus" && activeSource === "round" && (
-            <GroupOverlay
-              group={data.groupNexus}
-              groupKey="nexus"
-              lobbyId={lobbyId}
-              round={round}
-            />
-          )}
-          {effectiveView === "dominion" && activeSource === "round" && (
-            <GroupOverlay
-              group={data.groupDominion}
-              groupKey="dominion"
-              lobbyId={lobbyId}
-              round={round}
-            />
-          )}
-          {effectiveView === "wildcard" && <WildcardOverlay data={data} />}
-          {effectiveView === "finals" && <FinalsOverlay finals={data.finalsView} round={round} />}
-        </main>
+          <main className="min-h-0 flex-1 py-5">
+            {isGroupView(effectiveView) && activeSource === "bracket" && (
+              <GroupBracketOverlay
+                group={groupByKey(data, effectiveView)}
+                groupKey={effectiveView}
+              />
+            )}
+            {isGroupView(effectiveView) && activeSource === "route" && (
+              <GroupRouteOverlay group={groupByKey(data, effectiveView)} groupKey={effectiveView} />
+            )}
+            {effectiveView === "titan" && activeSource === "round" && (
+              <GroupOverlay
+                group={data.groupTitan}
+                groupKey="titan"
+                lobbyId={lobbyId}
+                round={round}
+              />
+            )}
+            {effectiveView === "nexus" && activeSource === "round" && (
+              <GroupOverlay
+                group={data.groupNexus}
+                groupKey="nexus"
+                lobbyId={lobbyId}
+                round={round}
+              />
+            )}
+            {effectiveView === "dominion" && activeSource === "round" && (
+              <GroupOverlay
+                group={data.groupDominion}
+                groupKey="dominion"
+                lobbyId={lobbyId}
+                round={round}
+              />
+            )}
+            {effectiveView === "wildcard" && <WildcardOverlay data={data} />}
+            {effectiveView === "finals" && <FinalsOverlay finals={data.finalsView} round={round} />}
+          </main>
 
-        <BroadcastFooter
-          accent={accent}
-          round={round}
-          source={activeSource}
-          syncSummary={syncSummary}
-          view={effectiveView}
-        />
+          <BroadcastFooter
+            accent={accent}
+            round={round}
+            source={activeSource}
+            syncSummary={syncSummary}
+            view={effectiveView}
+          />
+        </div>
       </div>
     </div>
   );
@@ -928,55 +963,43 @@ function GroupRouteOverlay({ group, groupKey }: { group: GroupView; groupKey: Gr
 
 function RouteFlowColumn({ accent }: { accent: string }) {
   return (
-    <div className="obs-route-spine relative grid min-h-0 grid-rows-[1fr_auto_1fr] items-stretch">
-      <div className="relative flex items-center justify-center overflow-hidden">
-        <div
-          className="obs-route-spine-line h-full w-px"
-          style={{
-            background:
-              "linear-gradient(to bottom, transparent, color-mix(in oklab, var(--finals) 70%, transparent), transparent)",
-          }}
+    <div
+      className="obs-route-flow relative flex min-h-0 flex-col items-center justify-center"
+      style={{ "--route-accent": `var(--${accent})` } as CSSProperties}
+    >
+      <svg
+        aria-hidden="true"
+        className="obs-route-curve pointer-events-none absolute inset-0 h-full w-full"
+        preserveAspectRatio="none"
+        viewBox="0 0 120 520"
+      >
+        <path className="obs-route-curve-track" d="M60 260 C60 188 56 112 60 28" />
+        <path className="obs-route-curve-track" d="M60 260 C60 332 64 408 60 492" />
+        <path className="obs-route-curve-finals" d="M60 260 C48 202 48 118 60 28" />
+        <path className="obs-route-curve-wildcard" d="M60 260 C72 318 72 402 60 492" />
+        <path
+          className="obs-route-curve-accent"
+          d="M60 124 C30 176 34 224 60 260 C86 296 90 344 60 396"
         />
-        <div className="obs-route-diamond absolute grid h-20 w-20 rotate-45 place-items-center border border-finals/60 bg-background/85 shadow-[0_0_42px_-14px_var(--finals)]">
-          <Trophy className="h-8 w-8 -rotate-45 text-finals" />
-        </div>
+      </svg>
+
+      <div className="obs-route-branch-label obs-route-branch-finals">
+        <span>Ranks 1-4</span>
+        <strong>Nationals</strong>
       </div>
 
-      <div
-        className="obs-route-hub relative grid min-h-[158px] place-items-center px-1 py-3 text-center"
-        style={{ borderColor: `color-mix(in oklab, var(--${accent}) 55%, var(--border))` }}
-      >
-        <div className="obs-route-junction-line obs-route-junction-line-top" />
-        <div className="obs-route-junction-line obs-route-junction-line-bottom" />
-
+      <div className="obs-route-split-core">
         <div className="obs-route-node relative z-10 grid place-items-center">
           <GitBranch className="h-5 w-5" style={{ color: `var(--${accent})` }} />
           <div className="mt-1 font-mono text-[8px] font-black uppercase tracking-[0.18em] text-foreground">
             R04
           </div>
         </div>
-
-        <div className="obs-route-lane obs-route-lane-finals absolute left-1/2 top-2 z-10 -translate-x-1/2">
-          <span>1-4</span>
-          <strong>Finals</strong>
-        </div>
-        <div className="obs-route-lane obs-route-lane-wildcard absolute bottom-2 left-1/2 z-10 -translate-x-1/2">
-          <span>5-8</span>
-          <strong>Wildcard</strong>
-        </div>
       </div>
 
-      <div className="relative flex items-center justify-center overflow-hidden">
-        <div
-          className="obs-route-spine-line h-full w-px"
-          style={{
-            background:
-              "linear-gradient(to bottom, transparent, color-mix(in oklab, var(--wildcard) 70%, transparent), transparent)",
-          }}
-        />
-        <div className="obs-route-diamond absolute grid h-20 w-20 rotate-45 place-items-center border border-wildcard/60 bg-background/85 shadow-[0_0_42px_-14px_var(--wildcard)]">
-          <Zap className="h-8 w-8 -rotate-45 text-wildcard" />
-        </div>
+      <div className="obs-route-branch-label obs-route-branch-wildcard">
+        <span>Ranks 5-8</span>
+        <strong>Wildcard</strong>
       </div>
     </div>
   );
@@ -2334,7 +2357,7 @@ function overlayFooterStrap(view: OverlayView, source: ObsSource, round?: number
     if (source === "route") {
       return `${overlayTitle(view)}: National Finals qualifiers and Wildcard pool`;
     }
-    return `${overlayTitle(view)}: focused ${roundSourceLabel(round).toLowerCase()} lobby board`;
+    return `${overlayTitle(view)}: ${roundSourceLabel(round)} lobby board`;
   }
   if (view === "wildcard") return "Wildcard bracket: pool to 4 National Finals slots";
   if (view === "finals") return `National Finals: ${finalsRoundSourceLabel(round)} browser source`;

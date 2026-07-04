@@ -2,7 +2,7 @@
 
 Legion Wars OBS screens are browser-source views served by the same Firebase app as the public bracket viewer. They use the same public Google Sheets feeds, parser/cache/fallback behavior, and public-data safety rules.
 
-The OBS package is built as an original League-inspired broadcast board. It uses code-native angular plates, crest-backed logo placement, medallions, bracket lanes, route split symbols, and champion-slot frames. It does not use Riot logos, Riot assets, copied broadcast screenshots, or mock data as production truth.
+The OBS package is built as an original premium esports broadcast board. It uses code-native layered plates, crest-backed logo placement, medallions, bracket lanes, route split symbols, and champion-slot frames. It does not use third-party game logos, copied broadcast screenshots, or mock data as production truth.
 
 - persistent medallion phase rail: Groups -> Wildcard -> Nationals -> Champion
 - stage-board sources for each named group
@@ -50,25 +50,19 @@ Transparent mode is supported by appending:
 
 Primary copy/paste OBS calls:
 
-| OBS source name                     | Browser source URL                                                                                  |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `LW - Titan Stage Board`            | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=bracket`                               |
-| `LW - Titan Qualification Route`    | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=route`                                 |
-| `LW - Titan Focused Round`          | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4`                         |
-| `LW - Titan Focused Lobby`          | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4&lobby=Titan_R4_L1`       |
-| `LW - Nexus Stage Board`            | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=bracket`                               |
-| `LW - Nexus Qualification Route`    | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=route`                                 |
-| `LW - Nexus Focused Round`          | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=round&round=4`                         |
-| `LW - Nexus Focused Lobby`          | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=round&round=4&lobby=Nexus_R4_L1`       |
-| `LW - Dominion Stage Board`         | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=bracket`                            |
-| `LW - Dominion Qualification Route` | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=route`                              |
-| `LW - Dominion Focused Round`       | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=round&round=4`                      |
-| `LW - Dominion Focused Lobby`       | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=round&round=4&lobby=Dominion_R4_L1` |
-| `LW - Wildcard Board`               | `https://cci-legion-wars.web.app/?mode=obs&view=wildcard`                                           |
-| `LW - Nationals Round of 16`        | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=1`                                     |
-| `LW - Nationals Quarterfinals`      | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=2`                                     |
-| `LW - Nationals Semifinals`         | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=3`                                     |
-| `LW - Nationals Grand Final`        | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=4`                                     |
+| OBS source name                     | Browser source URL                                                       |
+| ----------------------------------- | ------------------------------------------------------------------------ |
+| `LW - Titan Stage Board`            | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=bracket`    |
+| `LW - Titan Qualification Route`    | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=route`      |
+| `LW - Nexus Stage Board`            | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=bracket`    |
+| `LW - Nexus Qualification Route`    | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=route`      |
+| `LW - Dominion Stage Board`         | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=bracket` |
+| `LW - Dominion Qualification Route` | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=route`   |
+| `LW - Wildcard Board`               | `https://cci-legion-wars.web.app/?mode=obs&view=wildcard`                |
+| `LW - Nationals Round of 16`        | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=1`          |
+| `LW - Nationals Quarterfinals`      | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=2`          |
+| `LW - Nationals Semifinals`         | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=3`          |
+| `LW - Nationals Grand Final`        | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=4`          |
 
 ### Group Titan
 
@@ -82,18 +76,6 @@ Round 4 qualification route:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=titan&source=route
-```
-
-Focused round callout:
-
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4
-```
-
-Focused lobby callout:
-
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4&lobby=Titan_R4_L1
 ```
 
 ### Group Nexus
@@ -110,18 +92,6 @@ Round 4 qualification route:
 https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=route
 ```
 
-Focused round callout:
-
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=round&round=4
-```
-
-Focused lobby callout:
-
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=round&round=4&lobby=Nexus_R4_L1
-```
-
 ### Group Dominion
 
 Overall stage board:
@@ -134,18 +104,6 @@ Round 4 qualification route:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=route
-```
-
-Focused round callout:
-
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=round&round=4
-```
-
-Focused lobby callout:
-
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=round&round=4&lobby=Dominion_R4_L1
 ```
 
 ### Wildcard
@@ -202,25 +160,11 @@ Create one saved browser source per broadcast moment:
 - `LW - Nationals Semifinals`
 - `LW - Nationals Grand Final`
 
-Optional callout sources:
+Group-stage source decision:
 
-- `LW - Titan Focused Round`
-- `LW - Nexus Focused Round`
-- `LW - Dominion Focused Round`
-- `LW - Focused Lobby`
-
-Suggested optional focused round and focused lobby URL patterns:
-
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4
-https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4&lobby=Titan_R4_L1
-
-https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=round&round=4
-https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=round&round=4&lobby=Nexus_R4_L1
-
-https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=round&round=4
-https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=round&round=4&lobby=Dominion_R4_L1
-```
+- `Stage Board` shows the full Round 1-4 structure for a named group.
+- `Qualification Route` is the post-Round-4 broadcast source that matters on stream: ranks 1-4 to Nationals, ranks 5-8 to Wildcard.
+- Focused round/lobby URLs are not part of the saved OBS package. They remain internal fallback/debug views only.
 
 ## Thumbnail Inventory
 
@@ -228,16 +172,10 @@ The committed thumbnail folder mirrors the primary OBS scene list:
 
 - `titan-stage-board.png`
 - `titan-qualification-route.png`
-- `titan-focused-round.png`
-- `titan-focused-lobby.png`
 - `nexus-stage-board.png`
 - `nexus-qualification-route.png`
-- `nexus-focused-round.png`
-- `nexus-focused-lobby.png`
 - `dominion-stage-board.png`
 - `dominion-qualification-route.png`
-- `dominion-focused-round.png`
-- `dominion-focused-lobby.png`
 - `wildcard-board.png`
 - `nationals-round-of-16.png`
 - `nationals-quarterfinals.png`
@@ -276,11 +214,11 @@ When adding or changing an OBS source:
 
 ## Reference Direction
 
-The visual target is professional esports broadcast clarity: high-contrast dark stage plates, gold advancement routes, readable bracket lanes, compact status readouts, and a distinct champion destination. The styling is an original Legion Wars interpretation inspired by public esports broadcast grammar, not an official Riot product skin.
+The visual target is professional esports broadcast clarity: high-contrast dark stage plates, gold advancement routes, readable bracket lanes, compact status readouts, and a distinct champion destination. The styling is an original Legion Wars interpretation of public esports broadcast grammar.
 
 The current visual pass uses:
 
-- angular broadcast plates instead of plain rectangular cards
+- rounded and chamfered broadcast plates instead of plain rectangular cards
 - crest-backed Legion Wars logo placement in every OBS header
 - thin gold connector wires for phase and bracket progression
 - group-colored source lanes for Titan, Nexus, Dominion, and Wildcard
