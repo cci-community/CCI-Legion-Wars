@@ -21,6 +21,7 @@ const VALID_VIEWS: TabKey[] = ["overview", "finals", "titan", "nexus", "dominion
 
 interface Search {
   mode?: "obs";
+  source?: "bracket" | "route" | "round";
   view?: TabKey;
   lobby?: string;
   match?: string;
@@ -35,6 +36,10 @@ export const Route = createFileRoute("/")({
         ? (search.view as TabKey)
         : undefined;
     const mode = search.mode === "obs" ? "obs" : undefined;
+    const source =
+      search.source === "bracket" || search.source === "route" || search.source === "round"
+        ? search.source
+        : undefined;
     const lobby = typeof search.lobby === "string" ? search.lobby : undefined;
     const match = typeof search.match === "string" ? search.match : undefined;
     const round =
@@ -44,7 +49,7 @@ export const Route = createFileRoute("/")({
           ? Number(search.round)
           : undefined;
     const transparent = search.transparent === "1" || search.transparent === 1 ? 1 : undefined;
-    return { mode, view, lobby, match, round, transparent };
+    return { mode, source, view, lobby, match, round, transparent };
   },
   head: () => ({
     meta: [
@@ -255,6 +260,7 @@ function Index() {
         isRefreshing={isRefreshing}
         lobbyId={search.lobby}
         round={search.round}
+        source={search.source}
         syncStatus={syncStatus}
         syncSummary={syncSummary}
         transparent={search.transparent === 1}

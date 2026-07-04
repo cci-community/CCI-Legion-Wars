@@ -36,13 +36,12 @@ It does not consume Master Sheet, Player Details, private registration data, Dis
 Base:
 
 ```text
-https://cci-legion-wars.web.app/?mode=obs&view=overview
+https://cci-legion-wars.web.app/?mode=obs&view=titan&source=bracket
 ```
 
 Supported `view` values:
 
 ```text
-overview
 titan
 nexus
 dominion
@@ -50,7 +49,15 @@ wildcard
 finals
 ```
 
-Group overlays support:
+Group overlays support `source`:
+
+```text
+source=bracket
+source=route
+source=round
+```
+
+Group round callouts additionally support:
 
 ```text
 round=1
@@ -77,41 +84,67 @@ transparent=1
 
 ## OBS Scene URLs
 
-Overview:
+### Group Bracket Sources
+
+Group Titan overall bracket:
 
 ```text
-https://cci-legion-wars.web.app/?mode=obs&view=overview
+https://cci-legion-wars.web.app/?mode=obs&view=titan&source=bracket
 ```
 
-Group Titan current/default round:
+Group Nexus overall bracket:
 
 ```text
-https://cci-legion-wars.web.app/?mode=obs&view=titan
+https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=bracket
 ```
+
+Group Dominion overall bracket:
+
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=bracket
+```
+
+Each overall group bracket source shows Round 1 through Round 4 as columns, with all lobbies and the qualifying route out of each lobby.
+
+### Group Route Sources
+
+Group Titan National Finals / Wildcard route:
+
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=titan&source=route
+```
+
+Group Nexus National Finals / Wildcard route:
+
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=route
+```
+
+Group Dominion National Finals / Wildcard route:
+
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=route
+```
+
+Each route source focuses on Round 4 and splits the group into direct National Finals qualifiers and Wildcard pool players.
+
+### Focused Group Round Sources
 
 Group Titan Round 4:
 
 ```text
-https://cci-legion-wars.web.app/?mode=obs&view=titan&round=4
+https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4
 ```
 
 Group Titan specific lobby:
 
 ```text
-https://cci-legion-wars.web.app/?mode=obs&view=titan&round=4&lobby=TITAN_R4_L1
+https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4&lobby=TITAN_R4_L1
 ```
 
-Group Nexus Round 4:
+Use focused group round sources for callouts during live matches.
 
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=nexus&round=4
-```
-
-Group Dominion Round 4:
-
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=dominion&round=4
-```
+### Wildcard Source
 
 Wildcard:
 
@@ -119,22 +152,36 @@ Wildcard:
 https://cci-legion-wars.web.app/?mode=obs&view=wildcard
 ```
 
-Finals full bracket:
+### National Finals Sources
 
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=finals
-```
-
-Finals focused round:
+Round of 16:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=finals&round=1
 ```
 
-Transparent Group Titan Round 4:
+Quarterfinals:
 
 ```text
-https://cci-legion-wars.web.app/?mode=obs&view=titan&round=4&transparent=1
+https://cci-legion-wars.web.app/?mode=obs&view=finals&round=2
+```
+
+Semifinals:
+
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=finals&round=3
+```
+
+Grand Final:
+
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=finals&round=4
+```
+
+Transparent Group Titan route:
+
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=titan&source=route&transparent=1
 ```
 
 ## OBS Setup
@@ -155,22 +202,25 @@ For transparent overlays, use `transparent=1` in the URL and keep OBS's transpar
 
 Create one OBS scene or source per common tournament state:
 
-- `LW - Overview`
-- `LW - Group Titan Current`
-- `LW - Group Titan R4`
-- `LW - Group Nexus R4`
-- `LW - Group Dominion R4`
+- `LW - Titan Overall Bracket`
+- `LW - Titan Finals Wildcard Route`
+- `LW - Nexus Overall Bracket`
+- `LW - Nexus Finals Wildcard Route`
+- `LW - Dominion Overall Bracket`
+- `LW - Dominion Finals Wildcard Route`
 - `LW - Wildcard`
-- `LW - Finals`
-- `LW - Finals Round Focus`
+- `LW - Finals Round of 16`
+- `LW - Finals Quarterfinals`
+- `LW - Finals Semifinals`
+- `LW - Finals Grand Final`
 
-For a stream focused on one group, use the group URL as the main overlay. For previous group results, switch to that group's saved scene/source URL. For a single lobby callout, use the `lobby` query parameter.
+For a stream focused on one group, use that group's overall bracket source as the main bracket board. Switch to that group's route source after Round 4 to show who reached National Finals and who entered Wildcard. Use focused round or lobby URLs only for live callouts.
 
 ## Architecture Notes
 
 - The public website remains the default route.
 - `mode=obs` switches the same route into a broadcast overlay surface.
-- Query parameters drive the view, so OBS does not need a control API.
+- Query parameters drive the source, so OBS does not need a control API.
 - Firebase Hosting still serves the SPA from `dist`.
 - The existing `firebase.json` rewrite continues to work because the overlay is query-driven on `/`.
 - The overlay uses the existing `useLiveTournamentData` hook, parser/cache/fallback behavior, and public safety rules.
@@ -180,7 +230,7 @@ For a stream focused on one group, use the group URL as the main overlay. For pr
 
 - The first implementation is display-only. It does not provide a remote operator control panel.
 - OBS scene switching should be handled by saved Browser Source URLs.
-- Round 1 group views can be dense because they may show 16 lobbies. Use a focused `lobby` URL for single-lobby broadcast moments.
+- Group overall bracket sources are dense by design because they show every lobby in the group route. Use a focused `source=round` or `lobby` URL for single-lobby broadcast moments.
 - If a sheet has pending or placeholder players, the overlay will show pending state rather than invent data.
 
 ## Future Expansion

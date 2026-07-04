@@ -12,6 +12,8 @@ import type {
 } from "@/lib/tournament-data";
 
 type OverlayView = "overview" | "titan" | "nexus" | "dominion" | "wildcard" | "finals";
+type ObsSource = "bracket" | "route" | "round";
+type RoutedPlayer = Player & { lobbyId: string };
 
 const GROUP_META = {
   titan: { title: "Titan", label: "Group Titan", accent: "titan" },
@@ -19,7 +21,10 @@ const GROUP_META = {
   dominion: { title: "Dominion", label: "Group Dominion", accent: "dominion" },
 } as const;
 
+type GroupKey = keyof typeof GROUP_META;
+
 const GROUP_ORDER = ["titan", "nexus", "dominion"] as const;
+const FINALS_ROUND_LABELS = ["Round of 16", "Quarterfinals", "Semifinals", "Grand Final"] as const;
 
 export function ObsOverlayView({
   data,
@@ -28,6 +33,7 @@ export function ObsOverlayView({
   isRefreshing,
   lobbyId,
   round,
+  source,
   syncStatus,
   syncSummary,
   transparent,
@@ -39,12 +45,15 @@ export function ObsOverlayView({
   isRefreshing: boolean;
   lobbyId?: string;
   round?: number | string;
+  source?: ObsSource;
   syncStatus: string;
   syncSummary: string;
   transparent?: boolean;
   view: OverlayView;
 }) {
-  const accent = overlayAccent(view);
+  const effectiveView = view === "overview" ? "titan" : view;
+  const activeSource = resolveObsSource(effectiveView, source, round, lobbyId);
+  const accent = overlayAccent(effectiveView);
 
   return (
     <div
@@ -89,12 +98,19 @@ export function ObsOverlayView({
           isRefreshing={isRefreshing}
           syncStatus={syncStatus}
           syncSummary={syncSummary}
-          view={view}
+          round={round}
+          source={activeSource}
+          view={effectiveView}
         />
 
         <main className="min-h-0 flex-1 py-5">
-          {view === "overview" && <OverviewOverlay data={data} />}
-          {view === "titan" && (
+          {isGroupView(effectiveView) && activeSource === "bracket" && (
+            <GroupBracketOverlay group={groupByKey(data, effectiveView)} groupKey={effectiveView} />
+          )}
+          {isGroupView(effectiveView) && activeSource === "route" && (
+            <GroupRouteOverlay group={groupByKey(data, effectiveView)} groupKey={effectiveView} />
+          )}
+          {effectiveView === "titan" && activeSource === "round" && (
             <GroupOverlay
               group={data.groupTitan}
               groupKey="titan"
@@ -102,7 +118,7 @@ export function ObsOverlayView({
               round={round}
             />
           )}
-          {view === "nexus" && (
+          {effectiveView === "nexus" && activeSource === "round" && (
             <GroupOverlay
               group={data.groupNexus}
               groupKey="nexus"
@@ -110,7 +126,7 @@ export function ObsOverlayView({
               round={round}
             />
           )}
-          {view === "dominion" && (
+          {effectiveView === "dominion" && activeSource === "round" && (
             <GroupOverlay
               group={data.groupDominion}
               groupKey="dominion"
@@ -118,11 +134,17 @@ export function ObsOverlayView({
               round={round}
             />
           )}
-          {view === "wildcard" && <WildcardOverlay data={data} />}
-          {view === "finals" && <FinalsOverlay finals={data.finalsView} round={round} />}
+          {effectiveView === "wildcard" && <WildcardOverlay data={data} />}
+          {effectiveView === "finals" && <FinalsOverlay finals={data.finalsView} round={round} />}
         </main>
 
-        <BroadcastFooter accent={accent} syncSummary={syncSummary} view={view} />
+        <BroadcastFooter
+          accent={accent}
+          round={round}
+          source={activeSource}
+          syncSummary={syncSummary}
+          view={effectiveView}
+        />
       </div>
     </div>
   );
@@ -133,6 +155,8 @@ function OverlayHeader({
   error,
   isLoading,
   isRefreshing,
+  round,
+  source,
   syncStatus,
   syncSummary,
   view,
@@ -141,12 +165,14 @@ function OverlayHeader({
   error: Error | null;
   isLoading: boolean;
   isRefreshing: boolean;
+  round?: number | string;
+  source: ObsSource;
   syncStatus: string;
   syncSummary: string;
   view: OverlayView;
 }) {
   const title = overlayTitle(view);
-  const subtitle = overlaySubtitle(view);
+  const subtitle = overlaySubtitle(view, source, round);
   const loadingLabel = error
     ? "Sync issue"
     : isLoading
@@ -154,8 +180,7 @@ function OverlayHeader({
       : isRefreshing
         ? "Refreshing"
         : syncStatus;
-  const divisionLabel =
-    view === "titan" || view === "nexus" || view === "dominion" ? "Group Stage" : "Public Bracket";
+  const divisionLabel = overlayDivisionLabel(view, source);
 
   return (
     <header className="relative shrink-0 overflow-hidden border border-border/80 bg-surface-0/88 shadow-[0_24px_80px_-42px_var(--tab-accent)]">
@@ -200,21 +225,18 @@ function OverlayHeader({
 
 function BroadcastFooter({
   accent,
+  round,
+  source,
   syncSummary,
   view,
 }: {
   accent: string;
+  round?: number | string;
+  source: ObsSource;
   syncSummary: string;
   view: OverlayView;
 }) {
-  const strap =
-    view === "wildcard"
-      ? "Wildcard: top 4 advance to National Finals"
-      : view === "finals"
-        ? "National Finals: 16-player single elimination"
-        : view === "overview"
-          ? "Titan, Nexus, Dominion into Wildcard and National Finals"
-          : `${overlayTitle(view)}: top 4 to National Finals, ranks 5-8 to Wildcard`;
+  const strap = overlayFooterStrap(view, source, round);
 
   return (
     <footer className="grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center border border-border/80 bg-surface-0/88">
@@ -310,6 +332,482 @@ function OverviewOverlay({ data }: { data: TournamentData }) {
         />
         <RouteCard icon={Crown} label="Champion" value="01 Winner" accent="finals" />
       </section>
+    </div>
+  );
+}
+
+function GroupBracketOverlay({ group, groupKey }: { group: GroupView; groupKey: GroupKey }) {
+  const accent = GROUP_META[groupKey].accent;
+  const roundCount = group.progression.rounds.length;
+  const lobbyCount = group.progression.rounds.reduce((sum, round) => sum + round.lobbies.length, 0);
+  const route = groupRoutePlayers(group);
+
+  return (
+    <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
+      <section className="grid shrink-0 grid-cols-[minmax(0,1fr)_640px] gap-5">
+        <div
+          className="relative overflow-hidden border border-border/80 bg-surface-1/75 p-5 slash-band"
+          style={{ borderLeft: `4px solid var(--${accent})` }}
+        >
+          <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
+            // Group Bracket Source
+          </div>
+          <div className="mt-1 flex items-end gap-4">
+            <h2
+              className="font-heading text-7xl font-black uppercase italic leading-none tracking-tight"
+              style={{ color: `var(--${accent})` }}
+            >
+              {GROUP_META[groupKey].title}
+            </h2>
+            <span className="mb-2 font-mono text-[14px] font-bold uppercase tracking-[0.28em] text-foreground">
+              Round 1-4 chart
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-4 border border-border/80 bg-surface-0/80 slab-shadow">
+          <HeaderStat label="Rounds" value={String(roundCount).padStart(2, "0")} accent={accent} />
+          <HeaderStat
+            label="Lobbies"
+            value={String(lobbyCount).padStart(2, "0")}
+            accent={accent}
+            border
+          />
+          <HeaderStat
+            label="Direct"
+            value={String(route.finals.length).padStart(2, "0")}
+            accent="finals"
+            border
+          />
+          <HeaderStat
+            label="Wildcard"
+            value={String(route.wildcard.length).padStart(2, "0")}
+            accent="wildcard"
+            border
+          />
+        </div>
+      </section>
+
+      <section className="grid min-h-0 grid-cols-[1.25fr_1fr_0.82fr_0.72fr] gap-4">
+        {group.progression.rounds.map((round, index) => (
+          <GroupBracketRoundColumn
+            key={round.title}
+            accent={accent}
+            round={round}
+            roundIndex={index}
+          />
+        ))}
+      </section>
+    </div>
+  );
+}
+
+function GroupBracketRoundColumn({
+  accent,
+  round,
+  roundIndex,
+}: {
+  accent: string;
+  round: GroupView["progression"]["rounds"][number];
+  roundIndex: number;
+}) {
+  const roundState = roundProgress(round);
+  const dense = round.lobbies.length > 8;
+  const compact = round.lobbies.length > 4;
+
+  return (
+    <section className="relative flex min-h-0 flex-col border border-border/80 bg-surface-1/70 p-3 slab-shadow">
+      <div
+        className="pointer-events-none absolute inset-y-0 left-0 w-1"
+        style={{ background: `var(--${accent})` }}
+      />
+      <header className="shrink-0 border-b border-border/70 pb-2 pl-2">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="font-mono text-[9px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
+              // Round {String(roundIndex + 1).padStart(2, "0")}
+            </div>
+            <h3 className="mt-0.5 font-heading text-2xl font-black uppercase italic leading-none tracking-tight text-white">
+              {round.title}
+            </h3>
+          </div>
+          <div className="text-right font-mono text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+            {roundState.decided}/{roundState.total}
+          </div>
+        </div>
+      </header>
+
+      <div
+        className="mt-2 grid min-h-0 flex-1 gap-1.5"
+        style={{ gridTemplateRows: `repeat(${round.lobbies.length}, minmax(0, 1fr))` }}
+      >
+        {round.lobbies.map((lobby) => (
+          <GroupBracketLobbyNode
+            key={lobby.id}
+            accent={accent}
+            compact={compact}
+            dense={dense}
+            lobby={lobby}
+            roundIndex={roundIndex}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function GroupBracketLobbyNode({
+  accent,
+  compact,
+  dense,
+  lobby,
+  roundIndex,
+}: {
+  accent: string;
+  compact: boolean;
+  dense: boolean;
+  lobby: Lobby;
+  roundIndex: number;
+}) {
+  const routedPlayers = routedLobbyPlayers(lobby);
+  const displayPlayers = routedPlayers.slice(0, roundIndex === 3 ? 4 : 2);
+  const names = displayPlayers.map((player) => player.name).join(" / ");
+  const statusText =
+    routedPlayers.length > 0
+      ? roundIndex === 3
+        ? `${routedPlayers.filter((player) => player.state === "finals").length} Finals · ${
+            routedPlayers.filter((player) => player.state === "wildcard").length
+          } Wild`
+        : `${routedPlayers.length} advance`
+      : lobby.status;
+
+  if (dense) {
+    return (
+      <article className="grid min-h-0 grid-cols-[100px_minmax(0,1fr)_auto] items-center gap-2 overflow-hidden border border-border/45 bg-background/68 px-2 py-0.5">
+        <div className="truncate font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+          {lobby.id}
+        </div>
+        <div className="truncate font-heading text-[10px] font-black uppercase italic leading-none tracking-tight text-white">
+          {names || "Awaiting qualifiers"}
+        </div>
+        <div
+          className="shrink-0 font-mono text-[8px] font-black uppercase tracking-widest"
+          style={{ color: `var(--${routedPlayers.length ? accent : "muted-foreground"})` }}
+        >
+          {statusText}
+        </div>
+      </article>
+    );
+  }
+
+  return (
+    <article className="min-h-0 overflow-hidden border border-border/55 bg-background/68 px-2 py-1.5">
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <div className="truncate font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+          {lobby.id}
+        </div>
+        <div
+          className="shrink-0 font-mono text-[8px] font-black uppercase tracking-widest"
+          style={{ color: `var(--${routedPlayers.length ? accent : "muted-foreground"})` }}
+        >
+          {statusText}
+        </div>
+      </div>
+
+      {roundIndex === 3 && !dense ? (
+        <div className="mt-1 grid grid-cols-2 gap-1">
+          {displayPlayers.map((player) => (
+            <div
+              key={`${lobby.id}-${player.seed}-${player.name}`}
+              className="truncate border-t border-border/45 pt-1 font-heading text-[12px] font-black uppercase italic leading-none tracking-tight"
+              style={{ color: `var(--${playerAccent(player, accent)})` }}
+            >
+              {player.name}
+            </div>
+          ))}
+          {!displayPlayers.length && (
+            <div className="truncate border-t border-border/45 pt-1 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+              Awaiting qualifiers
+            </div>
+          )}
+        </div>
+      ) : (
+        <div
+          className={cn(
+            "mt-1 truncate border-t border-border/45 pt-1 font-heading font-black uppercase italic leading-none tracking-tight text-white",
+            dense ? "text-[10px]" : compact ? "text-[12px]" : "text-sm",
+          )}
+        >
+          {names || "Awaiting qualifiers"}
+        </div>
+      )}
+    </article>
+  );
+}
+
+function GroupRouteOverlay({ group, groupKey }: { group: GroupView; groupKey: GroupKey }) {
+  const accent = GROUP_META[groupKey].accent;
+  const roundFour = group.progression.rounds[3] ?? group.progression.rounds.at(-1);
+  const route = groupRoutePlayers(group);
+
+  return (
+    <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
+      <section className="grid shrink-0 grid-cols-[minmax(0,1fr)_560px] gap-5">
+        <div
+          className="relative overflow-hidden border border-border/80 bg-surface-1/75 p-5 slash-band"
+          style={{ borderLeft: `4px solid var(--${accent})` }}
+        >
+          <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
+            // Qualification Route Source
+          </div>
+          <div className="mt-1 flex items-end gap-4">
+            <h2
+              className="font-heading text-7xl font-black uppercase italic leading-none tracking-tight"
+              style={{ color: `var(--${accent})` }}
+            >
+              {GROUP_META[groupKey].title}
+            </h2>
+            <span className="mb-2 font-mono text-[14px] font-bold uppercase tracking-[0.28em] text-foreground">
+              Finals / Wildcard
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 border border-border/80 bg-surface-0/80 slab-shadow">
+          <HeaderStat label="Round" value="R04" accent={accent} />
+          <HeaderStat label="Nationals" value={`${route.finals.length}/4`} accent="finals" border />
+          <HeaderStat
+            label="Wildcard"
+            value={`${route.wildcard.length}/4`}
+            accent="wildcard"
+            border
+          />
+        </div>
+      </section>
+
+      <section className="grid min-h-0 grid-cols-[0.95fr_1fr_1fr] gap-5">
+        <div className="grid min-h-0 grid-rows-2 gap-4">
+          {(roundFour?.lobbies ?? []).slice(0, 2).map((lobby) => (
+            <RouteLobbyCard key={lobby.id} accent={accent} lobby={lobby} />
+          ))}
+        </div>
+
+        <RouteBucket
+          accent="finals"
+          label="National Finals"
+          players={route.finals}
+          summary="Direct group qualifiers"
+        />
+        <RouteBucket
+          accent="wildcard"
+          label="Wildcard Pool"
+          players={route.wildcard}
+          summary="Group placements 5-8"
+        />
+      </section>
+    </div>
+  );
+}
+
+function RouteLobbyCard({ accent, lobby }: { accent: string; lobby: Lobby }) {
+  const players = lobby.players.filter((player) => !isPlaceholderPlayer(player));
+
+  return (
+    <article
+      className="min-h-0 overflow-hidden border border-border/80 bg-surface-1/80 p-3 slab-shadow"
+      style={{ borderLeft: `4px solid var(--${accent})` }}
+    >
+      <header className="flex items-center justify-between gap-3 border-b border-border/70 pb-2">
+        <div>
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
+            {lobby.id}
+          </div>
+          <div className="font-heading text-2xl font-black uppercase italic leading-none tracking-tight text-white">
+            {lobby.status}
+          </div>
+        </div>
+        <div className="font-mono text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          Round 4
+        </div>
+      </header>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {(players.length ? players : lobby.players).map((player) => (
+          <RouteLobbyChip
+            key={`${lobby.id}-${player.seed}-${player.name}`}
+            accent={accent}
+            lobbyId={lobby.id}
+            player={player}
+          />
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function RouteLobbyChip({
+  accent,
+  lobbyId,
+  player,
+}: {
+  accent: string;
+  lobbyId: string;
+  player: Player;
+}) {
+  const rank = player.rank ?? Number(player.seed);
+  const statusColor = playerAccent(player, accent);
+
+  return (
+    <div className="min-w-0 border border-border/50 bg-background/55 px-2.5 py-2">
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <span
+          className="grid h-7 w-7 shrink-0 place-items-center border font-mono text-[10px] font-black tabular-nums"
+          style={{
+            borderColor: `color-mix(in oklab, var(--${statusColor}) 45%, transparent)`,
+            color: `var(--${statusColor})`,
+          }}
+        >
+          {String(Number.isFinite(rank) ? rank : player.seed).padStart(2, "0")}
+        </span>
+        <span
+          className="shrink-0 font-mono text-[8px] font-black uppercase tracking-widest"
+          style={{ color: `var(--${statusColor})` }}
+        >
+          {player.stateLabel}
+        </span>
+      </div>
+      <div className="mt-1 truncate font-heading text-base font-black uppercase italic leading-none tracking-tight text-white">
+        {player.name}
+      </div>
+      <div className="mt-0.5 truncate font-mono text-[8px] uppercase tracking-widest text-muted-foreground">
+        {player.city || "TBD"} / {lobbyId}
+      </div>
+    </div>
+  );
+}
+
+function RouteBucket({
+  accent,
+  label,
+  players,
+  summary,
+}: {
+  accent: string;
+  label: string;
+  players: RoutedPlayer[];
+  summary: string;
+}) {
+  return (
+    <section
+      className="min-h-0 border border-border/80 bg-surface-1/80 p-5 slab-shadow"
+      style={{ borderLeft: `4px solid var(--${accent})` }}
+    >
+      <header className="border-b border-border/70 pb-4">
+        <div className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
+          {summary}
+        </div>
+        <div className="mt-1 flex items-end justify-between gap-3">
+          <h3
+            className="font-heading text-4xl font-black uppercase italic leading-none tracking-tight"
+            style={{ color: `var(--${accent})` }}
+          >
+            {label}
+          </h3>
+          <div className="font-heading text-4xl font-black italic tabular-nums text-white">
+            {players.length}
+          </div>
+        </div>
+      </header>
+
+      <div className="mt-4 grid gap-3">
+        {Array.from({ length: 4 }, (_, index) => {
+          const player = players[index];
+          return player ? (
+            <RoutePlayerRow
+              key={`${label}-${player.lobbyId}-${player.seed}-${player.name}`}
+              accent={accent}
+              player={player}
+            />
+          ) : (
+            <div
+              key={`${label}-pending-${index}`}
+              className="flex items-center justify-between gap-3 border border-border/50 bg-background/55 px-3 py-3"
+            >
+              <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <span className="font-heading text-2xl font-black uppercase italic tracking-tight text-muted-foreground/50">
+                Awaiting
+              </span>
+              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                TBD
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function RoutePlayerRow({
+  accent,
+  compact,
+  player,
+}: {
+  accent: string;
+  compact?: boolean;
+  player: RoutedPlayer;
+}) {
+  const rank = player.rank ?? Number(player.seed);
+
+  return (
+    <div
+      className={cn(
+        "flex min-w-0 items-center justify-between gap-3 border border-border/50 bg-background/55",
+        compact ? "px-3 py-2" : "px-3 py-3",
+      )}
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <span
+          className={cn(
+            "grid shrink-0 place-items-center border font-mono font-black tabular-nums",
+            compact ? "h-8 w-8 text-[11px]" : "h-9 w-9 text-xs",
+          )}
+          style={{
+            borderColor: `color-mix(in oklab, var(--${playerAccent(player, accent)}) 45%, transparent)`,
+            color: `var(--${playerAccent(player, accent)})`,
+          }}
+        >
+          {String(Number.isFinite(rank) ? rank : player.seed).padStart(2, "0")}
+        </span>
+        <div className="min-w-0">
+          <div
+            className={cn(
+              "truncate font-heading font-black uppercase italic leading-none tracking-tight text-white",
+              compact ? "text-xl" : "text-2xl",
+            )}
+          >
+            {player.name}
+          </div>
+          <div
+            className={cn(
+              "truncate font-mono uppercase tracking-widest text-muted-foreground",
+              compact ? "mt-0.5 text-[9px]" : "mt-1 text-[10px]",
+            )}
+          >
+            {player.city || "TBD"} / {player.lobbyId}
+          </div>
+        </div>
+      </div>
+      <div
+        className={cn(
+          "shrink-0 font-mono font-black uppercase tracking-widest",
+          compact ? "text-[9px]" : "text-[10px]",
+        )}
+        style={{ color: `var(--${playerAccent(player, accent)})` }}
+      >
+        {player.stateLabel}
+      </div>
     </div>
   );
 }
@@ -658,7 +1156,10 @@ function FinalsOverlay({ finals, round }: { finals: FinalsView; round?: number |
         {rounds.map((bracketRound, index) => (
           <div
             key={bracketRound.title}
-            className="min-h-0 border border-border/80 bg-surface-1/70 p-4 slab-shadow"
+            className={cn(
+              "min-h-0 border border-border/80 bg-surface-1/70 slab-shadow",
+              focused ? "p-5" : "p-4",
+            )}
             style={{ borderLeft: "4px solid var(--finals)" }}
           >
             <div className="mb-4 flex items-end justify-between gap-3 border-b border-border/70 pb-3">
@@ -666,7 +1167,12 @@ function FinalsOverlay({ finals, round }: { finals: FinalsView; round?: number |
                 <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-finals">
                   // Round {String((selectedIndex ?? index) + 1).padStart(2, "0")}
                 </div>
-                <h3 className="font-heading text-3xl font-black uppercase italic tracking-tight text-white">
+                <h3
+                  className={cn(
+                    "font-heading font-black uppercase italic tracking-tight text-white",
+                    focused ? "text-5xl" : "text-3xl",
+                  )}
+                >
                   {bracketRound.title}
                 </h3>
               </div>
@@ -674,9 +1180,14 @@ function FinalsOverlay({ finals, round }: { finals: FinalsView; round?: number |
                 {bracketRound.matches.length} matches
               </div>
             </div>
-            <div className={cn("grid gap-3", focused && "grid-cols-2")}>
+            <div
+              className={cn(
+                "grid gap-3",
+                finalsMatchGridClass(bracketRound.matches.length, focused),
+              )}
+            >
               {bracketRound.matches.map((match) => (
-                <OverlayMatchCard key={match.id} match={match} />
+                <OverlayMatchCard key={match.id} featured={focused} match={match} />
               ))}
             </div>
           </div>
@@ -765,16 +1276,7 @@ function OverlayPlayerRow({
   player: Player;
 }) {
   const rank = player.rank ?? Number(player.seed);
-  const statusColor =
-    player.state === "finals"
-      ? "finals"
-      : player.state === "wildcard"
-        ? "wildcard"
-        : player.state === "advance"
-          ? accent
-          : player.state === "live"
-            ? "live"
-            : undefined;
+  const statusColor = playerAccent(player, accent);
 
   return (
     <div
@@ -790,8 +1292,8 @@ function OverlayPlayerRow({
             featured ? "h-10 w-10 text-sm" : "h-7 w-7 text-[10px]",
           )}
           style={{
-            borderColor: `color-mix(in oklab, var(--${statusColor ?? accent}) 35%, transparent)`,
-            color: `var(--${statusColor ?? accent})`,
+            borderColor: `color-mix(in oklab, var(--${statusColor}) 35%, transparent)`,
+            color: `var(--${statusColor})`,
           }}
         >
           {String(Number.isFinite(rank) ? rank : player.seed).padStart(2, "0")}
@@ -824,7 +1326,7 @@ function OverlayPlayerRow({
           "shrink-0 font-mono font-black uppercase tracking-widest",
           featured ? "text-[13px]" : "text-[9px]",
         )}
-        style={{ color: statusColor ? `var(--${statusColor})` : "var(--muted-foreground)" }}
+        style={{ color: `var(--${statusColor})` }}
       >
         {player.score != null ? String(player.score).padStart(2, "0") : player.stateLabel}
       </div>
@@ -891,7 +1393,7 @@ function WildcardPoolCard({
   );
 }
 
-function OverlayMatchCard({ match }: { match: Match }) {
+function OverlayMatchCard({ featured, match }: { featured?: boolean; match: Match }) {
   const isFinal = match.status === "final";
   const railColor = isFinal
     ? "var(--finals)"
@@ -902,7 +1404,12 @@ function OverlayMatchCard({ match }: { match: Match }) {
       className="border border-border/80 bg-surface-0/70 slab-shadow"
       style={{ borderLeft: `4px solid ${railColor}` }}
     >
-      <header className="flex items-center justify-between border-b border-border/60 px-3 py-2">
+      <header
+        className={cn(
+          "flex items-center justify-between border-b border-border/60",
+          featured ? "px-4 py-3" : "px-3 py-2",
+        )}
+      >
         <div className="truncate font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           {match.label}
         </div>
@@ -915,7 +1422,8 @@ function OverlayMatchCard({ match }: { match: Match }) {
           <div
             key={`${match.id}-${entrant.seed}`}
             className={cn(
-              "flex items-center justify-between gap-3 px-3 py-2",
+              "flex items-center justify-between gap-3",
+              featured ? "px-4 py-3" : "px-3 py-2",
               entrant.winner && "bg-finals-soft/50",
             )}
           >
@@ -926,7 +1434,8 @@ function OverlayMatchCard({ match }: { match: Match }) {
               <div className="min-w-0">
                 <div
                   className={cn(
-                    "truncate font-heading text-xl font-black uppercase italic leading-none tracking-tight",
+                    "truncate font-heading font-black uppercase italic leading-none tracking-tight",
+                    featured ? "text-2xl" : "text-xl",
                     entrant.pending ? "text-muted-foreground/55" : "text-white",
                   )}
                 >
@@ -941,7 +1450,8 @@ function OverlayMatchCard({ match }: { match: Match }) {
             </div>
             <div
               className={cn(
-                "min-w-10 text-right font-heading text-3xl font-black italic tabular-nums",
+                "min-w-10 text-right font-heading font-black italic tabular-nums",
+                featured ? "text-4xl" : "text-3xl",
                 entrant.winner ? "text-finals" : "text-foreground/80",
               )}
             >
@@ -1033,6 +1543,22 @@ function RouteCard({
   );
 }
 
+function resolveObsSource(
+  view: OverlayView,
+  source?: ObsSource,
+  round?: number | string,
+  lobbyId?: string,
+): ObsSource {
+  if (source) return source;
+  if (isGroupView(view)) return round || lobbyId ? "round" : "bracket";
+  if (view === "finals") return "round";
+  return "bracket";
+}
+
+function isGroupView(view: OverlayView): view is GroupKey {
+  return view === "titan" || view === "nexus" || view === "dominion";
+}
+
 function overlayAccent(view: OverlayView) {
   if (view === "titan") return "titan";
   if (view === "nexus") return "nexus";
@@ -1050,16 +1576,63 @@ function overlayTitle(view: OverlayView) {
   return "Tournament Map";
 }
 
-function overlaySubtitle(view: OverlayView) {
-  if (view === "titan") return "Group Titan";
-  if (view === "nexus") return "Group Nexus";
-  if (view === "dominion") return "Group Dominion";
-  if (view === "wildcard") return "Rank 5-8 last chance pool";
-  if (view === "finals") return "16-player single elimination bracket";
-  return "Groups, wildcard, finals";
+function overlaySubtitle(view: OverlayView, source: ObsSource, round?: number | string) {
+  if (isGroupView(view)) {
+    if (source === "bracket") return `${GROUP_META[view].label} · Overall bracket`;
+    if (source === "route") return `${GROUP_META[view].label} · Finals and Wildcard`;
+    return `${GROUP_META[view].label} · ${roundSourceLabel(round)}`;
+  }
+  if (view === "wildcard") return "Last-chance bracket source";
+  if (view === "finals") return `National Finals · ${finalsRoundSourceLabel(round)}`;
+  return "Broadcast source";
 }
 
-function groupByKey(data: TournamentData, key: keyof typeof GROUP_META): GroupView {
+function overlayDivisionLabel(view: OverlayView, source: ObsSource) {
+  if (isGroupView(view)) {
+    if (source === "bracket") return "Overall Group Bracket";
+    if (source === "route") return "Qualification Route";
+    return "Group Round Source";
+  }
+  if (view === "wildcard") return "Wildcard Bracket";
+  if (view === "finals") return "Finals Source";
+  return "OBS Source";
+}
+
+function overlayFooterStrap(view: OverlayView, source: ObsSource, round?: number | string) {
+  if (isGroupView(view)) {
+    if (source === "bracket") {
+      return `${overlayTitle(view)}: Round 1-4 lobbies with each qualifying route`;
+    }
+    if (source === "route") {
+      return `${overlayTitle(view)}: National Finals qualifiers and Wildcard pool`;
+    }
+    return `${overlayTitle(view)}: focused ${roundSourceLabel(round).toLowerCase()} lobby board`;
+  }
+  if (view === "wildcard") return "Wildcard bracket: pool to 4 National Finals slots";
+  if (view === "finals") return `National Finals: ${finalsRoundSourceLabel(round)} browser source`;
+  return "Legion Wars OBS browser source";
+}
+
+function roundSourceLabel(round?: number | string) {
+  const roundIndex = normalizeRoundParam(round);
+  return roundIndex == null ? "Current round" : roundLabel(roundIndex);
+}
+
+function finalsRoundSourceLabel(round?: number | string) {
+  const roundIndex = normalizeRoundParam(round);
+  return roundIndex == null
+    ? "Full bracket"
+    : (FINALS_ROUND_LABELS[roundIndex] ?? roundLabel(roundIndex));
+}
+
+function finalsMatchGridClass(matchCount: number, focused: boolean) {
+  if (!focused) return "grid-cols-1";
+  if (matchCount >= 4) return "grid-cols-4";
+  if (matchCount === 2) return "grid-cols-2";
+  return "mx-auto w-full max-w-[760px] grid-cols-1";
+}
+
+function groupByKey(data: TournamentData, key: GroupKey): GroupView {
   if (key === "titan") return data.groupTitan;
   if (key === "nexus") return data.groupNexus;
   return data.groupDominion;
@@ -1095,6 +1668,48 @@ function roundProgress(round: GroupView["progression"]["rounds"][number]) {
     total,
     percent: total > 0 ? Math.round((decided / total) * 100) : 0,
   };
+}
+
+function groupRoutePlayers(group: GroupView) {
+  const rounds = group.progression.rounds;
+  const roundFour = rounds[3] ?? rounds[rounds.length - 1];
+  const players: RoutedPlayer[] = (roundFour?.lobbies ?? []).flatMap((lobby) =>
+    lobby.players
+      .filter((player) => !isPlaceholderPlayer(player))
+      .map((player) => ({ ...player, lobbyId: lobby.id })),
+  );
+  const byRoute = (left: RoutedPlayer, right: RoutedPlayer) => {
+    const leftRank = sortablePlayerRank(left);
+    const rightRank = sortablePlayerRank(right);
+    return leftRank - rightRank || left.lobbyId.localeCompare(right.lobbyId);
+  };
+
+  return {
+    finals: players
+      .filter((player) => player.state === "finals" || player.state === "advance")
+      .sort(byRoute),
+    wildcard: players.filter((player) => player.state === "wildcard").sort(byRoute),
+  };
+}
+
+function routedLobbyPlayers(lobby: Lobby) {
+  return lobby.players.filter((player) => {
+    if (isPlaceholderPlayer(player)) return false;
+    return player.state === "advance" || player.state === "finals" || player.state === "wildcard";
+  });
+}
+
+function playerAccent(player: Player, fallback: string) {
+  if (player.state === "finals") return "finals";
+  if (player.state === "wildcard") return "wildcard";
+  if (player.state === "advance") return fallback;
+  if (player.state === "live") return "live";
+  return fallback;
+}
+
+function sortablePlayerRank(player: Player) {
+  const candidate = player.rank ?? Number(player.seed);
+  return Number.isFinite(candidate) ? candidate : 999;
 }
 
 function selectedGroupRoundIndex(group: GroupView, round?: number | string) {
