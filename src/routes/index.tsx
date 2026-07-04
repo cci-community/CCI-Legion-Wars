@@ -13,15 +13,19 @@ import { CommandPalette } from "@/components/tournament/CommandPalette";
 import { LobbyDrawer } from "@/components/tournament/LobbyDrawer";
 import { MatchDrawer } from "@/components/tournament/MatchDrawer";
 import { MobileTabBar } from "@/components/tournament/MobileTabBar";
+import { ObsOverlayView } from "@/components/tournament/ObsOverlayView";
 import { toast } from "sonner";
 
 type TabKey = ViewKey | "overview";
 const VALID_VIEWS: TabKey[] = ["overview", "finals", "titan", "nexus", "dominion", "wildcard"];
 
 interface Search {
+  mode?: "obs";
   view?: TabKey;
   lobby?: string;
   match?: string;
+  round?: number;
+  transparent?: 1;
 }
 
 export const Route = createFileRoute("/")({
@@ -30,9 +34,17 @@ export const Route = createFileRoute("/")({
       typeof search.view === "string" && VALID_VIEWS.includes(search.view as TabKey)
         ? (search.view as TabKey)
         : undefined;
+    const mode = search.mode === "obs" ? "obs" : undefined;
     const lobby = typeof search.lobby === "string" ? search.lobby : undefined;
     const match = typeof search.match === "string" ? search.match : undefined;
-    return { view, lobby, match };
+    const round =
+      typeof search.round === "number"
+        ? search.round
+        : typeof search.round === "string" && Number.isFinite(Number(search.round))
+          ? Number(search.round)
+          : undefined;
+    const transparent = search.transparent === "1" || search.transparent === 1 ? 1 : undefined;
+    return { mode, view, lobby, match, round, transparent };
   },
   head: () => ({
     meta: [
@@ -110,6 +122,7 @@ function Index() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const tab: TabKey = search.view ?? "overview";
+  const obsMode = search.mode === "obs";
   const { data, isLoading, isRefreshing, error, refresh } = useLiveTournamentData();
   const stats = useAggStats(data);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -187,6 +200,14 @@ function Index() {
     root.style.setProperty("--tab-accent-soft", `var(--${activeAccent}-soft)`);
   }, [activeAccent]);
 
+  useEffect(() => {
+    document.body.classList.toggle("obs-mode", obsMode);
+    document.body.classList.toggle("obs-transparent-mode", obsMode && search.transparent === 1);
+    return () => {
+      document.body.classList.remove("obs-mode", "obs-transparent-mode");
+    };
+  }, [obsMode, search.transparent]);
+
   const updatedSeconds = data.meta.fetchedAt
     ? Math.max(0, Math.floor((Date.now() - new Date(data.meta.fetchedAt).getTime()) / 1000))
     : 0;
@@ -224,6 +245,23 @@ function Index() {
     await refresh();
     toast("Refreshed", { description: "Bracket data reloaded" });
   };
+
+  if (obsMode) {
+    return (
+      <ObsOverlayView
+        data={data}
+        error={error}
+        isLoading={isLoading}
+        isRefreshing={isRefreshing}
+        lobbyId={search.lobby}
+        round={search.round}
+        syncStatus={syncStatus}
+        syncSummary={syncSummary}
+        transparent={search.transparent === 1}
+        view={tab}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen text-foreground">

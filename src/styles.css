@@ -130,6 +130,16 @@
       radial-gradient(ellipse 40% 30% at 100% 100%, oklch(0.3 0.06 22 / 0.14), transparent 60%);
     background-attachment: fixed;
   }
+  body.obs-mode {
+    overflow: hidden;
+  }
+  body.obs-transparent-mode {
+    background-color: transparent;
+    background-image: none;
+  }
+  body.obs-transparent-mode #root {
+    background: transparent;
+  }
   h1,
   h2,
   h3,
