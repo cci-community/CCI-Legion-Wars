@@ -2,7 +2,7 @@
 
 Legion Wars OBS screens are browser-source views served by the same Firebase app as the public bracket viewer. They use the same public Google Sheets feeds, parser/cache/fallback behavior, and public-data safety rules.
 
-The OBS package is built as an original premium esports broadcast board. It uses code-native layered plates, crest-backed logo placement, medallions, bracket lanes, route split symbols, and champion-slot frames. It does not use third-party logos, copied broadcast screenshots, or mock data as production truth.
+The OBS package is built as an original League-inspired broadcast board. It uses code-native angular plates, crest-backed logo placement, medallions, bracket lanes, route split symbols, and champion-slot frames. It does not use Riot logos, Riot assets, copied broadcast screenshots, or mock data as production truth.
 
 - persistent medallion phase rail: Groups -> Wildcard -> Nationals -> Champion
 - stage-board sources for each named group
@@ -184,7 +184,7 @@ Grand Final:
 https://cci-legion-wars.web.app/?mode=obs&view=finals&round=4
 ```
 
-The Finals screens include a National flow panel that defines the selected round, locked winners, next destination, Grand Final slots, and champion state. Use the Grand Final source as the primary screen once the broadcast reaches the final match. Keep the Grand Final match card center clear so player names, scores, and winner state stay readable on stream.
+The Finals screens include round progression and champion-slot state. Use the Grand Final source as the primary screen once the broadcast reaches the final match. Keep the Grand Final match card center clear so player names, scores, and winner state stay readable on stream.
 
 ## Recommended OBS Scenes
 
@@ -276,7 +276,7 @@ When adding or changing an OBS source:
 
 ## Reference Direction
 
-The visual target is professional esports broadcast clarity: high-contrast dark stage plates, gold advancement routes, readable bracket lanes, compact status readouts, and a distinct champion destination. The styling is an original Legion Wars broadcast identity inspired by general esports production principles, not an official third-party product skin.
+The visual target is professional esports broadcast clarity: high-contrast dark stage plates, gold advancement routes, readable bracket lanes, compact status readouts, and a distinct champion destination. The styling is an original Legion Wars interpretation inspired by public esports broadcast grammar, not an official Riot product skin.
 
 The current visual pass uses:
 
@@ -284,4 +284,4 @@ The current visual pass uses:
 - crest-backed Legion Wars logo placement in every OBS header
 - thin gold connector wires for phase and bracket progression
 - group-colored source lanes for Titan, Nexus, Dominion, and Wildcard
-- a National flow panel that remains visible on every focused National Finals round
+- a Finals winner-path panel that remains visible on every focused National Finals round
