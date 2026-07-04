@@ -184,7 +184,7 @@ Grand Final:
 https://cci-legion-wars.web.app/?mode=obs&view=finals&round=4
 ```
 
-The Finals screens include round progression and champion-slot state. Use the Grand Final source as the primary screen once the broadcast reaches the final match. Keep the Grand Final match card center clear so player names, scores, and winner state stay readable on stream.
+The Finals screens include a National flow panel that defines the selected round, locked winners, next destination, Grand Final slots, and champion state. Use the Grand Final source as the primary screen once the broadcast reaches the final match. Keep the Grand Final match card center clear so player names, scores, and winner state stay readable on stream.
 
 ## Recommended OBS Scenes
 
@@ -284,4 +284,4 @@ The current visual pass uses:
 - crest-backed Legion Wars logo placement in every OBS header
 - thin gold connector wires for phase and bracket progression
 - group-colored source lanes for Titan, Nexus, Dominion, and Wildcard
-- a Finals winner-path panel that remains visible on every focused National Finals round
+- a National flow panel that remains visible on every focused National Finals round

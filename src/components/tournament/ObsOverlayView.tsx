@@ -1595,7 +1595,7 @@ function FinalsOverlay({ finals, round }: { finals: FinalsView; round?: number |
           ))}
         </div>
 
-        {focused && <FinalsWinnerPathPanel finals={finals} selectedIndex={selectedIndex ?? 0} />}
+        {focused && <FinalsProgressPanel finals={finals} selectedIndex={selectedIndex ?? 0} />}
       </section>
     </div>
   );
@@ -1658,7 +1658,7 @@ function FinalsPathRail({
   );
 }
 
-function FinalsWinnerPathPanel({
+function FinalsProgressPanel({
   finals,
   selectedIndex,
 }: {
@@ -1676,6 +1676,10 @@ function FinalsWinnerPathPanel({
       return winner ? [winner] : [];
     }) ?? [];
   const activeMatchCount = activeRound?.matches.length ?? 0;
+  const isGrandFinal = !nextRound;
+  const winnerDestination = nextRound?.title ?? "National Champion";
+  const lockedWinners = `${activeWinners.length}/${activeMatchCount}`;
+  const activeWinnerNames = activeWinners.map((entrant) => entrant.name).join(" / ");
 
   return (
     <aside
@@ -1686,11 +1690,11 @@ function FinalsWinnerPathPanel({
       <div className="relative flex h-full flex-col">
         <header className="obs-path-header border-b border-finals/30 pb-2">
           <div className="font-mono text-[9px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
-            National Finals
+            National Finals Source
           </div>
           <div className="mt-1 flex items-end justify-between gap-3">
             <h3 className="font-heading text-3xl font-black uppercase italic leading-none tracking-tight text-finals">
-              Finals Progression
+              {isGrandFinal ? "Champion Decider" : "Round Flow"}
             </h3>
             <div className="obs-medallion obs-medallion-active h-10 w-10">
               <Crown className="h-6 w-6 text-background" />
@@ -1702,26 +1706,33 @@ function FinalsWinnerPathPanel({
           <WinnerPathStep
             active
             detail={
-              nextRound
-                ? `${activeMatchCount} ${winnerCountLabel(activeMatchCount)} advance to ${nextRound.title}`
-                : "Grand Final winner becomes champion"
+              isGrandFinal
+                ? "Winner of this match claims the title"
+                : `${activeMatchCount} ${winnerCountLabel(activeMatchCount)} advance`
             }
-            label="Current Round"
-            value={`Locked: ${activeWinners.length}`}
+            label="On Screen"
+            value={activeRound?.title ?? "Selected Round"}
+          />
+          <WinnerPathStep
+            detail={activeWinnerNames || "Waiting for sheet winners"}
+            label="Winners Locked"
+            value={lockedWinners}
           />
           <WinnerPathStep
             detail={
-              nextRound
-                ? `${nextRound.matches.length} ${matchCountLabel(nextRound.matches.length)} to be filled`
-                : "Final winner claims the title"
+              isGrandFinal
+                ? "Final destination"
+                : `${nextRound?.matches.length ?? 1} ${matchCountLabel(nextRound?.matches.length ?? 1)} next`
             }
-            label="Next Round"
-            value={nextRound?.title ?? "Champion Crown"}
+            label="Advance To"
+            value={winnerDestination}
           />
           <WinnerPathStep
             champion
-            detail={champion?.city || "Winner of Grand Final"}
-            label="Champion"
+            detail={
+              champion ? champion.city || "Champion locked" : "Grand Final winner appears here"
+            }
+            label="Champion State"
             value={champion?.name ?? "Not Decided"}
           />
         </div>
@@ -1733,13 +1744,13 @@ function FinalsWinnerPathPanel({
                 Grand Final
               </div>
               <div className="mt-0.5 font-heading text-xl font-black uppercase italic leading-none text-finals">
-                Finalist Slots
+                Grand Final Slots
               </div>
             </div>
             <BroadcastChevron accent="finals" />
           </div>
-          <div className="mt-2 grid gap-2">
-            {(grandFinal?.entrants ?? []).map((entrant) => (
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {(grandFinal?.entrants ?? []).map((entrant, slotIndex) => (
               <div
                 key={`${grandFinal?.id}-${entrant.seed}`}
                 className={cn(
@@ -1752,17 +1763,21 @@ function FinalsWinnerPathPanel({
                 <span className="min-w-0">
                   <span
                     className={cn(
-                      "block truncate font-heading text-xl font-black uppercase italic leading-none",
+                      "block truncate font-heading text-lg font-black uppercase italic leading-none",
                       entrant.pending ? "text-muted-foreground/50" : "text-white",
                     )}
                   >
                     {entrant.name}
                   </span>
                   <span className="mt-0.5 block font-mono text-[8px] uppercase tracking-widest text-muted-foreground">
-                    {entrant.winner ? "Champion locked" : `Finalist slot ${entrant.seed}`}
+                    {entrant.winner
+                      ? "National champion"
+                      : entrant.pending
+                        ? `Winner of Semifinal ${slotIndex + 1}`
+                        : `Grand Final slot ${String.fromCharCode(65 + slotIndex)}`}
                   </span>
                 </span>
-                <span className="font-heading text-2xl font-black italic tabular-nums text-finals">
+                <span className="font-heading text-xl font-black italic tabular-nums text-finals">
                   {entrant.score ?? "-"}
                 </span>
               </div>
