@@ -21,7 +21,7 @@ The public site does not expose private tabs, raw Sheets embeds, Discord operati
 - Public player names, city/region values when safe, ranks, scores, winners, and pending/ready/live/final states.
 - Logo favicon and Firebase Hosting deploy-on-push workflow.
 - OBS Browser Source overlay mode for stream-safe bracket and leaderboard scenes.
-- Original broadcast-style OBS screens with 1920x1080 reference thumbnails in `OBS Screen Thumbnails/`.
+- Original League-inspired OBS screens with angular broadcast plates, crest-backed logo placement, winner paths, and 1920x1080 reference thumbnails in `OBS Screen Thumbnails/`.
 
 ## Quick Start
 
@@ -134,3 +134,21 @@ https://cci-legion-wars.web.app
 ```
 
 Normal bracket updates happen in Google Sheets and do not require redeploys.
+
+## OBS Browser Sources
+
+Use the full source map in `docs/OBS_OVERLAYS.md` when creating OBS scenes.
+
+| OBS source name                     | URL                                                                      |
+| ----------------------------------- | ------------------------------------------------------------------------ |
+| `LW - Titan Stage Board`            | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=bracket`    |
+| `LW - Titan Qualification Route`    | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=route`      |
+| `LW - Nexus Stage Board`            | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=bracket`    |
+| `LW - Nexus Qualification Route`    | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=route`      |
+| `LW - Dominion Stage Board`         | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=bracket` |
+| `LW - Dominion Qualification Route` | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=route`   |
+| `LW - Wildcard Board`               | `https://cci-legion-wars.web.app/?mode=obs&view=wildcard`                |
+| `LW - Nationals Round of 16`        | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=1`          |
+| `LW - Nationals Quarterfinals`      | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=2`          |
+| `LW - Nationals Semifinals`         | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=3`          |
+| `LW - Nationals Grand Final`        | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=4`          |

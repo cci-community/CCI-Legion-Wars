@@ -2,7 +2,7 @@
 
 Legion Wars OBS screens are browser-source views served by the same Firebase app as the public bracket viewer. They use the same public Google Sheets feeds, parser/cache/fallback behavior, and public-data safety rules.
 
-The OBS package is built as an original Riot/League-inspired broadcast board. It uses code-native shapes, crest glyphs, medallions, bracket lanes, route split symbols, and champion-path frames. It does not use Riot logos, Riot assets, copied broadcast screenshots, or mock data as production truth.
+The OBS package is built as an original League-inspired broadcast board. It uses code-native angular plates, crest-backed logo placement, medallions, bracket lanes, route split symbols, and champion-path frames. It does not use Riot logos, Riot assets, copied broadcast screenshots, or mock data as production truth.
 
 - persistent medallion phase rail: Groups -> Wildcard -> Nationals -> Champion
 - stage-board sources for each named group
@@ -47,6 +47,22 @@ Transparent mode is supported by appending:
 ```
 
 ## Source Map
+
+Primary copy/paste OBS calls:
+
+| OBS source name                     | Browser source URL                                                       |
+| ----------------------------------- | ------------------------------------------------------------------------ |
+| `LW - Titan Stage Board`            | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=bracket`    |
+| `LW - Titan Qualification Route`    | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=route`      |
+| `LW - Nexus Stage Board`            | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=bracket`    |
+| `LW - Nexus Qualification Route`    | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=route`      |
+| `LW - Dominion Stage Board`         | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=bracket` |
+| `LW - Dominion Qualification Route` | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=route`   |
+| `LW - Wildcard Board`               | `https://cci-legion-wars.web.app/?mode=obs&view=wildcard`                |
+| `LW - Nationals Round of 16`        | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=1`          |
+| `LW - Nationals Quarterfinals`      | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=2`          |
+| `LW - Nationals Semifinals`         | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=3`          |
+| `LW - Nationals Grand Final`        | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=4`          |
 
 ### Group Titan
 
@@ -175,6 +191,13 @@ Optional callout sources:
 - `LW - Dominion Focused Round`
 - `LW - Focused Lobby`
 
+Suggested optional callout URL pattern:
+
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4
+https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4&lobby=TITAN_R4_L1
+```
+
 ## Thumbnail Inventory
 
 The committed thumbnail folder mirrors the primary OBS scene list:
@@ -223,3 +246,11 @@ When adding or changing an OBS source:
 ## Reference Direction
 
 The visual target is professional esports broadcast clarity: high-contrast dark stage plates, gold advancement routes, readable bracket lanes, compact status readouts, and a distinct champion destination. The styling is an original Legion Wars interpretation inspired by public esports broadcast grammar, not an official Riot product skin.
+
+The current visual pass uses:
+
+- angular broadcast plates instead of plain rectangular cards
+- crest-backed Legion Wars logo placement in every OBS header
+- thin gold connector wires for phase and bracket progression
+- group-colored source lanes for Titan, Nexus, Dominion, and Wildcard
+- a Finals winner-path panel that remains visible on every focused National Finals round

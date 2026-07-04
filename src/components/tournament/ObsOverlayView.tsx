@@ -1,4 +1,4 @@
-import { ArrowRight, Crown, GitBranch, Radio, Shield, Trophy, Users, Zap } from "lucide-react";
+import { Crown, GitBranch, Shield, Trophy, Users, Zap } from "lucide-react";
 import type { CSSProperties, ElementType, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import type {
@@ -32,10 +32,19 @@ const BROADCAST_PHASES = [
   { key: "champion", label: "Crown", detail: "Champion" },
 ] as const;
 
+function accentVarStyle(accent: string): CSSProperties {
+  return { "--panel-accent": `var(--${accent})` } as CSSProperties;
+}
+
+function accentValueStyle(value: string): CSSProperties {
+  return { "--panel-accent": value } as CSSProperties;
+}
+
 function ObsBackdrop({ accent }: { accent: string }) {
   return (
     <>
       <div className="pointer-events-none absolute inset-0 obs-stage-backdrop" />
+      <div className="pointer-events-none absolute inset-0 obs-arcane-radial opacity-85" />
       <div className="pointer-events-none absolute inset-0 grid-lines opacity-55" />
       <div className="pointer-events-none absolute inset-0 hex-grid opacity-45" />
       <div className="pointer-events-none absolute inset-0 scanlines opacity-35" />
@@ -57,8 +66,8 @@ function BroadcastOrnamentFrame() {
       <FrameCorner className="right-[-1px] top-[-1px] rotate-90" />
       <FrameCorner className="bottom-[-1px] right-[-1px] rotate-180" />
       <FrameCorner className="bottom-[-1px] left-[-1px] -rotate-90" />
-      <div className="absolute left-1/2 top-[-13px] h-[26px] w-[156px] -translate-x-1/2 border border-finals/60 bg-background/80 clip-blade" />
-      <div className="absolute bottom-[-13px] left-1/2 h-[26px] w-[156px] -translate-x-1/2 border border-finals/60 bg-background/80 clip-blade" />
+      <div className="obs-frame-crown absolute left-1/2 top-[-18px] h-9 w-[260px] -translate-x-1/2" />
+      <div className="obs-frame-crown absolute bottom-[-18px] left-1/2 h-9 w-[260px] -translate-x-1/2 rotate-180" />
     </div>
   );
 }
@@ -71,11 +80,18 @@ function FrameCorner({ className }: { className?: string }) {
       fill="none"
       viewBox="0 0 96 96"
     >
-      <path d="M2 52V2h50" stroke="currentColor" strokeWidth="2" />
-      <path d="M12 64V12h52" stroke="currentColor" strokeOpacity=".45" />
-      <path d="M2 24h22V2" stroke="currentColor" strokeWidth="2" />
-      <path d="M42 2 2 42" stroke="currentColor" strokeOpacity=".32" />
-      <path d="M21 21h30v10H31v20H21z" stroke="currentColor" strokeOpacity=".4" />
+      <path d="M3 58V3h55" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M15 70V15h58" stroke="currentColor" strokeOpacity=".34" strokeWidth="1.2" />
+      <path d="M3 25h22V3" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M45 3 3 45" stroke="currentColor" strokeOpacity=".3" strokeWidth="1.2" />
+      <path
+        d="M26 20h28l12 12-34 34-12-12V26z"
+        stroke="currentColor"
+        strokeOpacity=".34"
+        strokeLinejoin="miter"
+        strokeWidth="1.2"
+      />
+      <path d="M31 30h26M30 41h17" stroke="currentColor" strokeOpacity=".52" strokeWidth="1.2" />
     </svg>
   );
 }
@@ -92,13 +108,25 @@ function BroadcastGlyph({ accent, className }: { accent: string; className?: str
       <path
         d="M40 4 67 18v28L40 76 13 46V18z"
         stroke="currentColor"
-        strokeOpacity=".85"
-        strokeWidth="2.4"
+        strokeOpacity=".82"
+        strokeWidth="2"
       />
-      <path d="M40 14 56 23v18L40 61 24 41V23z" stroke="var(--finals)" strokeWidth="1.6" />
-      <path d="m25 54 15-40 15 40" stroke="currentColor" strokeOpacity=".55" strokeWidth="2" />
-      <path d="M29 39h22" stroke="var(--finals)" strokeLinecap="square" strokeWidth="2.4" />
-      <path d="m17 18 23 21 23-21" stroke="currentColor" strokeOpacity=".3" />
+      <path
+        d="M40 13 57 23v18L40 62 23 41V23z"
+        stroke="var(--finals)"
+        strokeOpacity=".74"
+        strokeWidth="1.35"
+      />
+      <path
+        d="M40 19c8 6 12 13 12 21 0 7-4 13-12 20-8-7-12-13-12-20 0-8 4-15 12-21Z"
+        stroke="currentColor"
+        strokeOpacity=".42"
+        strokeWidth="1.4"
+      />
+      <path d="M26 54 40 18l14 36" stroke="currentColor" strokeOpacity=".6" strokeWidth="1.7" />
+      <path d="M30 39h20" stroke="var(--finals)" strokeLinecap="square" strokeWidth="2" />
+      <path d="m16 19 24 22 24-22" stroke="currentColor" strokeOpacity=".22" />
+      <path d="M20 56c8 6 15 9 20 9s12-3 20-9" stroke="var(--finals)" strokeOpacity=".28" />
     </svg>
   );
 }
@@ -123,11 +151,11 @@ function PanelCornerMarks({ accent = "finals" }: { accent?: string }) {
   return (
     <>
       <span
-        className="pointer-events-none absolute left-2 top-2 z-[2] h-5 w-5 border-l-2 border-t-2"
+        className="obs-corner-mark pointer-events-none absolute left-2 top-2 z-[2] h-6 w-6 border-l border-t"
         style={{ borderColor: `var(--${accent})` }}
       />
       <span
-        className="pointer-events-none absolute bottom-2 right-2 z-[2] h-5 w-5 border-b-2 border-r-2"
+        className="obs-corner-mark pointer-events-none absolute bottom-2 right-2 z-[2] h-6 w-6 border-b border-r"
         style={{ borderColor: `var(--${accent})` }}
       />
     </>
@@ -324,40 +352,35 @@ function OverlayHeader({
   const divisionLabel = overlayDivisionLabel(view, source);
 
   return (
-    <header className="obs-broadcast-panel relative shrink-0">
-      <PanelCornerMarks accent={accent} />
-      <div className="obs-panel-content relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-8 px-6 py-4">
-        <div className="flex min-w-0 items-center gap-5">
-          <div className="obs-crest-tile relative grid h-24 w-24 shrink-0 place-items-center overflow-hidden border border-finals/45 clip-chamfer">
-            <BroadcastGlyph accent={accent} className="absolute inset-2 opacity-65" />
-            <img
-              src="/legion-wars-logo-mark.png"
-              alt=""
-              className="relative h-[76px] w-[76px] object-contain brightness-125 contrast-125 drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)]"
-            />
-            <span className="pointer-events-none absolute inset-x-3 top-1 h-px bg-finals/80" />
-            <span className="pointer-events-none absolute inset-x-3 bottom-1 h-px bg-[color:var(--tab-accent)]/75" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-3 font-mono text-[12px] font-bold uppercase tracking-[0.36em] text-muted-foreground">
-              <span className="obs-medallion h-5 w-5" style={{ color: `var(--${accent})` }}>
-                <span className="h-1.5 w-1.5 bg-current" />
-              </span>
-              Legion Wars 2026
-              <span className="text-muted-foreground/40">//</span>
-              {divisionLabel}
-            </div>
-            <h1 className="mt-1 truncate font-heading text-[5.35rem] font-black uppercase italic leading-[0.82] tracking-tight text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.75)]">
-              {title}
-            </h1>
-            <div className="mt-1 font-mono text-[13px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              {subtitle}
-            </div>
-            <BroadcastPhaseRail accent={accent} round={round} source={source} view={view} />
-          </div>
+    <header className="obs-broadcast-panel obs-broadcast-header relative shrink-0">
+      <div className="obs-panel-content relative grid grid-cols-[auto_minmax(0,1fr)_minmax(420px,600px)] items-center gap-7 px-7 py-4">
+        <div className="obs-logo-crest relative grid h-32 w-32 shrink-0 place-items-center">
+          <BroadcastGlyph accent={accent} className="absolute inset-0 opacity-55" />
+          <div className="obs-logo-crest-ring absolute inset-3" />
+          <img
+            src="/legion-wars-logo-mark.png"
+            alt=""
+            className="relative h-[94px] w-[94px] object-contain brightness-125 contrast-125 drop-shadow-[0_10px_22px_rgba(0,0,0,0.9)]"
+          />
         </div>
 
-        <div className="grid min-w-[600px] grid-cols-3 border border-finals/25 bg-background/78 shadow-[inset_0_0_32px_rgba(0,0,0,0.35)]">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3 font-mono text-[12px] font-bold uppercase tracking-[0.36em] text-muted-foreground">
+            <span className="obs-pip" style={{ color: `var(--${accent})` }} />
+            Legion Wars 2026
+            <span className="text-muted-foreground/40">//</span>
+            {divisionLabel}
+          </div>
+          <h1 className="mt-1 truncate font-heading text-[5.15rem] font-black uppercase italic leading-[0.84] tracking-tight text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.75)]">
+            {title}
+          </h1>
+          <div className="mt-1 font-mono text-[13px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+            {subtitle}
+          </div>
+          <BroadcastPhaseRail accent={accent} round={round} source={source} view={view} />
+        </div>
+
+        <div className="obs-header-stats grid grid-cols-3">
           <HeaderStat label="Feed" value="Public Sheets" accent={accent} />
           <HeaderStat label="State" value={loadingLabel} accent={error ? "live" : accent} border />
           <HeaderStat label="Updated" value={syncSummary} accent={accent} border />
@@ -383,10 +406,9 @@ function BroadcastFooter({
   const strap = overlayFooterStrap(view, source, round);
 
   return (
-    <footer className="obs-broadcast-panel grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center">
-      <PanelCornerMarks accent={accent} />
+    <footer className="obs-broadcast-panel obs-broadcast-footer grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center">
       <div
-        className="obs-panel-content px-5 py-3 font-heading text-2xl font-black uppercase italic tracking-tight text-background"
+        className="obs-panel-content obs-footer-label px-5 py-3 font-heading text-2xl font-black uppercase italic tracking-tight text-background"
         style={{ background: `var(--${accent})` }}
       >
         Live Bracket
@@ -421,8 +443,8 @@ function BroadcastPhaseRail({
         : "groups";
 
   return (
-    <div className="relative mt-4 flex max-w-[1120px] items-center gap-1.5">
-      <div className="absolute left-5 right-5 top-5 h-px bg-gradient-to-r from-transparent via-finals/60 to-transparent" />
+    <div className="obs-phase-rail relative mt-4 flex max-w-[1120px] items-center gap-2">
+      <div className="absolute left-7 right-7 top-5 h-px bg-gradient-to-r from-transparent via-finals/70 to-transparent" />
       {BROADCAST_PHASES.map((phase, index) => {
         const active = phase.key === activeKey;
         const complete =
@@ -433,10 +455,14 @@ function BroadcastPhaseRail({
           <div
             key={phase.key}
             className={cn(
-              "relative grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)] items-center gap-1.5 border border-border/45 bg-background/62 px-2 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
-              active &&
-                "border-finals/45 bg-[color-mix(in_oklab,var(--tab-accent)_13%,var(--background))]",
+              "obs-phase-step relative grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 px-2.5 py-2",
+              active && "obs-phase-step-active",
             )}
+            style={
+              {
+                "--phase-accent": active ? `var(--${accent})` : "var(--border-strong)",
+              } as CSSProperties
+            }
           >
             <SigilNumber accent={accent} active={active} complete={complete} value={index + 1} />
             <span className="min-w-0">
@@ -500,8 +526,8 @@ function OverviewOverlay({ data }: { data: TournamentData }) {
           {cards.map((card) => (
             <div
               key={card.label}
-              className="flex items-center justify-between border border-border/70 bg-surface-0/70 px-4 py-3"
-              style={{ borderLeft: `4px solid var(--${card.accent})` }}
+              className="obs-match-card flex items-center justify-between border border-border/70 px-4 py-3"
+              style={accentVarStyle(card.accent)}
             >
               <div>
                 <div className="font-mono text-[11px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
@@ -556,7 +582,7 @@ function GroupBracketOverlay({ group, groupKey }: { group: GroupView; groupKey: 
   return (
     <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
       <section className="grid shrink-0 grid-cols-[minmax(0,1fr)_640px] gap-5">
-        <BroadcastPanel className="p-5" style={{ borderLeft: `4px solid var(--${accent})` }}>
+        <BroadcastPanel className="obs-title-plate p-5" style={accentVarStyle(accent)}>
           <PanelCornerMarks accent={accent} />
           <div className="flex items-center gap-5">
             <BroadcastGlyph accent={accent} className="h-16 w-16 shrink-0" />
@@ -580,7 +606,10 @@ function GroupBracketOverlay({ group, groupKey }: { group: GroupView; groupKey: 
           <GroupStageFlow accent={accent} />
         </BroadcastPanel>
 
-        <div className="obs-broadcast-panel grid grid-cols-4 bg-surface-0/80">
+        <div
+          className="obs-broadcast-panel obs-stat-plate grid grid-cols-4"
+          style={accentVarStyle(accent)}
+        >
           <PanelCornerMarks accent={accent} />
           <HeaderStat label="Rounds" value={String(roundCount).padStart(2, "0")} accent={accent} />
           <HeaderStat
@@ -631,14 +660,20 @@ function GroupStageFlow({ accent }: { accent: string }) {
 
   return (
     <div className="relative mt-4 grid grid-cols-5 gap-2">
-      <div className="absolute left-8 right-8 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-finals/60 to-transparent" />
+      <div className="obs-route-wire absolute left-8 right-8 top-1/2 h-px -translate-y-1/2" />
       {steps.map((step, index) => (
         <div
           key={step.label}
-          className="relative border border-border/55 bg-background/68 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+          className="obs-stage-step relative px-3 py-2"
+          style={
+            {
+              "--stage-step-accent":
+                index === steps.length - 1 ? "var(--finals)" : `var(--${accent})`,
+            } as CSSProperties
+          }
         >
           {index > 0 && (
-            <span className="absolute -left-3 top-1/2 grid h-5 w-5 -translate-y-1/2 rotate-45 place-items-center border border-finals/45 bg-background/95">
+            <span className="absolute -left-3 top-1/2 grid h-5 w-5 -translate-y-1/2 rotate-45 place-items-center border border-finals/45 bg-background/95 shadow-[0_0_18px_-8px_var(--finals)]">
               <span
                 className="h-1.5 w-1.5 bg-current"
                 style={{ color: index === steps.length - 1 ? "var(--finals)" : `var(--${accent})` }}
@@ -674,7 +709,10 @@ function GroupBracketRoundColumn({
   const compact = round.lobbies.length > 4;
 
   return (
-    <section className="obs-broadcast-panel obs-bracket-lane relative flex h-full min-h-0 flex-col p-3">
+    <section
+      className="obs-broadcast-panel obs-bracket-lane obs-round-lane relative flex h-full min-h-0 flex-col p-3"
+      style={accentVarStyle(accent)}
+    >
       <PanelCornerMarks accent={accent} />
       <div
         className="pointer-events-none absolute inset-y-0 left-0 z-[2] w-1"
@@ -823,7 +861,7 @@ function GroupRouteOverlay({ group, groupKey }: { group: GroupView; groupKey: Gr
   return (
     <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
       <section className="grid shrink-0 grid-cols-[minmax(0,1fr)_560px] gap-5">
-        <BroadcastPanel className="p-5" style={{ borderLeft: `4px solid var(--${accent})` }}>
+        <BroadcastPanel className="obs-title-plate p-5" style={accentVarStyle(accent)}>
           <PanelCornerMarks accent={accent} />
           <div className="flex items-center gap-5">
             <BroadcastGlyph accent={accent} className="h-16 w-16 shrink-0" />
@@ -846,7 +884,10 @@ function GroupRouteOverlay({ group, groupKey }: { group: GroupView; groupKey: Gr
           </div>
         </BroadcastPanel>
 
-        <div className="obs-broadcast-panel grid grid-cols-3 bg-surface-0/80">
+        <div
+          className="obs-broadcast-panel obs-stat-plate grid grid-cols-3"
+          style={accentVarStyle(accent)}
+        >
           <PanelCornerMarks accent={accent} />
           <HeaderStat label="Round" value="R04" accent={accent} />
           <HeaderStat label="Nationals" value={`${route.finals.length}/4`} accent="finals" border />
@@ -887,22 +928,22 @@ function GroupRouteOverlay({ group, groupKey }: { group: GroupView; groupKey: Gr
 
 function RouteFlowColumn({ accent }: { accent: string }) {
   return (
-    <div className="relative grid min-h-0 grid-rows-[1fr_auto_1fr] items-stretch">
+    <div className="obs-route-spine relative grid min-h-0 grid-rows-[1fr_auto_1fr] items-stretch">
       <div className="relative flex items-center justify-center overflow-hidden">
         <div
-          className="h-full w-[3px]"
+          className="obs-route-spine-line h-full w-px"
           style={{
             background:
               "linear-gradient(to bottom, transparent, color-mix(in oklab, var(--finals) 70%, transparent), transparent)",
           }}
         />
-        <div className="absolute grid h-20 w-20 rotate-45 place-items-center border border-finals/60 bg-background/85 shadow-[0_0_42px_-14px_var(--finals)]">
+        <div className="obs-route-diamond absolute grid h-20 w-20 rotate-45 place-items-center border border-finals/60 bg-background/85 shadow-[0_0_42px_-14px_var(--finals)]">
           <Trophy className="h-8 w-8 -rotate-45 text-finals" />
         </div>
       </div>
 
       <div
-        className="obs-route-core relative grid min-h-[180px] place-items-center border border-border/70 px-2 py-4 text-center"
+        className="obs-route-core relative grid min-h-[180px] place-items-center px-2 py-4 text-center"
         style={{ borderColor: `color-mix(in oklab, var(--${accent}) 55%, var(--border))` }}
       >
         <div>
@@ -926,13 +967,13 @@ function RouteFlowColumn({ accent }: { accent: string }) {
 
       <div className="relative flex items-center justify-center overflow-hidden">
         <div
-          className="h-full w-[3px]"
+          className="obs-route-spine-line h-full w-px"
           style={{
             background:
               "linear-gradient(to bottom, transparent, color-mix(in oklab, var(--wildcard) 70%, transparent), transparent)",
           }}
         />
-        <div className="absolute grid h-20 w-20 rotate-45 place-items-center border border-wildcard/60 bg-background/85 shadow-[0_0_42px_-14px_var(--wildcard)]">
+        <div className="obs-route-diamond absolute grid h-20 w-20 rotate-45 place-items-center border border-wildcard/60 bg-background/85 shadow-[0_0_42px_-14px_var(--wildcard)]">
           <Zap className="h-8 w-8 -rotate-45 text-wildcard" />
         </div>
       </div>
@@ -945,8 +986,8 @@ function RouteLobbyCard({ accent, lobby }: { accent: string; lobby: Lobby }) {
 
   return (
     <article
-      className="obs-broadcast-panel min-h-0 p-3"
-      style={{ borderLeft: `4px solid var(--${accent})` }}
+      className="obs-broadcast-panel obs-route-source-card min-h-0 p-3"
+      style={accentVarStyle(accent)}
     >
       <PanelCornerMarks accent={accent} />
       <header className="obs-panel-content flex items-center justify-between gap-3 border-b border-finals/20 pb-2">
@@ -1030,8 +1071,8 @@ function RouteBucket({
 }) {
   return (
     <section
-      className="obs-broadcast-panel min-h-0 p-5"
-      style={{ borderLeft: `4px solid var(--${accent})` }}
+      className="obs-broadcast-panel obs-route-bucket min-h-0 p-5"
+      style={accentVarStyle(accent)}
     >
       <PanelCornerMarks accent={accent} />
       <header className="obs-panel-content border-b border-finals/20 pb-4">
@@ -1185,7 +1226,7 @@ function GroupOverlay({
   return (
     <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
       <section className="grid shrink-0 grid-cols-[minmax(0,1fr)_520px] gap-5">
-        <BroadcastPanel className="p-6" style={{ borderLeft: `4px solid var(--${accent})` }}>
+        <BroadcastPanel className="obs-title-plate p-6" style={accentVarStyle(accent)}>
           <PanelCornerMarks accent={accent} />
           <div className="pointer-events-none absolute right-6 top-5 font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground/30">
             {GROUP_META[groupKey].label}
@@ -1210,7 +1251,10 @@ function GroupOverlay({
             </div>
           </div>
         </BroadcastPanel>
-        <div className="obs-broadcast-panel grid grid-cols-3 bg-surface-0/80">
+        <div
+          className="obs-broadcast-panel obs-stat-plate grid grid-cols-3"
+          style={accentVarStyle(accent)}
+        >
           <PanelCornerMarks accent={accent} />
           <HeaderStat label="Round" value={roundLabel(selectedRoundIndex)} accent={accent} />
           <HeaderStat
@@ -1329,10 +1373,7 @@ function AdvancementBucket({
   const rowCount = Math.max(visibleLimit, visiblePlayers.length);
 
   return (
-    <section
-      className="obs-match-card border border-border/70 p-3"
-      style={{ borderLeft: `4px solid var(--${accent})` }}
-    >
+    <section className="obs-match-card border border-border/70 p-3" style={accentVarStyle(accent)}>
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="font-mono text-[8px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
@@ -1394,7 +1435,7 @@ function WildcardOverlay({ data }: { data: TournamentData }) {
 
   return (
     <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
-      <BroadcastPanel className="p-5" style={{ borderLeft: "4px solid var(--wildcard)" }}>
+      <BroadcastPanel className="obs-title-plate p-5" style={accentVarStyle("wildcard")}>
         <PanelCornerMarks accent="wildcard" />
         <div className="flex items-end justify-between gap-6">
           <div className="flex items-center gap-5">
@@ -1455,7 +1496,7 @@ function FinalsOverlay({ finals, round }: { finals: FinalsView; round?: number |
 
   return (
     <div className="flex h-full flex-col gap-5">
-      <BroadcastPanel className="shrink-0 p-5" style={{ borderLeft: "4px solid var(--finals)" }}>
+      <BroadcastPanel className="obs-title-plate shrink-0 p-5" style={accentVarStyle("finals")}>
         <PanelCornerMarks accent="finals" />
         <div className="flex items-end justify-between gap-6">
           <div className="flex min-w-0 items-center gap-5">
@@ -1504,7 +1545,7 @@ function FinalsOverlay({ finals, round }: { finals: FinalsView; round?: number |
                 focused ? "p-5" : "p-4",
                 isGrandFinal && "obs-champion-glow mx-auto w-full max-w-[980px]",
               )}
-              style={{ borderLeft: "4px solid var(--finals)" }}
+              style={accentVarStyle("finals")}
             >
               <PanelCornerMarks accent="finals" />
               <div className="obs-panel-content relative mb-4 flex items-end justify-between gap-3 border-b border-finals/25 pb-3">
@@ -1566,8 +1607,8 @@ function FinalsPathRail({
   selectedIndex: number | null;
 }) {
   return (
-    <div className="relative mt-4 grid max-w-[980px] grid-cols-[repeat(4,minmax(0,1fr))_150px] gap-2">
-      <div className="absolute left-6 right-6 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-finals/70 to-transparent" />
+    <div className="obs-finals-path relative mt-4 grid max-w-[980px] grid-cols-[repeat(4,minmax(0,1fr))_150px] gap-2">
+      <div className="obs-route-wire absolute left-6 right-6 top-1/2 h-px -translate-y-1/2" />
       {finals.bracket.rounds.map((round, index) => {
         const decided = round.matches.filter((match) => match.status === "final").length;
         const active = selectedIndex === index || (selectedIndex == null && index === 0);
@@ -1575,9 +1616,10 @@ function FinalsPathRail({
           <div
             key={round.title}
             className={cn(
-              "relative grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 border border-border/55 bg-background/68 px-3 py-2",
-              active && "border-finals/55 bg-finals-soft/35",
+              "obs-phase-step relative grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 px-3 py-2",
+              active && "obs-phase-step-active",
             )}
+            style={{ "--phase-accent": "var(--finals)" } as CSSProperties}
           >
             <SigilNumber accent="finals" active={active} complete={decided > 0} value={index + 1} />
             <div className="min-w-0">
@@ -1596,7 +1638,10 @@ function FinalsPathRail({
           </div>
         );
       })}
-      <div className="relative grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 border border-finals/55 bg-finals-soft/35 px-3 py-2">
+      <div
+        className="obs-phase-step obs-phase-step-active relative grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 px-3 py-2"
+        style={{ "--phase-accent": "var(--finals)" } as CSSProperties}
+      >
         <SigilNumber accent="finals" active value={<Crown className="h-5 w-5" />} />
         <div className="min-w-0">
           <div className="truncate font-mono text-[8px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
@@ -1629,10 +1674,13 @@ function FinalsWinnerPathPanel({
   });
 
   return (
-    <aside className="obs-broadcast-panel obs-champion-glow relative min-h-0 p-3">
+    <aside
+      className="obs-broadcast-panel obs-champion-glow obs-winner-path-panel relative min-h-0 p-3"
+      style={accentVarStyle("finals")}
+    >
       <PanelCornerMarks accent="finals" />
       <div className="relative flex h-full flex-col">
-        <header className="border-b border-finals/30 pb-2">
+        <header className="obs-path-header border-b border-finals/30 pb-2">
           <div className="font-mono text-[9px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
             Winner path
           </div>
@@ -1668,7 +1716,7 @@ function FinalsWinnerPathPanel({
           />
         </div>
 
-        <div className="mt-2 shrink-0 border border-finals/45 bg-background/62 p-2">
+        <div className="obs-path-ribbon mt-2 shrink-0 border border-finals/45 bg-background/62 p-2">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="font-mono text-[8px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
@@ -1775,7 +1823,7 @@ function OverlayLobbyCard({
   return (
     <article
       className={cn("obs-broadcast-panel relative min-h-0", featured && "p-5")}
-      style={{ borderLeft: `4px solid var(--${accent})` }}
+      style={accentVarStyle(accent)}
     >
       <PanelCornerMarks accent={accent} />
       <header
@@ -1909,8 +1957,8 @@ function WildcardPoolCard({
 
   return (
     <article
-      className="obs-broadcast-panel min-h-0"
-      style={{ borderLeft: `4px solid var(--${accent})` }}
+      className="obs-broadcast-panel obs-wildcard-source min-h-0"
+      style={accentVarStyle(accent)}
     >
       <PanelCornerMarks accent={accent} />
       <header className="obs-panel-content flex items-center justify-between gap-3 border-b border-finals/20 px-4 py-3">
@@ -1963,7 +2011,10 @@ function WildcardPoolCard({
 
 function WildcardFinalSlotsPanel({ data }: { data: TournamentData["wildcardView"] }) {
   return (
-    <aside className="obs-broadcast-panel obs-champion-glow relative min-h-0 p-4">
+    <aside
+      className="obs-broadcast-panel obs-champion-glow relative min-h-0 p-4"
+      style={accentVarStyle("wildcard")}
+    >
       <PanelCornerMarks accent="wildcard" />
       <div className="relative flex h-full flex-col">
         <header className="border-b border-finals/30 pb-3">
@@ -2044,7 +2095,7 @@ function OverlayMatchCard({
         "obs-match-card relative overflow-hidden border border-border/80",
         trophy && "bg-[color-mix(in_oklab,var(--finals)_5%,var(--surface-0))]",
       )}
-      style={{ borderLeft: `4px solid ${railColor}` }}
+      style={accentValueStyle(railColor)}
     >
       {trophy && (
         <div className="pointer-events-none absolute right-5 top-5 opacity-25">
@@ -2141,7 +2192,7 @@ function HeaderStat({
         {label}
       </div>
       <div
-        className="mt-1 truncate font-heading text-2xl font-black uppercase italic tracking-tight"
+        className="mt-1 truncate font-heading text-[1.35rem] font-black uppercase italic leading-none tracking-tight"
         style={{ color: `var(--${accent})` }}
       >
         {value}
@@ -2179,8 +2230,8 @@ function RouteCard({
 }) {
   return (
     <div
-      className="relative flex items-center gap-5 overflow-hidden border border-border/80 bg-surface-1/75 p-5 slab-shadow"
-      style={{ borderLeft: `4px solid var(--${accent})` }}
+      className="obs-match-card relative flex items-center gap-5 overflow-hidden border border-border/80 p-5 slab-shadow"
+      style={accentVarStyle(accent)}
     >
       <div
         className="grid h-16 w-16 shrink-0 place-items-center border"
