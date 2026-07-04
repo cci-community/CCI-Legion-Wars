@@ -191,11 +191,17 @@ Optional callout sources:
 - `LW - Dominion Focused Round`
 - `LW - Focused Lobby`
 
-Suggested optional callout URL pattern:
+Suggested optional focused round and focused lobby URL patterns:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4
 https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4&lobby=TITAN_R4_L1
+
+https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=round&round=4
+https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=round&round=4&lobby=NEXUS_R4_L1
+
+https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=round&round=4
+https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=round&round=4&lobby=DOMINION_R4_L1
 ```
 
 ## Thumbnail Inventory

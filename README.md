@@ -152,3 +152,11 @@ Use the full source map in `docs/OBS_OVERLAYS.md` when creating OBS scenes.
 | `LW - Nationals Quarterfinals`      | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=2`          |
 | `LW - Nationals Semifinals`         | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=3`          |
 | `LW - Nationals Grand Final`        | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=4`          |
+
+Focused group callouts use the same pattern for all groups:
+
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4
+https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=round&round=4
+https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=round&round=4
+```

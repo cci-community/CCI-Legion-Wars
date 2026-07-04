@@ -2097,11 +2097,6 @@ function OverlayMatchCard({
       )}
       style={accentValueStyle(railColor)}
     >
-      {trophy && (
-        <div className="pointer-events-none absolute right-5 top-5 opacity-25">
-          <BroadcastGlyph accent="finals" className="h-28 w-28" />
-        </div>
-      )}
       <header
         className={cn(
           "relative flex items-center justify-between border-b border-border/60",
