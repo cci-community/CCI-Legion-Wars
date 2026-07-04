@@ -1200,10 +1200,11 @@ function GroupOverlay({
   const accent = GROUP_META[groupKey].accent;
   const selectedRoundIndex = selectedGroupRoundIndex(group, round);
   const selectedRound = group.progression.rounds[selectedRoundIndex] ?? group.progression.rounds[0];
+  const normalizedLobbyId = lobbyId?.trim().toLowerCase();
   const selectedLobby = lobbyId
     ? group.progression.rounds
         .flatMap((candidate) => candidate.lobbies)
-        .find((lobby) => lobby.id === lobbyId)
+        .find((lobby) => lobby.id.toLowerCase() === normalizedLobbyId)
     : undefined;
   const lobbies = selectedLobby ? [selectedLobby] : (selectedRound?.lobbies ?? []);
   const progress = selectedRound
@@ -2093,7 +2094,7 @@ function OverlayMatchCard({
     <article
       className={cn(
         "obs-match-card relative overflow-hidden border border-border/80",
-        trophy && "bg-[color-mix(in_oklab,var(--finals)_5%,var(--surface-0))]",
+        trophy && "obs-grand-final-match",
       )}
       style={accentValueStyle(railColor)}
     >

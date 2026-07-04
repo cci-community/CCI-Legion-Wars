@@ -139,24 +139,33 @@ Normal bracket updates happen in Google Sheets and do not require redeploys.
 
 Use the full source map in `docs/OBS_OVERLAYS.md` when creating OBS scenes.
 
-| OBS source name                     | URL                                                                      |
-| ----------------------------------- | ------------------------------------------------------------------------ |
-| `LW - Titan Stage Board`            | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=bracket`    |
-| `LW - Titan Qualification Route`    | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=route`      |
-| `LW - Nexus Stage Board`            | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=bracket`    |
-| `LW - Nexus Qualification Route`    | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=route`      |
-| `LW - Dominion Stage Board`         | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=bracket` |
-| `LW - Dominion Qualification Route` | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=route`   |
-| `LW - Wildcard Board`               | `https://cci-legion-wars.web.app/?mode=obs&view=wildcard`                |
-| `LW - Nationals Round of 16`        | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=1`          |
-| `LW - Nationals Quarterfinals`      | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=2`          |
-| `LW - Nationals Semifinals`         | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=3`          |
-| `LW - Nationals Grand Final`        | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=4`          |
+| OBS source name                     | URL                                                                                                 |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `LW - Titan Stage Board`            | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=bracket`                               |
+| `LW - Titan Qualification Route`    | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=route`                                 |
+| `LW - Titan Focused Round`          | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4`                         |
+| `LW - Titan Focused Lobby`          | `https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4&lobby=Titan_R4_L1`       |
+| `LW - Nexus Stage Board`            | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=bracket`                               |
+| `LW - Nexus Qualification Route`    | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=route`                                 |
+| `LW - Nexus Focused Round`          | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=round&round=4`                         |
+| `LW - Nexus Focused Lobby`          | `https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=round&round=4&lobby=Nexus_R4_L1`       |
+| `LW - Dominion Stage Board`         | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=bracket`                            |
+| `LW - Dominion Qualification Route` | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=route`                              |
+| `LW - Dominion Focused Round`       | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=round&round=4`                      |
+| `LW - Dominion Focused Lobby`       | `https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=round&round=4&lobby=Dominion_R4_L1` |
+| `LW - Wildcard Board`               | `https://cci-legion-wars.web.app/?mode=obs&view=wildcard`                                           |
+| `LW - Nationals Round of 16`        | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=1`                                     |
+| `LW - Nationals Quarterfinals`      | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=2`                                     |
+| `LW - Nationals Semifinals`         | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=3`                                     |
+| `LW - Nationals Grand Final`        | `https://cci-legion-wars.web.app/?mode=obs&view=finals&round=4`                                     |
 
 Focused group callouts use the same pattern for all groups:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4
+https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4&lobby=Titan_R4_L1
 https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=round&round=4
+https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=round&round=4&lobby=Nexus_R4_L1
 https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=round&round=4
+https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=round&round=4&lobby=Dominion_R4_L1
 ```
