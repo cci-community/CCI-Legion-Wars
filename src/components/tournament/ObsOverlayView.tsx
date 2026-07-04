@@ -1670,10 +1670,12 @@ function FinalsWinnerPathPanel({
   const champion = grandFinal ? matchWinner(grandFinal) : undefined;
   const activeRound = finals.bracket.rounds[selectedIndex];
   const nextRound = finals.bracket.rounds[selectedIndex + 1];
-  const activeWinners = activeRound?.matches.flatMap((match) => {
-    const winner = matchWinner(match);
-    return winner ? [winner] : [];
-  });
+  const activeWinners =
+    activeRound?.matches.flatMap((match) => {
+      const winner = matchWinner(match);
+      return winner ? [winner] : [];
+    }) ?? [];
+  const activeMatchCount = activeRound?.matches.length ?? 0;
 
   return (
     <aside
@@ -1684,11 +1686,11 @@ function FinalsWinnerPathPanel({
       <div className="relative flex h-full flex-col">
         <header className="obs-path-header border-b border-finals/30 pb-2">
           <div className="font-mono text-[9px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
-            Winner path
+            National Finals
           </div>
           <div className="mt-1 flex items-end justify-between gap-3">
             <h3 className="font-heading text-3xl font-black uppercase italic leading-none tracking-tight text-finals">
-              To Champion
+              Finals Progression
             </h3>
             <div className="obs-medallion obs-medallion-active h-10 w-10">
               <Crown className="h-6 w-6 text-background" />
@@ -1699,22 +1701,28 @@ function FinalsWinnerPathPanel({
         <div className="mt-2 grid gap-1.5">
           <WinnerPathStep
             active
-            detail={`${activeRound?.matches.length ?? 0} match source`}
-            label={activeRound?.title ?? "Current Round"}
-            value={activeWinners.length ? `${activeWinners.length} winner path` : "Pending winners"}
+            detail={
+              nextRound
+                ? `${activeMatchCount} ${winnerCountLabel(activeMatchCount)} advance to ${nextRound.title}`
+                : "Grand Final winner becomes champion"
+            }
+            label="Current Round"
+            value={`Locked: ${activeWinners.length}`}
           />
           <WinnerPathStep
             detail={
-              nextRound ? `${nextRound.matches.length} match destination` : "Final destination"
+              nextRound
+                ? `${nextRound.matches.length} ${matchCountLabel(nextRound.matches.length)} to be filled`
+                : "Final winner claims the title"
             }
-            label={nextRound?.title ?? "Champion Slot"}
-            value={nextRound ? "Advance winners" : "Crown champion"}
+            label="Next Round"
+            value={nextRound?.title ?? "Champion Crown"}
           />
           <WinnerPathStep
             champion
-            detail={champion?.city || "Grand Final winner"}
+            detail={champion?.city || "Winner of Grand Final"}
             label="Champion"
-            value={champion?.name ?? "Awaiting Grand Final"}
+            value={champion?.name ?? "Not Decided"}
           />
         </div>
 
@@ -1725,7 +1733,7 @@ function FinalsWinnerPathPanel({
                 Grand Final
               </div>
               <div className="mt-0.5 font-heading text-xl font-black uppercase italic leading-none text-finals">
-                Champion Path
+                Finalist Slots
               </div>
             </div>
             <BroadcastChevron accent="finals" />
@@ -1751,7 +1759,7 @@ function FinalsWinnerPathPanel({
                     {entrant.name}
                   </span>
                   <span className="mt-0.5 block font-mono text-[8px] uppercase tracking-widest text-muted-foreground">
-                    {entrant.winner ? "Winner path locked" : `Seed ${entrant.seed}`}
+                    {entrant.winner ? "Champion locked" : `Finalist slot ${entrant.seed}`}
                   </span>
                 </span>
                 <span className="font-heading text-2xl font-black italic tabular-nums text-finals">
@@ -2021,7 +2029,7 @@ function WildcardFinalSlotsPanel({ data }: { data: TournamentData["wildcardView"
       <div className="relative flex h-full flex-col">
         <header className="border-b border-finals/30 pb-3">
           <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
-            Winner path
+            Nationals Route
           </div>
           <div className="mt-1 flex items-end justify-between gap-3">
             <h3 className="font-heading text-4xl font-black uppercase italic leading-none tracking-tight text-wildcard">
@@ -2165,7 +2173,7 @@ function OverlayMatchCard({
       </div>
       {trophy && (
         <div className="relative border-t border-finals/40 px-4 py-3 font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
-          {winner ? `${winner.name} advances to champion state` : "Grand Final winner path pending"}
+          {winner ? `${winner.name} is the National Champion` : "Champion will be decided here"}
         </div>
       )}
     </article>
@@ -2253,6 +2261,14 @@ function RouteCard({
 
 function matchWinner(match: Match) {
   return match.entrants.find((entrant) => entrant.winner && !entrant.pending);
+}
+
+function matchCountLabel(count: number) {
+  return count === 1 ? "match" : "matches";
+}
+
+function winnerCountLabel(count: number) {
+  return count === 1 ? "winner" : "winners";
 }
 
 function resolveObsSource(

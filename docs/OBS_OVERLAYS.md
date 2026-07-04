@@ -2,13 +2,13 @@
 
 Legion Wars OBS screens are browser-source views served by the same Firebase app as the public bracket viewer. They use the same public Google Sheets feeds, parser/cache/fallback behavior, and public-data safety rules.
 
-The OBS package is built as an original League-inspired broadcast board. It uses code-native angular plates, crest-backed logo placement, medallions, bracket lanes, route split symbols, and champion-path frames. It does not use Riot logos, Riot assets, copied broadcast screenshots, or mock data as production truth.
+The OBS package is built as an original League-inspired broadcast board. It uses code-native angular plates, crest-backed logo placement, medallions, bracket lanes, route split symbols, and champion-slot frames. It does not use Riot logos, Riot assets, copied broadcast screenshots, or mock data as production truth.
 
 - persistent medallion phase rail: Groups -> Wildcard -> Nationals -> Champion
 - stage-board sources for each named group
 - route sources that show Round 4 qualifiers splitting into National Finals and Wildcard
 - Wildcard board showing Titan, Nexus, and Dominion feeds into National Finals slots
-- Finals round boards with bracket lanes, a winner path, and champion destination state
+- Finals round boards with bracket lanes, advancement state, and champion slot
 
 No OBS screen consumes Master Sheet, Player Details, registration data, private contact data, staff notes, Discord operations, or mock data as production truth.
 
@@ -184,7 +184,7 @@ Grand Final:
 https://cci-legion-wars.web.app/?mode=obs&view=finals&round=4
 ```
 
-The Finals screens include the round path and winner/champion state. Use the Grand Final source as the primary screen once the broadcast reaches the final match. Keep the Grand Final match card center clear so player names, scores, and winner state stay readable on stream.
+The Finals screens include round progression and champion-slot state. Use the Grand Final source as the primary screen once the broadcast reaches the final match. Keep the Grand Final match card center clear so player names, scores, and winner state stay readable on stream.
 
 ## Recommended OBS Scenes
 
@@ -260,7 +260,7 @@ The committed thumbnail folder mirrors the primary OBS scene list:
 - Firebase Hosting serves the same SPA from `dist`.
 - `firebase.json` continues to use the SPA rewrite because all OBS sources are query-driven on `/`.
 - The OBS layer reads from `useLiveTournamentData` and the existing public-safe sheet runtime.
-- The display adapter derives visual winner paths from current match/player state only.
+- The display adapter derives visual advancement routes from current match/player state only.
 
 ## Maintenance
 
