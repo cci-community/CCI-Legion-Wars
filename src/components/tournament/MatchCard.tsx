@@ -21,7 +21,7 @@ export function MatchCard({ match, onSelect }: { match: Match; onSelect?: (id: s
       data-match-id={match.id}
       className="group relative block w-full text-left"
     >
-      {/* Meta row (unskewed, sits above slab) */}
+      {/* Meta row */}
       <div className="mb-1 flex items-center justify-between gap-2 px-1">
         <div className="flex min-w-0 items-center gap-2">
           <code className="truncate font-mono text-[10px] font-bold text-foreground/80">
@@ -45,7 +45,7 @@ export function MatchCard({ match, onSelect }: { match: Match; onSelect?: (id: s
         </span>
       </div>
 
-      {/* Skewed parallelogram slab */}
+      {/* Layered broadcast plate */}
       <div className="relative slab-skew">
         {/* Hover accent shell */}
         <div className="pointer-events-none absolute -inset-px bg-white/[0.08] opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
@@ -96,7 +96,7 @@ export function MatchCard({ match, onSelect }: { match: Match; onSelect?: (id: s
                     )}
                   </div>
                 </div>
-                {/* Score slab */}
+                {/* Score plate */}
                 <div
                   className={cn(
                     "flex h-full min-w-[42px] items-center justify-center self-stretch px-3 py-2 font-heading text-xl font-black italic tabular-nums slab-unskew",

@@ -63,7 +63,7 @@ export function LobbyCard({
         </span>
       </div>
 
-      {/* Skewed slab */}
+      {/* Layered broadcast plate */}
       <div className="relative slab-skew">
         <div className="pointer-events-none absolute -inset-px bg-white/[0.06] opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
         <div

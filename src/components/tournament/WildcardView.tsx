@@ -26,7 +26,7 @@ export function WildcardView({
 
   return (
     <div className="fade-in space-y-6">
-      {/* Tactical wildcard header */}
+      {/* Wildcard header */}
       <div className="relative overflow-hidden border-l-[3px] border-wildcard bg-surface-1">
         <div className="pointer-events-none absolute inset-0 slash-band opacity-60" />
         <div className="pointer-events-none absolute -right-16 top-0 h-full w-64 bg-gradient-to-l from-wildcard/15 to-transparent" />
@@ -34,7 +34,7 @@ export function WildcardView({
           <div className="min-w-0">
             <div className="flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.35em] text-muted-foreground">
               <span className="h-1.5 w-1.5 bg-wildcard" />
-              // Legion Wars · Last Chance
+              Legion Wars · Last Chance
             </div>
             <h2 className="mt-1.5 font-heading text-5xl font-black uppercase italic leading-none tracking-tighter text-foreground md:text-6xl">
               WILDCARD
@@ -90,7 +90,7 @@ export function WildcardView({
         </div>
       </div>
 
-      {/* Pool slabs */}
+      {/* Pool plates */}
       <div className="grid gap-4 lg:grid-cols-3">
         {(["Titan", "Nexus", "Dominion"] as const).map((g) => {
           const list = byGroup[g];
@@ -154,7 +154,7 @@ export function WildcardView({
         })}
       </div>
 
-      {/* Final slots — skewed slabs */}
+      {/* Final slots */}
       <section>
         <div className="mb-3 flex items-end justify-between border-b-2 border-wildcard/40 pb-2">
           <div className="flex items-baseline gap-3">

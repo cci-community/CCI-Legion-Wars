@@ -53,7 +53,7 @@ export function FinalsBracketView({
     <div className="fade-in space-y-6">
       <RoundSpine steps={spineSteps} accentVar="--finals" />
 
-      {/* Tactical finals header */}
+      {/* Finals header */}
       <div className="relative overflow-hidden border border-border/70 bg-surface-1/60 slash-band">
         <div className="absolute inset-y-0 left-0 w-[3px] bg-finals" />
         <div className="absolute right-6 top-4 hidden font-mono text-[10px] tracking-widest text-muted-foreground/40 sm:block">

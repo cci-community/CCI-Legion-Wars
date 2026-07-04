@@ -15,13 +15,13 @@ The public site does not expose private tabs, raw Sheets embeds, Discord operati
 
 ## Features
 
-- React tournament UI: overview map, tactical tabs, group progression, Wildcard pool, Finals bracket, command palette, drawers, and mobile tab bar.
+- React tournament UI: overview map, broadcast tabs, group progression, Wildcard pool, Finals bracket, command palette, drawers, and mobile tab bar.
 - Preserved multi-feed sheet fetch/cache/fallback behavior.
 - Preserved group/lobby parser, National Finals parser, Wildcard derivation, public-data safety, and workbook gids.
 - Public player names, city/region values when safe, ranks, scores, winners, and pending/ready/live/final states.
 - Logo favicon and Firebase Hosting deploy-on-push workflow.
 - OBS Browser Source overlay mode for stream-safe bracket and leaderboard scenes.
-- Original League-inspired OBS screens with angular broadcast plates, crest-backed logo placement, advancement routes, and 1920x1080 reference thumbnails in `OBS Screen Thumbnails/`.
+- Original premium esports OBS screens with layered broadcast plates, crest-backed logo placement, advancement routes, and 1920x1080 reference thumbnails in `OBS Screen Thumbnails/`.
 
 ## Quick Start
 
