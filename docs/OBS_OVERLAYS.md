@@ -1,158 +1,124 @@
-# OBS Browser Source Overlays
+# OBS Broadcast Sources
 
-Legion Wars supports stream-safe browser overlays from the same Firebase-hosted app and the same public Google Sheets data path as the public bracket viewer.
+Legion Wars OBS screens are browser-source views served by the same Firebase app as the public bracket viewer. They use the same public Google Sheets feeds, parser/cache/fallback behavior, and public-data safety rules.
 
-## Recommendation
+The OBS package is built as a Riot-style broadcast board:
 
-Use OBS Browser Source URLs with `mode=obs`.
+- persistent tournament phase rail: Groups -> Wildcard -> Nationals -> Champion
+- stage-board sources for each group
+- route sources that show Round 4 qualifiers splitting into National Finals and Wildcard
+- a Wildcard board that shows group entries feeding National Finals slots
+- Finals round boards with a winner path and champion state
 
-This is the best fit because OBS Browser Source loads a normal URL with a fixed viewport, custom CSS support, refresh controls, and transparent-background support. The overlay stays static-hosted on Firebase, uses the existing React app, and keeps the stream surface separate from the public viewer UI.
-
-Do not create a separate Discord bot, staff control panel, or second parser for this. Those would add operational risk without improving the first broadcast use case.
+No OBS screen consumes Master Sheet, Player Details, registration data, private contact data, staff notes, Discord operations, or mock data as production truth.
 
 ## Data Flow
 
 ```mermaid
 flowchart LR
-  A["Published Google Sheets CSV feeds"] --> B["src/data/sheet-data.js"]
+  A["Published public Google Sheets CSV feeds"] --> B["src/data/sheet-data.js"]
   B --> C["src/lib/live-tournament-data.ts"]
-  C --> D["OBS overlay adapter"]
-  D --> E["/?mode=obs URLs"]
+  C --> D["OBS display adapter"]
+  D --> E["/?mode=obs query sources"]
   E --> F["OBS Browser Source"]
 ```
 
-The overlay consumes only the public-safe feeds already used by the website:
+## Browser Source Settings
 
-- Group Titan
-- Group Nexus
-- Group Dominion
-- Wildcard
-- National Finals
+Use these settings for every full-screen source:
 
-It does not consume Master Sheet, Player Details, private registration data, Discord operations, staff notes, or broadcast planning data.
+- Width: `1920`
+- Height: `1080`
+- FPS: `30`
+- Refresh browser source when scene becomes active: on
+- Shutdown source when not visible: optional
+- Custom CSS: leave empty unless the production operator needs transparent composition
 
-## URL Format
+Transparent mode is supported by appending:
 
-Base:
+```text
+&transparent=1
+```
+
+## Source Map
+
+### Group Titan
+
+Overall stage board:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=titan&source=bracket
 ```
 
-Supported `view` values:
-
-```text
-titan
-nexus
-dominion
-wildcard
-finals
-```
-
-Group overlays support `source`:
-
-```text
-source=bracket
-source=route
-source=round
-```
-
-Group round callouts additionally support:
-
-```text
-round=1
-round=2
-round=3
-round=4
-lobby=TITAN_R4_L1
-```
-
-Finals overlays support:
-
-```text
-round=1
-round=2
-round=3
-round=4
-```
-
-Transparent background:
-
-```text
-transparent=1
-```
-
-## OBS Scene URLs
-
-### Group Bracket Sources
-
-Group Titan overall bracket:
-
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=titan&source=bracket
-```
-
-Group Nexus overall bracket:
-
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=bracket
-```
-
-Group Dominion overall bracket:
-
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=bracket
-```
-
-Each overall group bracket source shows Round 1 through Round 4 as columns, with all lobbies and the qualifying route out of each lobby.
-
-### Group Route Sources
-
-Group Titan National Finals / Wildcard route:
+Round 4 qualification route:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=titan&source=route
 ```
 
-Group Nexus National Finals / Wildcard route:
-
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=route
-```
-
-Group Dominion National Finals / Wildcard route:
-
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=route
-```
-
-Each route source focuses on Round 4 and splits the group into direct National Finals qualifiers and Wildcard pool players.
-
-### Focused Group Round Sources
-
-Group Titan Round 4:
+Focused round callout:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4
 ```
 
-Group Titan specific lobby:
+Focused lobby callout:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=titan&source=round&round=4&lobby=TITAN_R4_L1
 ```
 
-Use focused group round sources for callouts during live matches.
+### Group Nexus
 
-### Wildcard Source
+Overall stage board:
 
-Wildcard:
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=bracket
+```
+
+Round 4 qualification route:
+
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=route
+```
+
+Focused round callout:
+
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=nexus&source=round&round=4
+```
+
+### Group Dominion
+
+Overall stage board:
+
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=bracket
+```
+
+Round 4 qualification route:
+
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=route
+```
+
+Focused round callout:
+
+```text
+https://cci-legion-wars.web.app/?mode=obs&view=dominion&source=round&round=4
+```
+
+### Wildcard
+
+Wildcard board:
 
 ```text
 https://cci-legion-wars.web.app/?mode=obs&view=wildcard
 ```
 
-### National Finals Sources
+This screen shows Titan, Nexus, and Dominion wildcard entries feeding four National Finals slots.
+
+### National Finals
 
 Round of 16:
 
@@ -178,73 +144,60 @@ Grand Final:
 https://cci-legion-wars.web.app/?mode=obs&view=finals&round=4
 ```
 
-Transparent Group Titan route:
+The Finals screens include the round path and winner/champion state. Use the Grand Final source as the primary screen once the broadcast reaches the final match.
 
-```text
-https://cci-legion-wars.web.app/?mode=obs&view=titan&source=route&transparent=1
-```
+## Recommended OBS Scenes
 
-## OBS Setup
+Create one saved browser source per broadcast moment:
 
-Recommended Browser Source settings:
+- `LW - Titan Stage Board`
+- `LW - Titan Qualification Route`
+- `LW - Nexus Stage Board`
+- `LW - Nexus Qualification Route`
+- `LW - Dominion Stage Board`
+- `LW - Dominion Qualification Route`
+- `LW - Wildcard Board`
+- `LW - Nationals Round of 16`
+- `LW - Nationals Quarterfinals`
+- `LW - Nationals Semifinals`
+- `LW - Nationals Grand Final`
 
-- Width: `1920`
-- Height: `1080`
-- FPS: `30`
-- URL: one of the overlay URLs above
-- Refresh browser source when scene becomes active: on for tournament scene changes
-- Shutdown source when not visible: optional; leave off if instant scene switching matters
-- Custom CSS: keep OBS default transparent CSS, or leave empty for the app background
+Optional callout sources:
 
-For transparent overlays, use `transparent=1` in the URL and keep OBS's transparent browser CSS behavior.
+- `LW - Titan Focused Round`
+- `LW - Nexus Focused Round`
+- `LW - Dominion Focused Round`
+- `LW - Focused Lobby`
 
-## Operating Model
+## Operating Notes
 
-Create one OBS scene or source per common tournament state:
-
-- `LW - Titan Overall Bracket`
-- `LW - Titan Finals Wildcard Route`
-- `LW - Nexus Overall Bracket`
-- `LW - Nexus Finals Wildcard Route`
-- `LW - Dominion Overall Bracket`
-- `LW - Dominion Finals Wildcard Route`
-- `LW - Wildcard`
-- `LW - Finals Round of 16`
-- `LW - Finals Quarterfinals`
-- `LW - Finals Semifinals`
-- `LW - Finals Grand Final`
-
-For a stream focused on one group, use that group's overall bracket source as the main bracket board. Switch to that group's route source after Round 4 to show who reached National Finals and who entered Wildcard. Use focused round or lobby URLs only for live callouts.
+- Use a group stage board while a group is being introduced or recapped.
+- Use the group qualification route after Round 4 to show direct National Finals qualifiers and the Wildcard pool.
+- Use the Wildcard board while last-chance qualifiers are being resolved.
+- Use one Finals source per round. Do not use a scrolling full bracket during active match coverage.
+- If sheet data is pending, the screens show pending/awaiting states instead of inventing players.
 
 ## Architecture Notes
 
-- The public website remains the default route.
-- `mode=obs` switches the same route into a broadcast overlay surface.
-- Query parameters drive the source, so OBS does not need a control API.
-- Firebase Hosting still serves the SPA from `dist`.
-- The existing `firebase.json` rewrite continues to work because the overlay is query-driven on `/`.
-- The overlay uses the existing `useLiveTournamentData` hook, parser/cache/fallback behavior, and public safety rules.
-- No mock data is used as production truth.
+- `mode=obs` switches the root route into broadcast mode.
+- `view`, `source`, `round`, and `lobby` query parameters select the exact screen.
+- Firebase Hosting serves the same SPA from `dist`.
+- `firebase.json` continues to use the SPA rewrite because all OBS sources are query-driven on `/`.
+- The OBS layer reads from `useLiveTournamentData` and the existing public-safe sheet runtime.
+- The display adapter derives visual winner paths from current match/player state only.
 
-## Current Limitations
+## Maintenance
 
-- The first implementation is display-only. It does not provide a remote operator control panel.
-- OBS scene switching should be handled by saved Browser Source URLs.
-- Group overall bracket sources are dense by design because they show every lobby in the group route. Use a focused `source=round` or `lobby` URL for single-lobby broadcast moments.
-- If a sheet has pending or placeholder players, the overlay will show pending state rather than invent data.
+When adding or changing an OBS source:
 
-## Future Expansion
+1. Preserve Google Sheets feed and parser behavior.
+2. Keep private workbook tabs out of the public app.
+3. Add the URL to this document.
+4. Run `npm run check`.
+5. Run `npm run build`.
+6. Verify the source at `1920x1080` before pushing.
+7. After pushing to `main`, verify the Firebase Hosting workflow and the live URL.
 
-Useful later, not needed for the first broadcast-ready version:
+## Reference Direction
 
-- `/overlay` path alias for prettier URLs.
-- OBS WebSocket scene/source switching helper.
-- Preset generator page for copying scene URLs.
-- Lower-third player spotlight overlay.
-- Automatic "current live lobby" selection when the sheet marks lobbies live.
-- QR-free operator handoff sheet with approved overlay URLs.
-
-## Research Sources
-
-- OBS Browser Source knowledge base: `https://obsproject.com/kb/browser-source`
-- Firebase Hosting configuration docs: `https://firebase.google.com/docs/hosting/full-config`
+The visual target is professional esports broadcast clarity, especially the structured stage-and-bracket language used across Riot-style tournament coverage: phase rails, round lanes, visible advancement routes, and a distinct champion state.

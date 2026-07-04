@@ -1,4 +1,4 @@
-import { Crown, Radio, Trophy, Users, Zap } from "lucide-react";
+import { ArrowRight, Crown, GitBranch, Radio, Shield, Trophy, Users, Zap } from "lucide-react";
 import type { CSSProperties, ElementType } from "react";
 import { cn } from "@/lib/utils";
 import type {
@@ -25,6 +25,12 @@ type GroupKey = keyof typeof GROUP_META;
 
 const GROUP_ORDER = ["titan", "nexus", "dominion"] as const;
 const FINALS_ROUND_LABELS = ["Round of 16", "Quarterfinals", "Semifinals", "Grand Final"] as const;
+const BROADCAST_PHASES = [
+  { key: "groups", label: "Groups", detail: "R1-R4" },
+  { key: "wildcard", label: "Wildcard", detail: "Last chance" },
+  { key: "finals", label: "Nationals", detail: "Top 16" },
+  { key: "champion", label: "Champion", detail: "Winner path" },
+] as const;
 
 export function ObsOverlayView({
   data,
@@ -210,6 +216,7 @@ function OverlayHeader({
             <div className="mt-1 font-mono text-[13px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
               {subtitle}
             </div>
+            <BroadcastPhaseRail accent={accent} round={round} source={source} view={view} />
           </div>
         </div>
 
@@ -253,6 +260,86 @@ function BroadcastFooter({
         {syncSummary}
       </div>
     </footer>
+  );
+}
+
+function BroadcastPhaseRail({
+  accent,
+  round,
+  source,
+  view,
+}: {
+  accent: string;
+  round?: number | string;
+  source: ObsSource;
+  view: OverlayView;
+}) {
+  const activeKey = isGroupView(view)
+    ? "groups"
+    : view === "wildcard"
+      ? "wildcard"
+      : view === "finals"
+        ? "finals"
+        : "groups";
+
+  return (
+    <div className="mt-3 flex max-w-[920px] items-center overflow-hidden border border-border/55 bg-background/55">
+      {BROADCAST_PHASES.map((phase, index) => {
+        const active = phase.key === activeKey;
+        const complete =
+          phase.key === "groups" && (view === "wildcard" || view === "finals")
+            ? true
+            : phase.key === "wildcard" && view === "finals";
+        return (
+          <div
+            key={phase.key}
+            className={cn(
+              "relative grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 px-3 py-2",
+              index > 0 && "border-l border-border/55",
+              active && "bg-[color-mix(in_oklab,var(--tab-accent)_10%,transparent)]",
+            )}
+          >
+            <span
+              className={cn(
+                "grid h-7 w-7 place-items-center border font-heading text-base font-black italic tabular-nums",
+                active ? "text-background" : complete ? "text-finals" : "text-muted-foreground",
+              )}
+              style={{
+                background: active ? `var(--${accent})` : "transparent",
+                borderColor: active
+                  ? `var(--${accent})`
+                  : complete
+                    ? "color-mix(in oklab, var(--finals) 50%, transparent)"
+                    : "var(--border)",
+              }}
+            >
+              {index + 1}
+            </span>
+            <span className="min-w-0">
+              <span
+                className={cn(
+                  "block truncate font-mono text-[9px] font-black uppercase tracking-[0.22em]",
+                  active ? "text-foreground" : "text-muted-foreground",
+                )}
+              >
+                {phase.label}
+              </span>
+              <span className="block truncate font-mono text-[8px] uppercase tracking-[0.18em] text-muted-foreground/75">
+                {phase.key === "finals" && view === "finals"
+                  ? finalsRoundSourceLabel(round)
+                  : phase.key === "groups" && isGroupView(view)
+                    ? source === "route"
+                      ? "R4 route lock"
+                      : source === "round"
+                        ? roundSourceLabel(round)
+                        : phase.detail
+                    : phase.detail}
+              </span>
+            </span>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -350,19 +437,20 @@ function GroupBracketOverlay({ group, groupKey }: { group: GroupView; groupKey: 
           style={{ borderLeft: `4px solid var(--${accent})` }}
         >
           <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
-            // Group Bracket Source
+            // Stage Board
           </div>
           <div className="mt-1 flex items-end gap-4">
             <h2
-              className="font-heading text-7xl font-black uppercase italic leading-none tracking-tight"
+              className="font-heading text-6xl font-black uppercase italic leading-none tracking-tight"
               style={{ color: `var(--${accent})` }}
             >
               {GROUP_META[groupKey].title}
             </h2>
             <span className="mb-2 font-mono text-[14px] font-bold uppercase tracking-[0.28em] text-foreground">
-              Round 1-4 chart
+              Round 1-4 bracket board
             </span>
           </div>
+          <GroupStageFlow accent={accent} />
         </div>
 
         <div className="grid grid-cols-4 border border-border/80 bg-surface-0/80 slab-shadow">
@@ -402,6 +490,40 @@ function GroupBracketOverlay({ group, groupKey }: { group: GroupView; groupKey: 
   );
 }
 
+function GroupStageFlow({ accent }: { accent: string }) {
+  const steps = [
+    { label: "Round 1", value: "64" },
+    { label: "Round 2", value: "32" },
+    { label: "Round 3", value: "16" },
+    { label: "Round 4", value: "8" },
+    { label: "Route", value: "4 + 4" },
+  ];
+
+  return (
+    <div className="mt-4 grid grid-cols-5 border border-border/55 bg-background/50">
+      {steps.map((step, index) => (
+        <div
+          key={step.label}
+          className={cn("relative px-3 py-2", index > 0 && "border-l border-border/55")}
+        >
+          {index > 0 && (
+            <ArrowRight className="absolute -left-3 top-1/2 h-5 w-5 -translate-y-1/2 bg-background p-0.5 text-muted-foreground" />
+          )}
+          <div className="font-mono text-[8px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
+            {step.label}
+          </div>
+          <div
+            className="mt-0.5 font-heading text-2xl font-black uppercase italic leading-none tabular-nums tracking-tight"
+            style={{ color: index === steps.length - 1 ? "var(--finals)" : `var(--${accent})` }}
+          >
+            {step.value}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function GroupBracketRoundColumn({
   accent,
   round,
@@ -430,6 +552,9 @@ function GroupBracketRoundColumn({
             <h3 className="mt-0.5 font-heading text-2xl font-black uppercase italic leading-none tracking-tight text-white">
               {round.title}
             </h3>
+            <div className="mt-1 truncate font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+              {round.advance}
+            </div>
           </div>
           <div className="text-right font-mono text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
             {roundState.decided}/{roundState.total}
@@ -558,17 +683,17 @@ function GroupRouteOverlay({ group, groupKey }: { group: GroupView; groupKey: Gr
           style={{ borderLeft: `4px solid var(--${accent})` }}
         >
           <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
-            // Qualification Route Source
+            // Qualification Route
           </div>
           <div className="mt-1 flex items-end gap-4">
             <h2
-              className="font-heading text-7xl font-black uppercase italic leading-none tracking-tight"
+              className="font-heading text-6xl font-black uppercase italic leading-none tracking-tight"
               style={{ color: `var(--${accent})` }}
             >
               {GROUP_META[groupKey].title}
             </h2>
             <span className="mb-2 font-mono text-[14px] font-bold uppercase tracking-[0.28em] text-foreground">
-              Finals / Wildcard
+              Round 4 output board
             </span>
           </div>
         </div>
@@ -585,12 +710,14 @@ function GroupRouteOverlay({ group, groupKey }: { group: GroupView; groupKey: Gr
         </div>
       </section>
 
-      <section className="grid min-h-0 grid-cols-[0.95fr_1fr_1fr] gap-5">
+      <section className="grid min-h-0 grid-cols-[0.86fr_116px_1fr_1fr] gap-5">
         <div className="grid min-h-0 grid-rows-2 gap-4">
           {(roundFour?.lobbies ?? []).slice(0, 2).map((lobby) => (
             <RouteLobbyCard key={lobby.id} accent={accent} lobby={lobby} />
           ))}
         </div>
+
+        <RouteFlowColumn accent={accent} />
 
         <RouteBucket
           accent="finals"
@@ -605,6 +732,51 @@ function GroupRouteOverlay({ group, groupKey }: { group: GroupView; groupKey: Gr
           summary="Group placements 5-8"
         />
       </section>
+    </div>
+  );
+}
+
+function RouteFlowColumn({ accent }: { accent: string }) {
+  return (
+    <div className="relative grid min-h-0 grid-rows-[1fr_auto_1fr] items-stretch">
+      <div className="relative flex items-center justify-center">
+        <div
+          className="h-full w-px"
+          style={{
+            background:
+              "linear-gradient(to bottom, transparent, color-mix(in oklab, var(--finals) 70%, transparent), transparent)",
+          }}
+        />
+        <div className="absolute grid h-16 w-16 place-items-center border border-finals/60 bg-background/85 shadow-[0_0_36px_-16px_var(--finals)]">
+          <ArrowRight className="h-7 w-7 text-finals" />
+        </div>
+      </div>
+
+      <div
+        className="relative border border-border/70 bg-surface-1/80 px-2 py-4 text-center slab-shadow"
+        style={{ borderColor: `color-mix(in oklab, var(--${accent}) 55%, var(--border))` }}
+      >
+        <GitBranch className="mx-auto h-6 w-6" style={{ color: `var(--${accent})` }} />
+        <div className="mt-2 font-mono text-[8px] font-black uppercase tracking-[0.18em] text-muted-foreground">
+          Round 4
+        </div>
+        <div className="mt-0.5 font-heading text-2xl font-black uppercase italic leading-none text-white">
+          Split
+        </div>
+      </div>
+
+      <div className="relative flex items-center justify-center">
+        <div
+          className="h-full w-px"
+          style={{
+            background:
+              "linear-gradient(to bottom, transparent, color-mix(in oklab, var(--wildcard) 70%, transparent), transparent)",
+          }}
+        />
+        <div className="absolute grid h-16 w-16 place-items-center border border-wildcard/60 bg-background/85 shadow-[0_0_36px_-16px_var(--wildcard)]">
+          <ArrowRight className="h-7 w-7 text-wildcard" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -1056,16 +1228,21 @@ function WildcardOverlay({ data }: { data: TournamentData }) {
   };
 
   return (
-    <div className="grid h-full grid-rows-[auto_1fr_auto] gap-5">
+    <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
       <section className="relative overflow-hidden border border-border/80 bg-surface-1/70 p-5 slash-band">
         <div className="absolute inset-y-0 left-0 w-1 bg-wildcard" />
         <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-wildcard">
-          // Last Chance Route
+          // Last Chance Bracket
         </div>
         <div className="mt-1 flex items-end justify-between gap-6">
-          <h2 className="font-heading text-7xl font-black uppercase italic leading-none tracking-tight text-white">
-            Wildcard Pool
-          </h2>
+          <div className="flex items-end gap-4">
+            <h2 className="font-heading text-6xl font-black uppercase italic leading-none tracking-tight text-white">
+              Wildcard
+            </h2>
+            <span className="mb-2 font-mono text-[14px] font-bold uppercase tracking-[0.28em] text-foreground">
+              12 players / 4 Nationals slots
+            </span>
+          </div>
           <div className="grid min-w-[520px] grid-cols-3 border border-border/80 bg-surface-0/75">
             <HeaderStat
               label="Pool"
@@ -1083,7 +1260,7 @@ function WildcardOverlay({ data }: { data: TournamentData }) {
         </div>
       </section>
 
-      <section className="grid min-h-0 grid-cols-3 gap-4">
+      <section className="grid min-h-0 grid-cols-[1fr_1fr_1fr_420px] gap-4">
         {(["Titan", "Nexus", "Dominion"] as const).map((sourceGroup) => (
           <WildcardPoolCard
             key={sourceGroup}
@@ -1091,28 +1268,7 @@ function WildcardOverlay({ data }: { data: TournamentData }) {
             sourceGroup={sourceGroup}
           />
         ))}
-      </section>
-
-      <section className="grid shrink-0 grid-cols-4 gap-4">
-        {Array.from({ length: data.wildcardView.finalSlots }, (_, index) => {
-          const slot = data.wildcardView.finalSlotPlayers[index];
-          return (
-            <div
-              key={index}
-              className="relative border border-wildcard/55 bg-surface-1/85 p-4 slab-shadow"
-            >
-              <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
-                WC Slot {String(index + 1).padStart(2, "0")}
-              </div>
-              <div className="mt-1 truncate font-heading text-3xl font-black uppercase italic tracking-tight text-wildcard">
-                {slot?.pending === false ? slot.name : `Slot ${index + 1}`}
-              </div>
-              <div className="mt-1 truncate font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-                {slot?.pending === false ? slot.city || "Locked" : "Awaiting qualifier"}
-              </div>
-            </div>
-          );
-        })}
+        <WildcardFinalSlotsPanel data={data.wildcardView} />
       </section>
     </div>
   );
@@ -1125,18 +1281,22 @@ function FinalsOverlay({ finals, round }: { finals: FinalsView; round?: number |
       ? [finals.bracket.rounds[selectedIndex]]
       : finals.bracket.rounds;
   const focused = rounds.length === 1;
+  const isGrandFinal = focused && selectedIndex === finals.bracket.rounds.length - 1;
 
   return (
     <div className="flex h-full flex-col gap-5">
       <section className="relative shrink-0 overflow-hidden border border-border/80 bg-surface-1/70 p-5 slash-band">
         <div className="absolute inset-y-0 left-0 w-1 bg-finals" />
         <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-finals">
-          // National Finals
+          // National Finals Bracket
         </div>
         <div className="mt-1 flex items-end justify-between gap-6">
-          <h2 className="font-heading text-7xl font-black uppercase italic leading-none tracking-tight text-white">
-            Main Bracket
-          </h2>
+          <div className="min-w-0">
+            <h2 className="font-heading text-6xl font-black uppercase italic leading-none tracking-tight text-white">
+              Main Bracket
+            </h2>
+            <FinalsPathRail finals={finals} selectedIndex={selectedIndex} />
+          </div>
           <div className="grid min-w-[600px] grid-cols-3 border border-border/80 bg-surface-0/75">
             <HeaderStat label="Phase" value={finals.bracket.phase} accent="finals" />
             <HeaderStat label="Format" value={finals.bracket.mode} accent="finals" border />
@@ -1151,48 +1311,256 @@ function FinalsOverlay({ finals, round }: { finals: FinalsView; round?: number |
       </section>
 
       <section
-        className={cn("min-h-0 flex-1 gap-4", focused ? "grid grid-cols-1" : "grid grid-cols-4")}
+        className={cn(
+          "min-h-0 flex-1 gap-4",
+          focused ? "grid grid-cols-[minmax(0,1fr)_420px]" : "grid grid-cols-4",
+        )}
       >
-        {rounds.map((bracketRound, index) => (
-          <div
-            key={bracketRound.title}
-            className={cn(
-              "min-h-0 border border-border/80 bg-surface-1/70 slab-shadow",
-              focused ? "p-5" : "p-4",
-            )}
-            style={{ borderLeft: "4px solid var(--finals)" }}
-          >
-            <div className="mb-4 flex items-end justify-between gap-3 border-b border-border/70 pb-3">
-              <div>
-                <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-finals">
-                  // Round {String((selectedIndex ?? index) + 1).padStart(2, "0")}
+        <div
+          className={cn(
+            "grid min-h-0 gap-4",
+            focused ? "grid-cols-1" : "grid-cols-4",
+            isGrandFinal && "content-center",
+          )}
+        >
+          {rounds.map((bracketRound, index) => (
+            <div
+              key={bracketRound.title}
+              className={cn(
+                "relative min-h-0 overflow-hidden border border-border/80 bg-surface-1/70 slab-shadow",
+                focused ? "p-5" : "p-4",
+                isGrandFinal && "mx-auto w-full max-w-[980px]",
+              )}
+              style={{ borderLeft: "4px solid var(--finals)" }}
+            >
+              <div className="pointer-events-none absolute inset-0 slash-band opacity-25" />
+              <div className="relative mb-4 flex items-end justify-between gap-3 border-b border-border/70 pb-3">
+                <div>
+                  <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-finals">
+                    // Round {String((selectedIndex ?? index) + 1).padStart(2, "0")}
+                  </div>
+                  <h3
+                    className={cn(
+                      "font-heading font-black uppercase italic tracking-tight text-white",
+                      focused ? "text-5xl" : "text-3xl",
+                    )}
+                  >
+                    {bracketRound.title}
+                  </h3>
                 </div>
-                <h3
-                  className={cn(
-                    "font-heading font-black uppercase italic tracking-tight text-white",
-                    focused ? "text-5xl" : "text-3xl",
-                  )}
-                >
-                  {bracketRound.title}
-                </h3>
+                <div className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                  {bracketRound.matches.length} matches
+                </div>
               </div>
-              <div className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                {bracketRound.matches.length} matches
+              <div
+                className={cn(
+                  "relative grid gap-3",
+                  finalsMatchGridClass(bracketRound.matches.length, focused),
+                )}
+              >
+                {bracketRound.matches.map((match) => (
+                  <OverlayMatchCard
+                    key={match.id}
+                    featured={focused}
+                    match={match}
+                    trophy={isGrandFinal}
+                  />
+                ))}
               </div>
+            </div>
+          ))}
+        </div>
+
+        {focused && <FinalsWinnerPathPanel finals={finals} selectedIndex={selectedIndex ?? 0} />}
+      </section>
+    </div>
+  );
+}
+
+function FinalsPathRail({
+  finals,
+  selectedIndex,
+}: {
+  finals: FinalsView;
+  selectedIndex: number | null;
+}) {
+  return (
+    <div className="mt-4 grid max-w-[860px] grid-cols-[repeat(4,minmax(0,1fr))_150px] overflow-hidden border border-border/55 bg-background/50">
+      {finals.bracket.rounds.map((round, index) => {
+        const decided = round.matches.filter((match) => match.status === "final").length;
+        const active = selectedIndex === index || (selectedIndex == null && index === 0);
+        return (
+          <div
+            key={round.title}
+            className={cn(
+              "relative px-3 py-2",
+              index > 0 && "border-l border-border/55",
+              active && "bg-finals-soft/40",
+            )}
+          >
+            {index > 0 && (
+              <ArrowRight className="absolute -left-3 top-1/2 h-5 w-5 -translate-y-1/2 bg-background p-0.5 text-finals" />
+            )}
+            <div className="truncate font-mono text-[8px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+              {round.title}
             </div>
             <div
               className={cn(
-                "grid gap-3",
-                finalsMatchGridClass(bracketRound.matches.length, focused),
+                "mt-0.5 font-heading text-2xl font-black uppercase italic leading-none tabular-nums tracking-tight",
+                active ? "text-finals" : "text-white",
               )}
             >
-              {bracketRound.matches.map((match) => (
-                <OverlayMatchCard key={match.id} featured={focused} match={match} />
-              ))}
+              {decided}/{round.matches.length}
             </div>
           </div>
-        ))}
-      </section>
+        );
+      })}
+      <div className="relative border-l border-finals/45 px-3 py-2 bg-finals-soft/25">
+        <ArrowRight className="absolute -left-3 top-1/2 h-5 w-5 -translate-y-1/2 bg-background p-0.5 text-finals" />
+        <div className="truncate font-mono text-[8px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+          Champion
+        </div>
+        <div className="mt-0.5 font-heading text-2xl font-black uppercase italic leading-none text-finals">
+          Crown
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FinalsWinnerPathPanel({
+  finals,
+  selectedIndex,
+}: {
+  finals: FinalsView;
+  selectedIndex: number;
+}) {
+  const finalRound = finals.bracket.rounds.at(-1);
+  const grandFinal = finalRound?.matches[0];
+  const champion = grandFinal ? matchWinner(grandFinal) : undefined;
+  const activeRound = finals.bracket.rounds[selectedIndex];
+  const nextRound = finals.bracket.rounds[selectedIndex + 1];
+  const activeWinners = activeRound?.matches.flatMap((match) => {
+    const winner = matchWinner(match);
+    return winner ? [winner] : [];
+  });
+
+  return (
+    <aside className="relative min-h-0 overflow-hidden border border-finals/60 bg-surface-1/85 p-4 slab-shadow">
+      <div className="pointer-events-none absolute inset-0 slash-band opacity-35" />
+      <div className="relative flex h-full flex-col">
+        <header className="border-b border-border/70 pb-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
+            Winner path
+          </div>
+          <div className="mt-1 flex items-end justify-between gap-3">
+            <h3 className="font-heading text-3xl font-black uppercase italic leading-none tracking-tight text-finals">
+              To Champion
+            </h3>
+            <Crown className="h-8 w-8 text-finals" />
+          </div>
+        </header>
+
+        <div className="mt-3 grid gap-2">
+          <WinnerPathStep
+            active
+            detail={`${activeRound?.matches.length ?? 0} match source`}
+            label={activeRound?.title ?? "Current Round"}
+            value={activeWinners.length ? `${activeWinners.length} winner path` : "Pending winners"}
+          />
+          <WinnerPathStep
+            detail={
+              nextRound ? `${nextRound.matches.length} match destination` : "Final destination"
+            }
+            label={nextRound?.title ?? "Champion Slot"}
+            value={nextRound ? "Advance winners" : "Crown champion"}
+          />
+          <WinnerPathStep
+            champion
+            detail={champion?.city || "Grand Final winner"}
+            label="Champion"
+            value={champion?.name ?? "Awaiting Grand Final"}
+          />
+        </div>
+
+        <div className="mt-3 shrink-0 border border-finals/45 bg-background/55 p-3">
+          <div className="font-mono text-[9px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
+            Grand Final state
+          </div>
+          <div className="mt-2 grid gap-2">
+            {(grandFinal?.entrants ?? []).map((entrant) => (
+              <div
+                key={`${grandFinal?.id}-${entrant.seed}`}
+                className={cn(
+                  "flex min-w-0 items-center justify-between gap-3 border px-3 py-2",
+                  entrant.winner
+                    ? "border-finals/60 bg-finals-soft/45"
+                    : "border-border/55 bg-surface-0/60",
+                )}
+              >
+                <span className="min-w-0">
+                  <span
+                    className={cn(
+                      "block truncate font-heading text-2xl font-black uppercase italic leading-none",
+                      entrant.pending ? "text-muted-foreground/50" : "text-white",
+                    )}
+                  >
+                    {entrant.name}
+                  </span>
+                  <span className="mt-1 block font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+                    {entrant.winner ? "Winner path locked" : entrant.seed}
+                  </span>
+                </span>
+                <span className="font-heading text-3xl font-black italic tabular-nums text-finals">
+                  {entrant.score ?? "-"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function WinnerPathStep({
+  active,
+  champion,
+  detail,
+  label,
+  value,
+}: {
+  active?: boolean;
+  champion?: boolean;
+  detail: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "relative border px-3 py-2.5",
+        champion
+          ? "border-finals/70 bg-finals-soft/45"
+          : active
+            ? "border-finals/50 bg-finals-soft/25"
+            : "border-border/55 bg-background/55",
+      )}
+    >
+      <div className="font-mono text-[8px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
+        {label}
+      </div>
+      <div
+        className={cn(
+          "mt-1 truncate font-heading text-xl font-black uppercase italic leading-none tracking-tight",
+          champion ? "text-finals" : "text-white",
+        )}
+      >
+        {value}
+      </div>
+      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+        {detail}
+      </div>
     </div>
   );
 }
@@ -1393,20 +1761,97 @@ function WildcardPoolCard({
   );
 }
 
-function OverlayMatchCard({ featured, match }: { featured?: boolean; match: Match }) {
+function WildcardFinalSlotsPanel({ data }: { data: TournamentData["wildcardView"] }) {
+  return (
+    <aside className="relative min-h-0 overflow-hidden border border-wildcard/60 bg-surface-1/85 p-4 slab-shadow">
+      <div className="pointer-events-none absolute inset-0 slash-band opacity-35" />
+      <div className="relative flex h-full flex-col">
+        <header className="border-b border-border/70 pb-3">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
+            Winner path
+          </div>
+          <div className="mt-1 flex items-end justify-between gap-3">
+            <h3 className="font-heading text-4xl font-black uppercase italic leading-none tracking-tight text-wildcard">
+              Nationals Slots
+            </h3>
+            <Shield className="h-9 w-9 text-finals" />
+          </div>
+        </header>
+
+        <div className="mt-4 grid min-h-0 flex-1 content-start gap-3">
+          {Array.from({ length: data.finalSlots }, (_, index) => {
+            const slot = data.finalSlotPlayers[index];
+            const locked = slot?.pending === false;
+            return (
+              <div
+                key={index}
+                className={cn(
+                  "grid grid-cols-[46px_minmax(0,1fr)] items-center gap-3 border px-3 py-3",
+                  locked
+                    ? "border-finals/55 bg-finals-soft/35"
+                    : "border-border/55 bg-background/55",
+                )}
+              >
+                <span
+                  className={cn(
+                    "grid h-11 w-11 place-items-center border font-heading text-2xl font-black italic tabular-nums",
+                    locked ? "border-finals/60 text-finals" : "border-wildcard/50 text-wildcard",
+                  )}
+                >
+                  {index + 1}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate font-heading text-2xl font-black uppercase italic leading-none tracking-tight text-white">
+                    {locked ? slot.name : `Wildcard Slot ${index + 1}`}
+                  </span>
+                  <span className="mt-1 block truncate font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                    {locked ? slot.city || "National Finals" : "Awaiting qualifier"}
+                  </span>
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 border-t border-border/70 pt-3 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+          Wildcard winners complete the 16-player National Finals bracket
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function OverlayMatchCard({
+  featured,
+  match,
+  trophy,
+}: {
+  featured?: boolean;
+  match: Match;
+  trophy?: boolean;
+}) {
   const isFinal = match.status === "final";
+  const winner = matchWinner(match);
   const railColor = isFinal
     ? "var(--finals)"
     : "color-mix(in oklab, var(--border-strong) 70%, transparent)";
 
   return (
     <article
-      className="border border-border/80 bg-surface-0/70 slab-shadow"
+      className={cn(
+        "relative overflow-hidden border border-border/80 bg-surface-0/70 slab-shadow",
+        trophy && "bg-[color-mix(in_oklab,var(--finals)_5%,var(--surface-0))]",
+      )}
       style={{ borderLeft: `4px solid ${railColor}` }}
     >
+      {trophy && (
+        <div className="pointer-events-none absolute right-5 top-5 opacity-20">
+          <Trophy className="h-28 w-28 text-finals" />
+        </div>
+      )}
       <header
         className={cn(
-          "flex items-center justify-between border-b border-border/60",
+          "relative flex items-center justify-between border-b border-border/60",
           featured ? "px-4 py-3" : "px-3 py-2",
         )}
       >
@@ -1414,28 +1859,36 @@ function OverlayMatchCard({ featured, match }: { featured?: boolean; match: Matc
           {match.label}
         </div>
         <div className="font-mono text-[9px] font-bold uppercase tracking-widest text-finals">
-          {isFinal ? "Final" : match.status}
+          {winner ? "Winner locked" : isFinal ? "Final" : match.status}
         </div>
       </header>
-      <div className="divide-y divide-border/45">
+      <div className="relative divide-y divide-border/45">
         {match.entrants.map((entrant) => (
           <div
             key={`${match.id}-${entrant.seed}`}
             className={cn(
               "flex items-center justify-between gap-3",
               featured ? "px-4 py-3" : "px-3 py-2",
-              entrant.winner && "bg-finals-soft/50",
+              entrant.winner && "bg-finals-soft/55 shadow-[inset_3px_0_0_var(--finals)]",
             )}
           >
             <div className="flex min-w-0 items-center gap-3">
-              <span className="w-7 shrink-0 font-mono text-[10px] font-black text-muted-foreground">
+              <span
+                className={cn(
+                  "grid shrink-0 place-items-center border font-mono font-black",
+                  featured ? "h-9 w-9 text-xs" : "h-7 w-7 text-[10px]",
+                  entrant.winner
+                    ? "border-finals/60 text-finals"
+                    : "border-border/60 text-muted-foreground",
+                )}
+              >
                 {entrant.seed}
               </span>
               <div className="min-w-0">
                 <div
                   className={cn(
                     "truncate font-heading font-black uppercase italic leading-none tracking-tight",
-                    featured ? "text-2xl" : "text-xl",
+                    featured ? "text-3xl" : "text-xl",
                     entrant.pending ? "text-muted-foreground/55" : "text-white",
                   )}
                 >
@@ -1451,7 +1904,7 @@ function OverlayMatchCard({ featured, match }: { featured?: boolean; match: Matc
             <div
               className={cn(
                 "min-w-10 text-right font-heading font-black italic tabular-nums",
-                featured ? "text-4xl" : "text-3xl",
+                featured ? "text-5xl" : "text-3xl",
                 entrant.winner ? "text-finals" : "text-foreground/80",
               )}
             >
@@ -1460,6 +1913,11 @@ function OverlayMatchCard({ featured, match }: { featured?: boolean; match: Matc
           </div>
         ))}
       </div>
+      {trophy && (
+        <div className="relative border-t border-finals/40 px-4 py-3 font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
+          {winner ? `${winner.name} advances to champion state` : "Grand Final winner path pending"}
+        </div>
+      )}
     </article>
   );
 }
@@ -1543,6 +2001,10 @@ function RouteCard({
   );
 }
 
+function matchWinner(match: Match) {
+  return match.entrants.find((entrant) => entrant.winner && !entrant.pending);
+}
+
 function resolveObsSource(
   view: OverlayView,
   source?: ObsSource,
@@ -1589,7 +2051,7 @@ function overlaySubtitle(view: OverlayView, source: ObsSource, round?: number | 
 
 function overlayDivisionLabel(view: OverlayView, source: ObsSource) {
   if (isGroupView(view)) {
-    if (source === "bracket") return "Overall Group Bracket";
+    if (source === "bracket") return "Stage Board";
     if (source === "route") return "Qualification Route";
     return "Group Round Source";
   }
