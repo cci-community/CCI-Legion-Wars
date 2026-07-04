@@ -943,25 +943,26 @@ function RouteFlowColumn({ accent }: { accent: string }) {
       </div>
 
       <div
-        className="obs-route-core relative grid min-h-[180px] place-items-center px-2 py-4 text-center"
+        className="obs-route-hub relative grid min-h-[158px] place-items-center px-1 py-3 text-center"
         style={{ borderColor: `color-mix(in oklab, var(--${accent}) 55%, var(--border))` }}
       >
-        <div>
-          <GitBranch className="mx-auto h-7 w-7" style={{ color: `var(--${accent})` }} />
-          <div className="mt-3 font-mono text-[8px] font-black uppercase tracking-[0.24em] text-muted-foreground">
-            Round 4
+        <div className="obs-route-junction-line obs-route-junction-line-top" />
+        <div className="obs-route-junction-line obs-route-junction-line-bottom" />
+
+        <div className="obs-route-node relative z-10 grid place-items-center">
+          <GitBranch className="h-5 w-5" style={{ color: `var(--${accent})` }} />
+          <div className="mt-1 font-mono text-[8px] font-black uppercase tracking-[0.18em] text-foreground">
+            R04
           </div>
-          <div className="mt-0.5 font-heading text-3xl font-black uppercase italic leading-none text-white">
-            Route Split
-          </div>
-          <div className="mt-2 grid grid-cols-2 gap-1 font-mono text-[8px] font-black uppercase tracking-[0.14em]">
-            <span className="border border-finals/40 bg-finals-soft/25 px-2 py-1 text-finals">
-              1-4
-            </span>
-            <span className="border border-wildcard/40 bg-wildcard-soft/25 px-2 py-1 text-wildcard">
-              5-8
-            </span>
-          </div>
+        </div>
+
+        <div className="obs-route-lane obs-route-lane-finals absolute left-1/2 top-2 z-10 -translate-x-1/2">
+          <span>1-4</span>
+          <strong>Finals</strong>
+        </div>
+        <div className="obs-route-lane obs-route-lane-wildcard absolute bottom-2 left-1/2 z-10 -translate-x-1/2">
+          <span>5-8</span>
+          <strong>Wildcard</strong>
         </div>
       </div>
 

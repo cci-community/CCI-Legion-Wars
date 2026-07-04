@@ -557,20 +557,18 @@
       0 12px 28px -22px oklch(0 0 0 / 0.9);
   }
 
-  .obs-route-core {
+  .obs-route-hub {
     background:
-      conic-gradient(
-        from 45deg,
-        transparent,
-        color-mix(in oklab, var(--finals) 32%, transparent),
-        transparent,
-        color-mix(in oklab, var(--tab-accent) 38%, transparent),
-        transparent
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--finals) 12%, transparent),
+        color-mix(in oklab, var(--tab-accent) 16%, transparent) 50%,
+        color-mix(in oklab, var(--wildcard) 12%, transparent)
       ),
-      radial-gradient(circle at 50% 50%, oklch(0.18 0.016 250), oklch(0.07 0.012 250) 70%);
+      radial-gradient(circle at 50% 50%, oklch(0.16 0.018 250 / 0.92), oklch(0.055 0.012 250 / 0.88) 76%);
     box-shadow:
-      0 0 70px -22px var(--tab-accent),
-      inset 0 0 0 1px color-mix(in oklab, var(--finals) 38%, transparent);
+      0 0 46px -24px var(--tab-accent),
+      inset 0 0 0 1px color-mix(in oklab, var(--tab-accent) 36%, transparent);
   }
 
   .obs-champion-glow {
@@ -987,9 +985,112 @@
       radial-gradient(circle, oklch(1 0 0 / 0.08), transparent 54%), oklch(0.07 0.012 252 / 0.9);
   }
 
-  .obs-route-core {
-    clip-path: polygon(50% 0, 100% 24%, 100% 76%, 50% 100%, 0 76%, 0 24%);
-    border: 1px solid color-mix(in oklab, var(--tab-accent) 44%, oklch(1 0 0 / 0.1));
+  .obs-route-hub {
+    clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+    border: 1px solid color-mix(in oklab, var(--tab-accent) 42%, oklch(1 0 0 / 0.12));
+  }
+
+  .obs-route-hub::before,
+  .obs-route-hub::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--tab-accent) 56%, transparent), transparent);
+    opacity: 0.72;
+  }
+
+  .obs-route-hub::before {
+    top: 50%;
+    transform: translateY(-22px);
+  }
+
+  .obs-route-hub::after {
+    top: 50%;
+    transform: translateY(22px);
+  }
+
+  .obs-route-node {
+    width: 54px;
+    height: 54px;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    background:
+      radial-gradient(circle, color-mix(in oklab, var(--tab-accent) 20%, transparent), transparent 58%),
+      oklch(0.085 0.014 252 / 0.96);
+    border: 1px solid color-mix(in oklab, var(--tab-accent) 54%, oklch(1 0 0 / 0.1));
+    box-shadow:
+      0 0 26px -12px var(--tab-accent),
+      inset 0 0 0 1px oklch(1 0 0 / 0.05);
+  }
+
+  .obs-route-node > * {
+    transform: rotate(0deg);
+  }
+
+  .obs-route-lane {
+    display: grid;
+    width: 96px;
+    grid-template-columns: 28px 1fr;
+    align-items: center;
+    overflow: hidden;
+    border: 1px solid oklch(1 0 0 / 0.1);
+    background: oklch(0.06 0.014 252 / 0.9);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .obs-route-lane span,
+  .obs-route-lane strong {
+    display: grid;
+    min-height: 22px;
+    place-items: center;
+  }
+
+  .obs-route-lane span {
+    border-right: 1px solid currentColor;
+  }
+
+  .obs-route-lane strong {
+    padding-inline: 5px 3px;
+    color: oklch(1 0 0 / 0.9);
+  }
+
+  .obs-route-lane-finals {
+    border-color: color-mix(in oklab, var(--finals) 48%, transparent);
+    box-shadow: 0 0 22px -14px var(--finals);
+    color: var(--finals);
+  }
+
+  .obs-route-lane-wildcard {
+    border-color: color-mix(in oklab, var(--wildcard) 48%, transparent);
+    box-shadow: 0 0 22px -14px var(--wildcard);
+    color: var(--wildcard);
+  }
+
+  .obs-route-junction-line {
+    position: absolute;
+    left: 50%;
+    z-index: 0;
+    width: 1px;
+    transform: translateX(-50%);
+    opacity: 0.82;
+  }
+
+  .obs-route-junction-line-top {
+    top: 24px;
+    bottom: calc(50% + 27px);
+    background: linear-gradient(to bottom, color-mix(in oklab, var(--finals) 74%, transparent), transparent);
+  }
+
+  .obs-route-junction-line-bottom {
+    top: calc(50% + 27px);
+    bottom: 24px;
+    background: linear-gradient(to bottom, transparent, color-mix(in oklab, var(--wildcard) 74%, transparent));
   }
 
   .obs-winner-path-panel,
@@ -1083,7 +1184,8 @@
   }
 
   body.obs-mode .obs-route-spine-line,
-  body.obs-mode .obs-route-diamond {
+  body.obs-mode .obs-route-diamond,
+  body.obs-mode .obs-route-node {
     animation: obs-route-breathe 5.8s ease-in-out infinite;
   }
 }
@@ -1185,7 +1287,8 @@
   body.obs-mode .obs-medallion-active,
   body.obs-mode .obs-route-wire::after,
   body.obs-mode .obs-route-spine-line,
-  body.obs-mode .obs-route-diamond {
+  body.obs-mode .obs-route-diamond,
+  body.obs-mode .obs-route-node {
     animation: none;
   }
 }
