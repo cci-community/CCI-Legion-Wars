@@ -58,11 +58,11 @@ const TABS: {
   accent: string;
 }[] = [
   { key: "overview", label: "Overview", accent: "finals" },
-  { key: "finals", label: "Finals", accent: "finals" },
-  { key: "titan", label: "Titan", accent: "titan" },
-  { key: "nexus", label: "Nexus", accent: "nexus" },
-  { key: "dominion", label: "Dominion", accent: "dominion" },
+  { key: "titan", label: "Group A", accent: "titan" },
+  { key: "nexus", label: "Group B", accent: "nexus" },
+  { key: "dominion", label: "Group C", accent: "dominion" },
   { key: "wildcard", label: "Wildcard", accent: "wildcard" },
+  { key: "finals", label: "Finals", accent: "finals" },
 ];
 
 const AUTO_SYNC_SECONDS = 120;
@@ -89,17 +89,8 @@ function useAggStats(data: TournamentData) {
         if (m.status === "final") decidedMatches += 1;
       }),
     );
-    const listedPlayers = data.groups.reduce((total, group) => {
-      return (
-        total +
-        group.progression.rounds[0].lobbies.reduce(
-          (count, lobby) => count + lobby.players.length,
-          0,
-        )
-      );
-    }, 0);
     return {
-      totalPlayers: listedPlayers || 192,
+      totalPlayers: 192,
       advancing,
       eliminated,
       decidedMatches,
