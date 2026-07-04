@@ -1,5 +1,5 @@
 import { ArrowRight, Crown, GitBranch, Radio, Shield, Trophy, Users, Zap } from "lucide-react";
-import type { CSSProperties, ElementType } from "react";
+import type { CSSProperties, ElementType, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import type {
   FinalsView,
@@ -28,9 +28,163 @@ const FINALS_ROUND_LABELS = ["Round of 16", "Quarterfinals", "Semifinals", "Gran
 const BROADCAST_PHASES = [
   { key: "groups", label: "Groups", detail: "R1-R4" },
   { key: "wildcard", label: "Wildcard", detail: "Last chance" },
-  { key: "finals", label: "Nationals", detail: "Top 16" },
-  { key: "champion", label: "Champion", detail: "Winner path" },
+  { key: "finals", label: "Finals", detail: "Top 16" },
+  { key: "champion", label: "Crown", detail: "Champion" },
 ] as const;
+
+function ObsBackdrop({ accent }: { accent: string }) {
+  return (
+    <>
+      <div className="pointer-events-none absolute inset-0 obs-stage-backdrop" />
+      <div className="pointer-events-none absolute inset-0 grid-lines opacity-55" />
+      <div className="pointer-events-none absolute inset-0 hex-grid opacity-45" />
+      <div className="pointer-events-none absolute inset-0 scanlines opacity-35" />
+      <div className="pointer-events-none absolute inset-0 obs-royal-vignette" />
+      <div
+        className="pointer-events-none absolute left-1/2 top-[-18rem] h-[34rem] w-[64rem] -translate-x-1/2 rounded-full blur-3xl"
+        style={{
+          background: `radial-gradient(circle, color-mix(in oklab, var(--${accent}) 22%, transparent), transparent 68%)`,
+        }}
+      />
+    </>
+  );
+}
+
+function BroadcastOrnamentFrame() {
+  return (
+    <div className="pointer-events-none absolute inset-5 obs-ceremonial-border">
+      <FrameCorner className="left-[-1px] top-[-1px]" />
+      <FrameCorner className="right-[-1px] top-[-1px] rotate-90" />
+      <FrameCorner className="bottom-[-1px] right-[-1px] rotate-180" />
+      <FrameCorner className="bottom-[-1px] left-[-1px] -rotate-90" />
+      <div className="absolute left-1/2 top-[-13px] h-[26px] w-[156px] -translate-x-1/2 border border-finals/60 bg-background/80 clip-blade" />
+      <div className="absolute bottom-[-13px] left-1/2 h-[26px] w-[156px] -translate-x-1/2 border border-finals/60 bg-background/80 clip-blade" />
+    </div>
+  );
+}
+
+function FrameCorner({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={cn("absolute h-24 w-24 text-finals", className)}
+      fill="none"
+      viewBox="0 0 96 96"
+    >
+      <path d="M2 52V2h50" stroke="currentColor" strokeWidth="2" />
+      <path d="M12 64V12h52" stroke="currentColor" strokeOpacity=".45" />
+      <path d="M2 24h22V2" stroke="currentColor" strokeWidth="2" />
+      <path d="M42 2 2 42" stroke="currentColor" strokeOpacity=".32" />
+      <path d="M21 21h30v10H31v20H21z" stroke="currentColor" strokeOpacity=".4" />
+    </svg>
+  );
+}
+
+function BroadcastGlyph({ accent, className }: { accent: string; className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={cn("text-[color:var(--tab-accent)]", className)}
+      fill="none"
+      viewBox="0 0 80 80"
+      style={{ color: `var(--${accent})` }}
+    >
+      <path
+        d="M40 4 67 18v28L40 76 13 46V18z"
+        stroke="currentColor"
+        strokeOpacity=".85"
+        strokeWidth="2.4"
+      />
+      <path d="M40 14 56 23v18L40 61 24 41V23z" stroke="var(--finals)" strokeWidth="1.6" />
+      <path d="m25 54 15-40 15 40" stroke="currentColor" strokeOpacity=".55" strokeWidth="2" />
+      <path d="M29 39h22" stroke="var(--finals)" strokeLinecap="square" strokeWidth="2.4" />
+      <path d="m17 18 23 21 23-21" stroke="currentColor" strokeOpacity=".3" />
+    </svg>
+  );
+}
+
+function BroadcastPanel({
+  children,
+  className,
+  style,
+}: {
+  children: ReactNode;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <section className={cn("obs-broadcast-panel", className)} style={style}>
+      <div className="obs-panel-content h-full">{children}</div>
+    </section>
+  );
+}
+
+function PanelCornerMarks({ accent = "finals" }: { accent?: string }) {
+  return (
+    <>
+      <span
+        className="pointer-events-none absolute left-2 top-2 z-[2] h-5 w-5 border-l-2 border-t-2"
+        style={{ borderColor: `var(--${accent})` }}
+      />
+      <span
+        className="pointer-events-none absolute bottom-2 right-2 z-[2] h-5 w-5 border-b-2 border-r-2"
+        style={{ borderColor: `var(--${accent})` }}
+      />
+    </>
+  );
+}
+
+function SigilNumber({
+  accent,
+  active,
+  complete,
+  value,
+}: {
+  accent: string;
+  active?: boolean;
+  complete?: boolean;
+  value: ReactNode;
+}) {
+  return (
+    <span
+      className={cn(
+        "obs-medallion h-10 w-10 font-heading text-xl font-black italic tabular-nums",
+        active && "obs-medallion-active",
+        !active && complete && "text-finals",
+        !active && !complete && "text-muted-foreground",
+      )}
+      style={{
+        borderColor: active
+          ? `color-mix(in oklab, var(--${accent}) 72%, var(--finals))`
+          : undefined,
+      }}
+    >
+      {value}
+    </span>
+  );
+}
+
+function BroadcastChevron({ accent = "finals" }: { accent?: string }) {
+  return (
+    <svg aria-hidden="true" className="h-8 w-12" fill="none" viewBox="0 0 48 32">
+      <path
+        d="M2 16h35"
+        stroke={`var(--${accent})`}
+        strokeLinecap="square"
+        strokeOpacity=".72"
+        strokeWidth="2"
+      />
+      <path
+        d="m30 6 12 10-12 10"
+        stroke="var(--finals)"
+        strokeLinecap="square"
+        strokeLinejoin="miter"
+        strokeWidth="2"
+      />
+      <path d="M11 10h8M11 22h8" stroke={`var(--${accent})`} strokeOpacity=".36" />
+    </svg>
+  );
+}
 
 export function ObsOverlayView({
   data,
@@ -71,30 +225,11 @@ export function ObsOverlayView({
     >
       {!transparent && (
         <>
-          <div className="pointer-events-none absolute inset-0 grid-lines opacity-70" />
-          <div className="pointer-events-none absolute inset-0 scanlines opacity-40" />
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background: `radial-gradient(900px 520px at 12% 0%, color-mix(in oklab, var(--${accent}) 20%, transparent), transparent 68%), radial-gradient(1000px 620px at 100% 100%, color-mix(in oklab, var(--${accent}) 11%, transparent), transparent 62%)`,
-            }}
-          />
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(90deg, oklch(0 0 0 / 0.28), transparent 20%, transparent 80%, oklch(0 0 0 / 0.34))",
-            }}
-          />
+          <ObsBackdrop accent={accent} />
         </>
       )}
 
-      <div className="pointer-events-none absolute inset-5 border border-white/10">
-        <span className="absolute -left-px -top-px h-8 w-8 border-l-2 border-t-2 border-[color:var(--tab-accent)]" />
-        <span className="absolute -right-px -top-px h-8 w-8 border-r-2 border-t-2 border-[color:var(--tab-accent)]" />
-        <span className="absolute -bottom-px -left-px h-8 w-8 border-b-2 border-l-2 border-[color:var(--tab-accent)]" />
-        <span className="absolute -bottom-px -right-px h-8 w-8 border-b-2 border-r-2 border-[color:var(--tab-accent)]" />
-      </div>
+      <BroadcastOrnamentFrame />
 
       <div className="relative flex h-full flex-col p-8">
         <OverlayHeader
@@ -189,28 +324,30 @@ function OverlayHeader({
   const divisionLabel = overlayDivisionLabel(view, source);
 
   return (
-    <header className="relative shrink-0 overflow-hidden border border-border/80 bg-surface-0/88 shadow-[0_24px_80px_-42px_var(--tab-accent)]">
-      <div className="pointer-events-none absolute inset-0 slash-band opacity-50" />
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-[color:var(--tab-accent)]" />
-      <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-8 px-6 py-4">
+    <header className="obs-broadcast-panel relative shrink-0">
+      <PanelCornerMarks accent={accent} />
+      <div className="obs-panel-content relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-8 px-6 py-4">
         <div className="flex min-w-0 items-center gap-5">
-          <div className="relative grid h-20 w-20 shrink-0 place-items-center overflow-hidden border border-border-strong bg-surface-1/90 clip-chamfer-sm shadow-[0_0_42px_-14px_var(--tab-accent)]">
+          <div className="obs-crest-tile relative grid h-24 w-24 shrink-0 place-items-center overflow-hidden border border-finals/45 clip-chamfer">
+            <BroadcastGlyph accent={accent} className="absolute inset-2 opacity-65" />
             <img
               src="/legion-wars-logo-mark.png"
               alt=""
-              className="h-[72px] w-[72px] object-contain brightness-110 contrast-125 drop-shadow-[0_3px_10px_rgba(0,0,0,0.65)]"
+              className="relative h-[76px] w-[76px] object-contain brightness-125 contrast-125 drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)]"
             />
-            <span className="pointer-events-none absolute inset-x-1 top-0 h-px bg-[color:var(--tab-accent)]/75" />
-            <span className="pointer-events-none absolute inset-y-1 right-0 w-px bg-[color:var(--tab-accent)]/55" />
+            <span className="pointer-events-none absolute inset-x-3 top-1 h-px bg-finals/80" />
+            <span className="pointer-events-none absolute inset-x-3 bottom-1 h-px bg-[color:var(--tab-accent)]/75" />
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-3 font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
-              <span className="h-2 w-2" style={{ background: `var(--${accent})` }} />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-3 font-mono text-[12px] font-bold uppercase tracking-[0.36em] text-muted-foreground">
+              <span className="obs-medallion h-5 w-5" style={{ color: `var(--${accent})` }}>
+                <span className="h-1.5 w-1.5 bg-current" />
+              </span>
               Legion Wars 2026
               <span className="text-muted-foreground/40">//</span>
               {divisionLabel}
             </div>
-            <h1 className="mt-1 truncate font-heading text-7xl font-black uppercase italic leading-none tracking-tight text-white">
+            <h1 className="mt-1 truncate font-heading text-[5.35rem] font-black uppercase italic leading-[0.82] tracking-tight text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.75)]">
               {title}
             </h1>
             <div className="mt-1 font-mono text-[13px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
@@ -220,7 +357,7 @@ function OverlayHeader({
           </div>
         </div>
 
-        <div className="grid min-w-[560px] grid-cols-3 border border-border/80 bg-background/80">
+        <div className="grid min-w-[600px] grid-cols-3 border border-finals/25 bg-background/78 shadow-[inset_0_0_32px_rgba(0,0,0,0.35)]">
           <HeaderStat label="Feed" value="Public Sheets" accent={accent} />
           <HeaderStat label="State" value={loadingLabel} accent={error ? "live" : accent} border />
           <HeaderStat label="Updated" value={syncSummary} accent={accent} border />
@@ -246,17 +383,18 @@ function BroadcastFooter({
   const strap = overlayFooterStrap(view, source, round);
 
   return (
-    <footer className="grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center border border-border/80 bg-surface-0/88">
+    <footer className="obs-broadcast-panel grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center">
+      <PanelCornerMarks accent={accent} />
       <div
-        className="px-5 py-3 font-heading text-2xl font-black uppercase italic tracking-tight text-background"
+        className="obs-panel-content px-5 py-3 font-heading text-2xl font-black uppercase italic tracking-tight text-background"
         style={{ background: `var(--${accent})` }}
       >
         Live Bracket
       </div>
-      <div className="truncate px-5 font-mono text-[12px] font-bold uppercase tracking-[0.26em] text-foreground">
+      <div className="obs-panel-content truncate px-5 font-mono text-[12px] font-bold uppercase tracking-[0.26em] text-foreground">
         {strap}
       </div>
-      <div className="border-l border-border/80 px-5 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
+      <div className="obs-panel-content border-l border-finals/20 px-5 font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
         {syncSummary}
       </div>
     </footer>
@@ -283,7 +421,8 @@ function BroadcastPhaseRail({
         : "groups";
 
   return (
-    <div className="mt-3 flex max-w-[920px] items-center overflow-hidden border border-border/55 bg-background/55">
+    <div className="relative mt-4 flex max-w-[1120px] items-center gap-1.5">
+      <div className="absolute left-5 right-5 top-5 h-px bg-gradient-to-r from-transparent via-finals/60 to-transparent" />
       {BROADCAST_PHASES.map((phase, index) => {
         const active = phase.key === activeKey;
         const complete =
@@ -294,37 +433,22 @@ function BroadcastPhaseRail({
           <div
             key={phase.key}
             className={cn(
-              "relative grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 px-3 py-2",
-              index > 0 && "border-l border-border/55",
-              active && "bg-[color-mix(in_oklab,var(--tab-accent)_10%,transparent)]",
+              "relative grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)] items-center gap-1.5 border border-border/45 bg-background/62 px-2 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
+              active &&
+                "border-finals/45 bg-[color-mix(in_oklab,var(--tab-accent)_13%,var(--background))]",
             )}
           >
-            <span
-              className={cn(
-                "grid h-7 w-7 place-items-center border font-heading text-base font-black italic tabular-nums",
-                active ? "text-background" : complete ? "text-finals" : "text-muted-foreground",
-              )}
-              style={{
-                background: active ? `var(--${accent})` : "transparent",
-                borderColor: active
-                  ? `var(--${accent})`
-                  : complete
-                    ? "color-mix(in oklab, var(--finals) 50%, transparent)"
-                    : "var(--border)",
-              }}
-            >
-              {index + 1}
-            </span>
+            <SigilNumber accent={accent} active={active} complete={complete} value={index + 1} />
             <span className="min-w-0">
               <span
                 className={cn(
-                  "block truncate font-mono text-[9px] font-black uppercase tracking-[0.22em]",
+                  "block truncate font-mono text-[8px] font-black uppercase tracking-[0.14em]",
                   active ? "text-foreground" : "text-muted-foreground",
                 )}
               >
                 {phase.label}
               </span>
-              <span className="block truncate font-mono text-[8px] uppercase tracking-[0.18em] text-muted-foreground/75">
+              <span className="block truncate font-mono text-[7px] uppercase tracking-[0.1em] text-muted-foreground/75">
                 {phase.key === "finals" && view === "finals"
                   ? finalsRoundSourceLabel(round)
                   : phase.key === "groups" && isGroupView(view)
@@ -432,28 +556,32 @@ function GroupBracketOverlay({ group, groupKey }: { group: GroupView; groupKey: 
   return (
     <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
       <section className="grid shrink-0 grid-cols-[minmax(0,1fr)_640px] gap-5">
-        <div
-          className="relative overflow-hidden border border-border/80 bg-surface-1/75 p-5 slash-band"
-          style={{ borderLeft: `4px solid var(--${accent})` }}
-        >
-          <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
-            // Stage Board
-          </div>
-          <div className="mt-1 flex items-end gap-4">
-            <h2
-              className="font-heading text-6xl font-black uppercase italic leading-none tracking-tight"
-              style={{ color: `var(--${accent})` }}
-            >
-              {GROUP_META[groupKey].title}
-            </h2>
-            <span className="mb-2 font-mono text-[14px] font-bold uppercase tracking-[0.28em] text-foreground">
-              Round 1-4 bracket board
-            </span>
+        <BroadcastPanel className="p-5" style={{ borderLeft: `4px solid var(--${accent})` }}>
+          <PanelCornerMarks accent={accent} />
+          <div className="flex items-center gap-5">
+            <BroadcastGlyph accent={accent} className="h-16 w-16 shrink-0" />
+            <div className="min-w-0">
+              <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
+                Stage Board
+              </div>
+              <div className="mt-1 flex items-end gap-4">
+                <h2
+                  className="font-heading text-6xl font-black uppercase italic leading-none tracking-tight"
+                  style={{ color: `var(--${accent})` }}
+                >
+                  {GROUP_META[groupKey].title}
+                </h2>
+                <span className="mb-2 font-mono text-[14px] font-bold uppercase tracking-[0.28em] text-foreground">
+                  Round 1-4 bracket board
+                </span>
+              </div>
+            </div>
           </div>
           <GroupStageFlow accent={accent} />
-        </div>
+        </BroadcastPanel>
 
-        <div className="grid grid-cols-4 border border-border/80 bg-surface-0/80 slab-shadow">
+        <div className="obs-broadcast-panel grid grid-cols-4 bg-surface-0/80">
+          <PanelCornerMarks accent={accent} />
           <HeaderStat label="Rounds" value={String(roundCount).padStart(2, "0")} accent={accent} />
           <HeaderStat
             label="Lobbies"
@@ -476,14 +604,16 @@ function GroupBracketOverlay({ group, groupKey }: { group: GroupView; groupKey: 
         </div>
       </section>
 
-      <section className="grid min-h-0 grid-cols-[1.25fr_1fr_0.82fr_0.72fr] gap-4">
+      <section className="relative grid min-h-0 grid-cols-[1.25fr_1fr_0.82fr_0.72fr] gap-4">
         {group.progression.rounds.map((round, index) => (
-          <GroupBracketRoundColumn
-            key={round.title}
-            accent={accent}
-            round={round}
-            roundIndex={index}
-          />
+          <div key={round.title} className="relative min-h-0">
+            {index < group.progression.rounds.length - 1 && (
+              <div className="pointer-events-none absolute -right-8 top-1/2 z-10 -translate-y-1/2">
+                <BroadcastChevron accent={index === 2 ? "finals" : accent} />
+              </div>
+            )}
+            <GroupBracketRoundColumn accent={accent} round={round} roundIndex={index} />
+          </div>
         ))}
       </section>
     </div>
@@ -500,14 +630,20 @@ function GroupStageFlow({ accent }: { accent: string }) {
   ];
 
   return (
-    <div className="mt-4 grid grid-cols-5 border border-border/55 bg-background/50">
+    <div className="relative mt-4 grid grid-cols-5 gap-2">
+      <div className="absolute left-8 right-8 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-finals/60 to-transparent" />
       {steps.map((step, index) => (
         <div
           key={step.label}
-          className={cn("relative px-3 py-2", index > 0 && "border-l border-border/55")}
+          className="relative border border-border/55 bg-background/68 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
         >
           {index > 0 && (
-            <ArrowRight className="absolute -left-3 top-1/2 h-5 w-5 -translate-y-1/2 bg-background p-0.5 text-muted-foreground" />
+            <span className="absolute -left-3 top-1/2 grid h-5 w-5 -translate-y-1/2 rotate-45 place-items-center border border-finals/45 bg-background/95">
+              <span
+                className="h-1.5 w-1.5 bg-current"
+                style={{ color: index === steps.length - 1 ? "var(--finals)" : `var(--${accent})` }}
+              />
+            </span>
           )}
           <div className="font-mono text-[8px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
             {step.label}
@@ -538,22 +674,31 @@ function GroupBracketRoundColumn({
   const compact = round.lobbies.length > 4;
 
   return (
-    <section className="relative flex min-h-0 flex-col border border-border/80 bg-surface-1/70 p-3 slab-shadow">
+    <section className="obs-broadcast-panel obs-bracket-lane relative flex h-full min-h-0 flex-col p-3">
+      <PanelCornerMarks accent={accent} />
       <div
-        className="pointer-events-none absolute inset-y-0 left-0 w-1"
+        className="pointer-events-none absolute inset-y-0 left-0 z-[2] w-1"
         style={{ background: `var(--${accent})` }}
       />
-      <header className="shrink-0 border-b border-border/70 pb-2 pl-2">
+      <header className="obs-panel-content shrink-0 border-b border-finals/20 pb-2 pl-2">
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="font-mono text-[9px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
-              // Round {String(roundIndex + 1).padStart(2, "0")}
-            </div>
-            <h3 className="mt-0.5 font-heading text-2xl font-black uppercase italic leading-none tracking-tight text-white">
-              {round.title}
-            </h3>
-            <div className="mt-1 truncate font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-              {round.advance}
+          <div className="flex min-w-0 items-center gap-3">
+            <SigilNumber
+              accent={accent}
+              active={roundIndex === 3}
+              complete={roundState.decided > 0}
+              value={String(roundIndex + 1).padStart(2, "0")}
+            />
+            <div className="min-w-0">
+              <div className="font-mono text-[9px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
+                Round Lane
+              </div>
+              <h3 className="mt-0.5 font-heading text-2xl font-black uppercase italic leading-none tracking-tight text-white">
+                {round.title}
+              </h3>
+              <div className="mt-1 truncate font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                {round.advance}
+              </div>
             </div>
           </div>
           <div className="text-right font-mono text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -563,7 +708,7 @@ function GroupBracketRoundColumn({
       </header>
 
       <div
-        className="mt-2 grid min-h-0 flex-1 gap-1.5"
+        className="obs-panel-content mt-2 grid min-h-0 flex-1 gap-1.5"
         style={{ gridTemplateRows: `repeat(${round.lobbies.length}, minmax(0, 1fr))` }}
       >
         {round.lobbies.map((lobby) => (
@@ -608,7 +753,7 @@ function GroupBracketLobbyNode({
 
   if (dense) {
     return (
-      <article className="grid min-h-0 grid-cols-[100px_minmax(0,1fr)_auto] items-center gap-2 overflow-hidden border border-border/45 bg-background/68 px-2 py-0.5">
+      <article className="obs-match-card grid min-h-0 grid-cols-[100px_minmax(0,1fr)_auto] items-center gap-2 overflow-hidden border border-border/45 px-2 py-0.5">
         <div className="truncate font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
           {lobby.id}
         </div>
@@ -626,7 +771,7 @@ function GroupBracketLobbyNode({
   }
 
   return (
-    <article className="min-h-0 overflow-hidden border border-border/55 bg-background/68 px-2 py-1.5">
+    <article className="obs-match-card min-h-0 overflow-hidden border border-border/55 px-2 py-1.5">
       <div className="flex min-w-0 items-center justify-between gap-2">
         <div className="truncate font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
           {lobby.id}
@@ -678,27 +823,31 @@ function GroupRouteOverlay({ group, groupKey }: { group: GroupView; groupKey: Gr
   return (
     <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
       <section className="grid shrink-0 grid-cols-[minmax(0,1fr)_560px] gap-5">
-        <div
-          className="relative overflow-hidden border border-border/80 bg-surface-1/75 p-5 slash-band"
-          style={{ borderLeft: `4px solid var(--${accent})` }}
-        >
-          <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
-            // Qualification Route
+        <BroadcastPanel className="p-5" style={{ borderLeft: `4px solid var(--${accent})` }}>
+          <PanelCornerMarks accent={accent} />
+          <div className="flex items-center gap-5">
+            <BroadcastGlyph accent={accent} className="h-16 w-16 shrink-0" />
+            <div>
+              <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
+                Qualification Route
+              </div>
+              <div className="mt-1 flex items-end gap-4">
+                <h2
+                  className="font-heading text-6xl font-black uppercase italic leading-none tracking-tight"
+                  style={{ color: `var(--${accent})` }}
+                >
+                  {GROUP_META[groupKey].title}
+                </h2>
+                <span className="mb-2 font-mono text-[14px] font-bold uppercase tracking-[0.28em] text-foreground">
+                  Round 4 output board
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="mt-1 flex items-end gap-4">
-            <h2
-              className="font-heading text-6xl font-black uppercase italic leading-none tracking-tight"
-              style={{ color: `var(--${accent})` }}
-            >
-              {GROUP_META[groupKey].title}
-            </h2>
-            <span className="mb-2 font-mono text-[14px] font-bold uppercase tracking-[0.28em] text-foreground">
-              Round 4 output board
-            </span>
-          </div>
-        </div>
+        </BroadcastPanel>
 
-        <div className="grid grid-cols-3 border border-border/80 bg-surface-0/80 slab-shadow">
+        <div className="obs-broadcast-panel grid grid-cols-3 bg-surface-0/80">
+          <PanelCornerMarks accent={accent} />
           <HeaderStat label="Round" value="R04" accent={accent} />
           <HeaderStat label="Nationals" value={`${route.finals.length}/4`} accent="finals" border />
           <HeaderStat
@@ -739,42 +888,52 @@ function GroupRouteOverlay({ group, groupKey }: { group: GroupView; groupKey: Gr
 function RouteFlowColumn({ accent }: { accent: string }) {
   return (
     <div className="relative grid min-h-0 grid-rows-[1fr_auto_1fr] items-stretch">
-      <div className="relative flex items-center justify-center">
+      <div className="relative flex items-center justify-center overflow-hidden">
         <div
-          className="h-full w-px"
+          className="h-full w-[3px]"
           style={{
             background:
               "linear-gradient(to bottom, transparent, color-mix(in oklab, var(--finals) 70%, transparent), transparent)",
           }}
         />
-        <div className="absolute grid h-16 w-16 place-items-center border border-finals/60 bg-background/85 shadow-[0_0_36px_-16px_var(--finals)]">
-          <ArrowRight className="h-7 w-7 text-finals" />
+        <div className="absolute grid h-20 w-20 rotate-45 place-items-center border border-finals/60 bg-background/85 shadow-[0_0_42px_-14px_var(--finals)]">
+          <Trophy className="h-8 w-8 -rotate-45 text-finals" />
         </div>
       </div>
 
       <div
-        className="relative border border-border/70 bg-surface-1/80 px-2 py-4 text-center slab-shadow"
+        className="obs-route-core relative grid min-h-[180px] place-items-center border border-border/70 px-2 py-4 text-center"
         style={{ borderColor: `color-mix(in oklab, var(--${accent}) 55%, var(--border))` }}
       >
-        <GitBranch className="mx-auto h-6 w-6" style={{ color: `var(--${accent})` }} />
-        <div className="mt-2 font-mono text-[8px] font-black uppercase tracking-[0.18em] text-muted-foreground">
-          Round 4
-        </div>
-        <div className="mt-0.5 font-heading text-2xl font-black uppercase italic leading-none text-white">
-          Split
+        <div>
+          <GitBranch className="mx-auto h-7 w-7" style={{ color: `var(--${accent})` }} />
+          <div className="mt-3 font-mono text-[8px] font-black uppercase tracking-[0.24em] text-muted-foreground">
+            Round 4
+          </div>
+          <div className="mt-0.5 font-heading text-3xl font-black uppercase italic leading-none text-white">
+            Route Split
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-1 font-mono text-[8px] font-black uppercase tracking-[0.14em]">
+            <span className="border border-finals/40 bg-finals-soft/25 px-2 py-1 text-finals">
+              1-4
+            </span>
+            <span className="border border-wildcard/40 bg-wildcard-soft/25 px-2 py-1 text-wildcard">
+              5-8
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="relative flex items-center justify-center">
+      <div className="relative flex items-center justify-center overflow-hidden">
         <div
-          className="h-full w-px"
+          className="h-full w-[3px]"
           style={{
             background:
               "linear-gradient(to bottom, transparent, color-mix(in oklab, var(--wildcard) 70%, transparent), transparent)",
           }}
         />
-        <div className="absolute grid h-16 w-16 place-items-center border border-wildcard/60 bg-background/85 shadow-[0_0_36px_-16px_var(--wildcard)]">
-          <ArrowRight className="h-7 w-7 text-wildcard" />
+        <div className="absolute grid h-20 w-20 rotate-45 place-items-center border border-wildcard/60 bg-background/85 shadow-[0_0_42px_-14px_var(--wildcard)]">
+          <Zap className="h-8 w-8 -rotate-45 text-wildcard" />
         </div>
       </div>
     </div>
@@ -786,10 +945,11 @@ function RouteLobbyCard({ accent, lobby }: { accent: string; lobby: Lobby }) {
 
   return (
     <article
-      className="min-h-0 overflow-hidden border border-border/80 bg-surface-1/80 p-3 slab-shadow"
+      className="obs-broadcast-panel min-h-0 p-3"
       style={{ borderLeft: `4px solid var(--${accent})` }}
     >
-      <header className="flex items-center justify-between gap-3 border-b border-border/70 pb-2">
+      <PanelCornerMarks accent={accent} />
+      <header className="obs-panel-content flex items-center justify-between gap-3 border-b border-finals/20 pb-2">
         <div>
           <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
             {lobby.id}
@@ -802,7 +962,7 @@ function RouteLobbyCard({ accent, lobby }: { accent: string; lobby: Lobby }) {
           Round 4
         </div>
       </header>
-      <div className="mt-3 grid grid-cols-2 gap-2">
+      <div className="obs-panel-content mt-3 grid grid-cols-2 gap-2">
         {(players.length ? players : lobby.players).map((player) => (
           <RouteLobbyChip
             key={`${lobby.id}-${player.seed}-${player.name}`}
@@ -829,7 +989,7 @@ function RouteLobbyChip({
   const statusColor = playerAccent(player, accent);
 
   return (
-    <div className="min-w-0 border border-border/50 bg-background/55 px-2.5 py-2">
+    <div className="obs-match-card min-w-0 border border-border/50 px-2.5 py-2">
       <div className="flex min-w-0 items-center justify-between gap-2">
         <span
           className="grid h-7 w-7 shrink-0 place-items-center border font-mono text-[10px] font-black tabular-nums"
@@ -870,10 +1030,11 @@ function RouteBucket({
 }) {
   return (
     <section
-      className="min-h-0 border border-border/80 bg-surface-1/80 p-5 slab-shadow"
+      className="obs-broadcast-panel min-h-0 p-5"
       style={{ borderLeft: `4px solid var(--${accent})` }}
     >
-      <header className="border-b border-border/70 pb-4">
+      <PanelCornerMarks accent={accent} />
+      <header className="obs-panel-content border-b border-finals/20 pb-4">
         <div className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
           {summary}
         </div>
@@ -890,7 +1051,7 @@ function RouteBucket({
         </div>
       </header>
 
-      <div className="mt-4 grid gap-3">
+      <div className="obs-panel-content mt-4 grid gap-3">
         {Array.from({ length: 4 }, (_, index) => {
           const player = players[index];
           return player ? (
@@ -902,7 +1063,7 @@ function RouteBucket({
           ) : (
             <div
               key={`${label}-pending-${index}`}
-              className="flex items-center justify-between gap-3 border border-border/50 bg-background/55 px-3 py-3"
+              className="obs-match-card flex items-center justify-between gap-3 border border-border/50 px-3 py-3"
             >
               <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                 {String(index + 1).padStart(2, "0")}
@@ -935,7 +1096,7 @@ function RoutePlayerRow({
   return (
     <div
       className={cn(
-        "flex min-w-0 items-center justify-between gap-3 border border-border/50 bg-background/55",
+        "obs-match-card flex min-w-0 items-center justify-between gap-3 border border-border/50",
         compact ? "px-3 py-2" : "px-3 py-3",
       )}
     >
@@ -1024,29 +1185,33 @@ function GroupOverlay({
   return (
     <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
       <section className="grid shrink-0 grid-cols-[minmax(0,1fr)_520px] gap-5">
-        <div
-          className="relative overflow-hidden border border-border/80 bg-surface-1/75 p-6 slash-band"
-          style={{ borderLeft: `4px solid var(--${accent})` }}
-        >
+        <BroadcastPanel className="p-6" style={{ borderLeft: `4px solid var(--${accent})` }}>
+          <PanelCornerMarks accent={accent} />
           <div className="pointer-events-none absolute right-6 top-5 font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground/30">
             {GROUP_META[groupKey].label}
           </div>
-          <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
-            // Legion Wars · Group Stage
+          <div className="flex items-center gap-5">
+            <BroadcastGlyph accent={accent} className="h-20 w-20 shrink-0" />
+            <div>
+              <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
+                Legion Wars / Group Stage
+              </div>
+              <div className="mt-2 flex items-end gap-4">
+                <h2
+                  className="font-heading text-8xl font-black uppercase italic leading-none tracking-tight"
+                  style={{ color: `var(--${accent})` }}
+                >
+                  {GROUP_META[groupKey].title}
+                </h2>
+                <span className="mb-3 font-mono text-[15px] font-bold uppercase tracking-[0.28em] text-foreground">
+                  Live leaderboard
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="mt-2 flex items-end gap-4">
-            <h2
-              className="font-heading text-8xl font-black uppercase italic leading-none tracking-tight"
-              style={{ color: `var(--${accent})` }}
-            >
-              {GROUP_META[groupKey].title}
-            </h2>
-            <span className="mb-3 font-mono text-[15px] font-bold uppercase tracking-[0.28em] text-foreground">
-              Live leaderboard
-            </span>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 border border-border/80 bg-surface-0/80 slab-shadow">
+        </BroadcastPanel>
+        <div className="obs-broadcast-panel grid grid-cols-3 bg-surface-0/80">
+          <PanelCornerMarks accent={accent} />
           <HeaderStat label="Round" value={roundLabel(selectedRoundIndex)} accent={accent} />
           <HeaderStat
             label="Lobbies"
@@ -1095,11 +1260,11 @@ function QualificationPanel({
   wildcardPlayers: Player[];
 }) {
   return (
-    <aside className="relative min-h-0 overflow-hidden border border-border/80 bg-surface-1/80 slab-shadow">
-      <div className="pointer-events-none absolute inset-0 slash-band opacity-35" />
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-[color:var(--tab-accent)]" />
+    <aside className="obs-broadcast-panel relative min-h-0">
+      <PanelCornerMarks accent={accent} />
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-[2] w-1 bg-[color:var(--tab-accent)]" />
       <div className="relative flex h-full flex-col gap-3 p-4">
-        <div className="border-b border-border/70 pb-3">
+        <div className="border-b border-finals/20 pb-3">
           <div className="font-mono text-[9px] font-bold uppercase tracking-[0.32em] text-muted-foreground">
             Advancement
           </div>
@@ -1165,7 +1330,7 @@ function AdvancementBucket({
 
   return (
     <section
-      className="border border-border/70 bg-background/70 p-3"
+      className="obs-match-card border border-border/70 p-3"
       style={{ borderLeft: `4px solid var(--${accent})` }}
     >
       <div className="flex items-center justify-between gap-3">
@@ -1229,21 +1394,26 @@ function WildcardOverlay({ data }: { data: TournamentData }) {
 
   return (
     <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
-      <section className="relative overflow-hidden border border-border/80 bg-surface-1/70 p-5 slash-band">
-        <div className="absolute inset-y-0 left-0 w-1 bg-wildcard" />
-        <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-wildcard">
-          // Last Chance Bracket
-        </div>
-        <div className="mt-1 flex items-end justify-between gap-6">
-          <div className="flex items-end gap-4">
-            <h2 className="font-heading text-6xl font-black uppercase italic leading-none tracking-tight text-white">
-              Wildcard
-            </h2>
-            <span className="mb-2 font-mono text-[14px] font-bold uppercase tracking-[0.28em] text-foreground">
-              12 players / 4 Nationals slots
-            </span>
+      <BroadcastPanel className="p-5" style={{ borderLeft: "4px solid var(--wildcard)" }}>
+        <PanelCornerMarks accent="wildcard" />
+        <div className="flex items-end justify-between gap-6">
+          <div className="flex items-center gap-5">
+            <BroadcastGlyph accent="wildcard" className="h-16 w-16 shrink-0" />
+            <div>
+              <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-wildcard">
+                Last Chance Bracket
+              </div>
+              <div className="mt-1 flex items-end gap-4">
+                <h2 className="font-heading text-6xl font-black uppercase italic leading-none tracking-tight text-white">
+                  Wildcard
+                </h2>
+                <span className="mb-2 font-mono text-[14px] font-bold uppercase tracking-[0.28em] text-foreground">
+                  12 players / 4 Nationals slots
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="grid min-w-[520px] grid-cols-3 border border-border/80 bg-surface-0/75">
+          <div className="grid min-w-[520px] grid-cols-3 border border-wildcard/25 bg-surface-0/75">
             <HeaderStat
               label="Pool"
               value={String(data.wildcardView.poolCount)}
@@ -1258,7 +1428,7 @@ function WildcardOverlay({ data }: { data: TournamentData }) {
             <HeaderStat label="Route" value="Nationals" accent="finals" border />
           </div>
         </div>
-      </section>
+      </BroadcastPanel>
 
       <section className="grid min-h-0 grid-cols-[1fr_1fr_1fr_420px] gap-4">
         {(["Titan", "Nexus", "Dominion"] as const).map((sourceGroup) => (
@@ -1285,19 +1455,22 @@ function FinalsOverlay({ finals, round }: { finals: FinalsView; round?: number |
 
   return (
     <div className="flex h-full flex-col gap-5">
-      <section className="relative shrink-0 overflow-hidden border border-border/80 bg-surface-1/70 p-5 slash-band">
-        <div className="absolute inset-y-0 left-0 w-1 bg-finals" />
-        <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-finals">
-          // National Finals Bracket
-        </div>
-        <div className="mt-1 flex items-end justify-between gap-6">
-          <div className="min-w-0">
-            <h2 className="font-heading text-6xl font-black uppercase italic leading-none tracking-tight text-white">
-              Main Bracket
-            </h2>
-            <FinalsPathRail finals={finals} selectedIndex={selectedIndex} />
+      <BroadcastPanel className="shrink-0 p-5" style={{ borderLeft: "4px solid var(--finals)" }}>
+        <PanelCornerMarks accent="finals" />
+        <div className="flex items-end justify-between gap-6">
+          <div className="flex min-w-0 items-center gap-5">
+            <BroadcastGlyph accent="finals" className="h-16 w-16 shrink-0" />
+            <div className="min-w-0">
+              <div className="font-mono text-[12px] font-bold uppercase tracking-[0.34em] text-finals">
+                National Finals Bracket
+              </div>
+              <h2 className="mt-1 font-heading text-6xl font-black uppercase italic leading-none tracking-tight text-white">
+                Main Bracket
+              </h2>
+              <FinalsPathRail finals={finals} selectedIndex={selectedIndex} />
+            </div>
           </div>
-          <div className="grid min-w-[600px] grid-cols-3 border border-border/80 bg-surface-0/75">
+          <div className="grid min-w-[600px] grid-cols-3 border border-finals/30 bg-surface-0/75">
             <HeaderStat label="Phase" value={finals.bracket.phase} accent="finals" />
             <HeaderStat label="Format" value={finals.bracket.mode} accent="finals" border />
             <HeaderStat
@@ -1308,7 +1481,7 @@ function FinalsOverlay({ finals, round }: { finals: FinalsView; round?: number |
             />
           </div>
         </div>
-      </section>
+      </BroadcastPanel>
 
       <section
         className={cn(
@@ -1327,26 +1500,34 @@ function FinalsOverlay({ finals, round }: { finals: FinalsView; round?: number |
             <div
               key={bracketRound.title}
               className={cn(
-                "relative min-h-0 overflow-hidden border border-border/80 bg-surface-1/70 slab-shadow",
+                "obs-broadcast-panel relative min-h-0",
                 focused ? "p-5" : "p-4",
-                isGrandFinal && "mx-auto w-full max-w-[980px]",
+                isGrandFinal && "obs-champion-glow mx-auto w-full max-w-[980px]",
               )}
               style={{ borderLeft: "4px solid var(--finals)" }}
             >
-              <div className="pointer-events-none absolute inset-0 slash-band opacity-25" />
-              <div className="relative mb-4 flex items-end justify-between gap-3 border-b border-border/70 pb-3">
-                <div>
-                  <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-finals">
-                    // Round {String((selectedIndex ?? index) + 1).padStart(2, "0")}
+              <PanelCornerMarks accent="finals" />
+              <div className="obs-panel-content relative mb-4 flex items-end justify-between gap-3 border-b border-finals/25 pb-3">
+                <div className="flex items-center gap-3">
+                  <SigilNumber
+                    accent="finals"
+                    active={focused}
+                    complete={bracketRound.matches.some((match) => match.status === "final")}
+                    value={(selectedIndex ?? index) + 1}
+                  />
+                  <div>
+                    <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-finals">
+                      Finals Lane
+                    </div>
+                    <h3
+                      className={cn(
+                        "font-heading font-black uppercase italic tracking-tight text-white",
+                        focused ? "text-5xl" : "text-3xl",
+                      )}
+                    >
+                      {bracketRound.title}
+                    </h3>
                   </div>
-                  <h3
-                    className={cn(
-                      "font-heading font-black uppercase italic tracking-tight text-white",
-                      focused ? "text-5xl" : "text-3xl",
-                    )}
-                  >
-                    {bracketRound.title}
-                  </h3>
                 </div>
                 <div className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                   {bracketRound.matches.length} matches
@@ -1354,7 +1535,7 @@ function FinalsOverlay({ finals, round }: { finals: FinalsView; round?: number |
               </div>
               <div
                 className={cn(
-                  "relative grid gap-3",
+                  "obs-panel-content relative grid gap-3",
                   finalsMatchGridClass(bracketRound.matches.length, focused),
                 )}
               >
@@ -1385,7 +1566,8 @@ function FinalsPathRail({
   selectedIndex: number | null;
 }) {
   return (
-    <div className="mt-4 grid max-w-[860px] grid-cols-[repeat(4,minmax(0,1fr))_150px] overflow-hidden border border-border/55 bg-background/50">
+    <div className="relative mt-4 grid max-w-[980px] grid-cols-[repeat(4,minmax(0,1fr))_150px] gap-2">
+      <div className="absolute left-6 right-6 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-finals/70 to-transparent" />
       {finals.bracket.rounds.map((round, index) => {
         const decided = round.matches.filter((match) => match.status === "final").length;
         const active = selectedIndex === index || (selectedIndex == null && index === 0);
@@ -1393,35 +1575,36 @@ function FinalsPathRail({
           <div
             key={round.title}
             className={cn(
-              "relative px-3 py-2",
-              index > 0 && "border-l border-border/55",
-              active && "bg-finals-soft/40",
+              "relative grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 border border-border/55 bg-background/68 px-3 py-2",
+              active && "border-finals/55 bg-finals-soft/35",
             )}
           >
-            {index > 0 && (
-              <ArrowRight className="absolute -left-3 top-1/2 h-5 w-5 -translate-y-1/2 bg-background p-0.5 text-finals" />
-            )}
-            <div className="truncate font-mono text-[8px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
-              {round.title}
-            </div>
-            <div
-              className={cn(
-                "mt-0.5 font-heading text-2xl font-black uppercase italic leading-none tabular-nums tracking-tight",
-                active ? "text-finals" : "text-white",
-              )}
-            >
-              {decided}/{round.matches.length}
+            <SigilNumber accent="finals" active={active} complete={decided > 0} value={index + 1} />
+            <div className="min-w-0">
+              <div className="truncate font-mono text-[8px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+                {round.title}
+              </div>
+              <div
+                className={cn(
+                  "mt-0.5 font-heading text-2xl font-black uppercase italic leading-none tabular-nums tracking-tight",
+                  active ? "text-finals" : "text-white",
+                )}
+              >
+                {decided}/{round.matches.length}
+              </div>
             </div>
           </div>
         );
       })}
-      <div className="relative border-l border-finals/45 px-3 py-2 bg-finals-soft/25">
-        <ArrowRight className="absolute -left-3 top-1/2 h-5 w-5 -translate-y-1/2 bg-background p-0.5 text-finals" />
-        <div className="truncate font-mono text-[8px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
-          Champion
-        </div>
-        <div className="mt-0.5 font-heading text-2xl font-black uppercase italic leading-none text-finals">
-          Crown
+      <div className="relative grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 border border-finals/55 bg-finals-soft/35 px-3 py-2">
+        <SigilNumber accent="finals" active value={<Crown className="h-5 w-5" />} />
+        <div className="min-w-0">
+          <div className="truncate font-mono text-[8px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+            Champion
+          </div>
+          <div className="mt-0.5 font-heading text-2xl font-black uppercase italic leading-none text-finals">
+            Crown
+          </div>
         </div>
       </div>
     </div>
@@ -1446,22 +1629,24 @@ function FinalsWinnerPathPanel({
   });
 
   return (
-    <aside className="relative min-h-0 overflow-hidden border border-finals/60 bg-surface-1/85 p-4 slab-shadow">
-      <div className="pointer-events-none absolute inset-0 slash-band opacity-35" />
+    <aside className="obs-broadcast-panel obs-champion-glow relative min-h-0 p-3">
+      <PanelCornerMarks accent="finals" />
       <div className="relative flex h-full flex-col">
-        <header className="border-b border-border/70 pb-3">
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
+        <header className="border-b border-finals/30 pb-2">
+          <div className="font-mono text-[9px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
             Winner path
           </div>
           <div className="mt-1 flex items-end justify-between gap-3">
             <h3 className="font-heading text-3xl font-black uppercase italic leading-none tracking-tight text-finals">
               To Champion
             </h3>
-            <Crown className="h-8 w-8 text-finals" />
+            <div className="obs-medallion obs-medallion-active h-10 w-10">
+              <Crown className="h-6 w-6 text-background" />
+            </div>
           </div>
         </header>
 
-        <div className="mt-3 grid gap-2">
+        <div className="mt-2 grid gap-1.5">
           <WinnerPathStep
             active
             detail={`${activeRound?.matches.length ?? 0} match source`}
@@ -1483,16 +1668,24 @@ function FinalsWinnerPathPanel({
           />
         </div>
 
-        <div className="mt-3 shrink-0 border border-finals/45 bg-background/55 p-3">
-          <div className="font-mono text-[9px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
-            Grand Final state
+        <div className="mt-2 shrink-0 border border-finals/45 bg-background/62 p-2">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="font-mono text-[8px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
+                Grand Final
+              </div>
+              <div className="mt-0.5 font-heading text-xl font-black uppercase italic leading-none text-finals">
+                Champion Path
+              </div>
+            </div>
+            <BroadcastChevron accent="finals" />
           </div>
           <div className="mt-2 grid gap-2">
             {(grandFinal?.entrants ?? []).map((entrant) => (
               <div
                 key={`${grandFinal?.id}-${entrant.seed}`}
                 className={cn(
-                  "flex min-w-0 items-center justify-between gap-3 border px-3 py-2",
+                  "obs-match-card flex min-w-0 items-center justify-between gap-2 border px-2 py-1.5",
                   entrant.winner
                     ? "border-finals/60 bg-finals-soft/45"
                     : "border-border/55 bg-surface-0/60",
@@ -1501,17 +1694,17 @@ function FinalsWinnerPathPanel({
                 <span className="min-w-0">
                   <span
                     className={cn(
-                      "block truncate font-heading text-2xl font-black uppercase italic leading-none",
+                      "block truncate font-heading text-xl font-black uppercase italic leading-none",
                       entrant.pending ? "text-muted-foreground/50" : "text-white",
                     )}
                   >
                     {entrant.name}
                   </span>
-                  <span className="mt-1 block font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-                    {entrant.winner ? "Winner path locked" : entrant.seed}
+                  <span className="mt-0.5 block font-mono text-[8px] uppercase tracking-widest text-muted-foreground">
+                    {entrant.winner ? "Winner path locked" : `Seed ${entrant.seed}`}
                   </span>
                 </span>
-                <span className="font-heading text-3xl font-black italic tabular-nums text-finals">
+                <span className="font-heading text-2xl font-black italic tabular-nums text-finals">
                   {entrant.score ?? "-"}
                 </span>
               </div>
@@ -1539,7 +1732,7 @@ function WinnerPathStep({
   return (
     <div
       className={cn(
-        "relative border px-3 py-2.5",
+        "obs-match-card relative border px-3 py-2",
         champion
           ? "border-finals/70 bg-finals-soft/45"
           : active
@@ -1547,18 +1740,18 @@ function WinnerPathStep({
             : "border-border/55 bg-background/55",
       )}
     >
-      <div className="font-mono text-[8px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
+      <div className="font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
         {label}
       </div>
       <div
         className={cn(
-          "mt-1 truncate font-heading text-xl font-black uppercase italic leading-none tracking-tight",
+          "mt-0.5 truncate font-heading text-lg font-black uppercase italic leading-none tracking-tight",
           champion ? "text-finals" : "text-white",
         )}
       >
         {value}
       </div>
-      <div className="mt-1 truncate font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+      <div className="mt-0.5 truncate font-mono text-[8px] uppercase tracking-widest text-muted-foreground">
         {detail}
       </div>
     </div>
@@ -1581,15 +1774,13 @@ function OverlayLobbyCard({
 
   return (
     <article
-      className={cn(
-        "relative min-h-0 border border-border/80 bg-surface-1/85 slab-shadow",
-        featured && "p-5",
-      )}
+      className={cn("obs-broadcast-panel relative min-h-0", featured && "p-5")}
       style={{ borderLeft: `4px solid var(--${accent})` }}
     >
+      <PanelCornerMarks accent={accent} />
       <header
         className={cn(
-          "flex items-center justify-between gap-3 border-b border-border/70",
+          "obs-panel-content flex items-center justify-between gap-3 border-b border-finals/20",
           featured ? "pb-4" : "px-3 py-2",
         )}
       >
@@ -1617,7 +1808,12 @@ function OverlayLobbyCard({
         </div>
       </header>
 
-      <div className={cn(featured ? "mt-5 grid gap-3" : "divide-y divide-border/45")}>
+      <div
+        className={cn(
+          "obs-panel-content",
+          featured ? "mt-5 grid gap-3" : "divide-y divide-border/45",
+        )}
+      >
         {players.map((player, index) => (
           <OverlayPlayerRow
             key={`${player.seed}-${player.name}-${index}`}
@@ -1650,7 +1846,7 @@ function OverlayPlayerRow({
     <div
       className={cn(
         "flex min-w-0 items-center justify-between gap-3",
-        featured ? "border border-border/60 bg-surface-0/60 px-4 py-3" : "px-3 py-2",
+        featured ? "obs-match-card border border-border/60 px-4 py-3" : "px-3 py-2",
       )}
     >
       <div className="flex min-w-0 items-center gap-3">
@@ -1713,26 +1909,30 @@ function WildcardPoolCard({
 
   return (
     <article
-      className="min-h-0 border border-border/80 bg-surface-1/85 slab-shadow"
+      className="obs-broadcast-panel min-h-0"
       style={{ borderLeft: `4px solid var(--${accent})` }}
     >
-      <header className="flex items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
-        <div>
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
-            From
-          </div>
-          <div
-            className="font-heading text-3xl font-black uppercase italic tracking-tight"
-            style={{ color: `var(--${accent})` }}
-          >
-            {sourceGroup}
+      <PanelCornerMarks accent={accent} />
+      <header className="obs-panel-content flex items-center justify-between gap-3 border-b border-finals/20 px-4 py-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <BroadcastGlyph accent={accent} className="h-11 w-11 shrink-0" />
+          <div className="min-w-0">
+            <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
+              From
+            </div>
+            <div
+              className="font-heading text-3xl font-black uppercase italic tracking-tight"
+              style={{ color: `var(--${accent})` }}
+            >
+              {sourceGroup}
+            </div>
           </div>
         </div>
         <div className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
           Rank 5-8
         </div>
       </header>
-      <div className="divide-y divide-border/45">
+      <div className="obs-panel-content divide-y divide-border/45">
         {players.map((player) => (
           <div key={player.seed} className="flex items-center justify-between gap-3 px-4 py-3">
             <div className="flex min-w-0 items-center gap-3">
@@ -1763,10 +1963,10 @@ function WildcardPoolCard({
 
 function WildcardFinalSlotsPanel({ data }: { data: TournamentData["wildcardView"] }) {
   return (
-    <aside className="relative min-h-0 overflow-hidden border border-wildcard/60 bg-surface-1/85 p-4 slab-shadow">
-      <div className="pointer-events-none absolute inset-0 slash-band opacity-35" />
+    <aside className="obs-broadcast-panel obs-champion-glow relative min-h-0 p-4">
+      <PanelCornerMarks accent="wildcard" />
       <div className="relative flex h-full flex-col">
-        <header className="border-b border-border/70 pb-3">
+        <header className="border-b border-finals/30 pb-3">
           <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
             Winner path
           </div>
@@ -1774,7 +1974,9 @@ function WildcardFinalSlotsPanel({ data }: { data: TournamentData["wildcardView"
             <h3 className="font-heading text-4xl font-black uppercase italic leading-none tracking-tight text-wildcard">
               Nationals Slots
             </h3>
-            <Shield className="h-9 w-9 text-finals" />
+            <div className="obs-medallion obs-medallion-active h-12 w-12">
+              <Shield className="h-6 w-6 text-background" />
+            </div>
           </div>
         </header>
 
@@ -1786,7 +1988,7 @@ function WildcardFinalSlotsPanel({ data }: { data: TournamentData["wildcardView"
               <div
                 key={index}
                 className={cn(
-                  "grid grid-cols-[46px_minmax(0,1fr)] items-center gap-3 border px-3 py-3",
+                  "obs-match-card grid grid-cols-[46px_minmax(0,1fr)] items-center gap-3 border px-3 py-3",
                   locked
                     ? "border-finals/55 bg-finals-soft/35"
                     : "border-border/55 bg-background/55",
@@ -1839,14 +2041,14 @@ function OverlayMatchCard({
   return (
     <article
       className={cn(
-        "relative overflow-hidden border border-border/80 bg-surface-0/70 slab-shadow",
+        "obs-match-card relative overflow-hidden border border-border/80",
         trophy && "bg-[color-mix(in_oklab,var(--finals)_5%,var(--surface-0))]",
       )}
       style={{ borderLeft: `4px solid ${railColor}` }}
     >
       {trophy && (
-        <div className="pointer-events-none absolute right-5 top-5 opacity-20">
-          <Trophy className="h-28 w-28 text-finals" />
+        <div className="pointer-events-none absolute right-5 top-5 opacity-25">
+          <BroadcastGlyph accent="finals" className="h-28 w-28" />
         </div>
       )}
       <header

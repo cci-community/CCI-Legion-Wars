@@ -2,15 +2,21 @@
 
 Legion Wars OBS screens are browser-source views served by the same Firebase app as the public bracket viewer. They use the same public Google Sheets feeds, parser/cache/fallback behavior, and public-data safety rules.
 
-The OBS package is built as a Riot-style broadcast board:
+The OBS package is built as an original Riot/League-inspired broadcast board. It uses code-native shapes, crest glyphs, medallions, bracket lanes, route split symbols, and champion-path frames. It does not use Riot logos, Riot assets, copied broadcast screenshots, or mock data as production truth.
 
-- persistent tournament phase rail: Groups -> Wildcard -> Nationals -> Champion
-- stage-board sources for each group
+- persistent medallion phase rail: Groups -> Wildcard -> Nationals -> Champion
+- stage-board sources for each named group
 - route sources that show Round 4 qualifiers splitting into National Finals and Wildcard
-- a Wildcard board that shows group entries feeding National Finals slots
-- Finals round boards with a winner path and champion state
+- Wildcard board showing Titan, Nexus, and Dominion feeds into National Finals slots
+- Finals round boards with bracket lanes, a winner path, and champion destination state
 
 No OBS screen consumes Master Sheet, Player Details, registration data, private contact data, staff notes, Discord operations, or mock data as production truth.
+
+Rendered reference thumbnails are stored in:
+
+```text
+OBS Screen Thumbnails/
+```
 
 ## Data Flow
 
@@ -169,6 +175,22 @@ Optional callout sources:
 - `LW - Dominion Focused Round`
 - `LW - Focused Lobby`
 
+## Thumbnail Inventory
+
+The committed thumbnail folder mirrors the primary OBS scene list:
+
+- `titan-stage-board.png`
+- `titan-qualification-route.png`
+- `nexus-stage-board.png`
+- `nexus-qualification-route.png`
+- `dominion-stage-board.png`
+- `dominion-qualification-route.png`
+- `wildcard-board.png`
+- `nationals-round-of-16.png`
+- `nationals-quarterfinals.png`
+- `nationals-semifinals.png`
+- `nationals-grand-final.png`
+
 ## Operating Notes
 
 - Use a group stage board while a group is being introduced or recapped.
@@ -200,4 +222,4 @@ When adding or changing an OBS source:
 
 ## Reference Direction
 
-The visual target is professional esports broadcast clarity, especially the structured stage-and-bracket language used across Riot-style tournament coverage: phase rails, round lanes, visible advancement routes, and a distinct champion state.
+The visual target is professional esports broadcast clarity: high-contrast dark stage plates, gold advancement routes, readable bracket lanes, compact status readouts, and a distinct champion destination. The styling is an original Legion Wars interpretation inspired by public esports broadcast grammar, not an official Riot product skin.

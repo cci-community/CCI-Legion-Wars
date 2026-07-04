@@ -21,6 +21,7 @@ The public site does not expose private tabs, raw Sheets embeds, Discord operati
 - Public player names, city/region values when safe, ranks, scores, winners, and pending/ready/live/final states.
 - Logo favicon and Firebase Hosting deploy-on-push workflow.
 - OBS Browser Source overlay mode for stream-safe bracket and leaderboard scenes.
+- Original broadcast-style OBS screens with 1920x1080 reference thumbnails in `OBS Screen Thumbnails/`.
 
 ## Quick Start
 
@@ -70,7 +71,8 @@ Key files:
 - `src/data/sheet-data.js`: preserved public CSV parser/cache/fallback runtime.
 - `firebase.json`: Hosting config for `dist` with SPA rewrite.
 - `scripts/validate-site.mjs`: architecture/parser/hosting validation.
-- `docs/OBS_OVERLAYS.md`: OBS overlay architecture, URLs, and operator setup.
+- `docs/OBS_OVERLAYS.md`: OBS overlay architecture, URLs, operator setup, and thumbnail inventory.
+- `OBS Screen Thumbnails/`: captured 1920x1080 verification thumbnails for the primary OBS sources.
 
 ## Google Sheets Feeds
 
