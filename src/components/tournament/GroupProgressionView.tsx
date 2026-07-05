@@ -140,17 +140,20 @@ export function GroupProgressionView({
               </h1>
             </div>
 
-            <div className="flex items-stretch border border-border/70 bg-surface-0/60 slab-shadow">
+            <div className="grid w-full grid-cols-[0.9fr_1.35fr_0.75fr] items-stretch border border-border/70 bg-surface-0/60 slab-shadow sm:w-auto sm:flex">
               {group.status.slice(0, 3).map((s, i) => (
                 <div
                   key={s.label}
-                  className={"px-4 py-3 sm:px-5 " + (i > 0 ? "border-l border-border/70" : "")}
+                  className={
+                    "min-w-0 px-3 py-3 text-center sm:px-5 sm:text-left " +
+                    (i > 0 ? "border-l border-border/70" : "")
+                  }
                 >
                   <div className="font-mono text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                     {s.label}
                   </div>
                   <div
-                    className="mt-0.5 font-heading text-2xl font-black uppercase italic tabular-nums tracking-tight text-white"
+                    className="mt-0.5 whitespace-nowrap font-heading text-xl font-black uppercase italic tabular-nums tracking-tight text-white sm:text-2xl"
                     style={{ color: i === 1 ? `var(${accentVar})` : undefined }}
                   >
                     {s.value}
