@@ -21,7 +21,7 @@ The public site does not expose private tabs, raw Sheets embeds, Discord operati
 - Public player names, city/region values when safe, ranks, scores, winners, and pending/ready/live/final states.
 - Logo favicon and Firebase Hosting deploy-on-push workflow.
 - OBS Browser Source overlay mode for stream-safe bracket and leaderboard scenes.
-- Original premium esports OBS screens with broadcast plates, crest-backed logo placement, advancement routes, and 1920x1080 reference thumbnails in `OBS Screen Thumbnails/`.
+- Original sharp esports OBS screens with chamfered broadcast plates, crest-backed logo placement, advancement routes, and 1920x1080 reference thumbnails in `OBS Screen Thumbnails/`.
 
 ## Quick Start
 
