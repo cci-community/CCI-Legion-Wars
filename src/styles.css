@@ -331,6 +331,10 @@
 .public-readable .font-heading,
 .public-readable .text-display {
   letter-spacing: 0.04em;
+  -webkit-text-stroke: 0.2px oklch(0.02 0.006 252 / 0.72);
+  paint-order: stroke fill;
+  text-rendering: geometricPrecision;
+  text-shadow: 0 1px 0 oklch(0 0 0 / 0.56);
 }
 
 .public-readable .tracking-tight,
@@ -348,6 +352,13 @@
 
 .public-readable .text-tactical {
   letter-spacing: 0.16em;
+  text-rendering: geometricPrecision;
+  text-shadow: 0 1px 0 oklch(0 0 0 / 0.42);
+}
+
+.public-readable .font-mono {
+  text-rendering: geometricPrecision;
+  text-shadow: 0 1px 0 oklch(0 0 0 / 0.36);
 }
 
 /* Focus ring — global */
