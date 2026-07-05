@@ -319,6 +319,22 @@
   letter-spacing: 0.01em;
 }
 
+@utility public-readable {
+  letter-spacing: 0.015em;
+  line-height: 1.5;
+}
+
+@layer components {
+  .public-readable .tracking-tight,
+  .public-readable .tracking-tighter {
+    letter-spacing: 0.015em;
+  }
+
+  .public-readable .text-tactical {
+    letter-spacing: 0.14em;
+  }
+}
+
 /* Focus ring — global */
 @layer base {
   :focus-visible {

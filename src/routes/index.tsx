@@ -270,7 +270,7 @@ function Index() {
   }
 
   return (
-    <div className="min-h-screen text-foreground">
+    <div className="public-readable min-h-screen text-foreground">
       {/* Ambient light — radial gradient tinted by active tab accent */}
       <div
         aria-hidden
