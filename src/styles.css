@@ -361,6 +361,14 @@
   text-shadow: 0 1px 0 oklch(0 0 0 / 0.36);
 }
 
+.public-readable .public-hero-title-reset,
+.public-readable .public-hero-title-reset * {
+  letter-spacing: -0.05em;
+  -webkit-text-stroke: 0;
+  paint-order: normal;
+  text-shadow: none;
+}
+
 /* Focus ring — global */
 @layer base {
   :focus-visible {

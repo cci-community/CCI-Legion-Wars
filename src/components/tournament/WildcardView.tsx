@@ -36,7 +36,7 @@ export function WildcardView({
               <span className="h-1.5 w-1.5 bg-wildcard" />
               // Legion Wars · Last Chance
             </div>
-            <h2 className="mt-1.5 font-heading text-5xl font-black uppercase italic leading-none tracking-tighter text-foreground md:text-6xl">
+            <h2 className="public-hero-title-reset mt-1.5 font-heading text-5xl font-black uppercase italic leading-none tracking-tighter text-foreground md:text-6xl">
               WILDCARD
               <span className="text-wildcard"> POOL</span>
             </h2>

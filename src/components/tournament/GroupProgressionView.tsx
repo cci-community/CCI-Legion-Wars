@@ -126,7 +126,7 @@ export function GroupProgressionView({
                   // Legion Wars · Group Stage
                 </span>
               </div>
-              <h1 className="font-heading text-5xl font-black uppercase italic leading-none tracking-tighter text-white sm:text-6xl">
+              <h1 className="public-hero-title-reset font-heading text-5xl font-black uppercase italic leading-none tracking-tighter text-white sm:text-6xl">
                 {group.label.replace(/^Group\s+/i, "").split(" ")[0]}
 
                 <span

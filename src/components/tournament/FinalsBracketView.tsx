@@ -5,6 +5,7 @@ import { RoundSpine, type SpineStep } from "./RoundSpine";
 import { Trophy } from "lucide-react";
 
 const TOTAL_SLOTS = 8;
+const isGrandFinalRound = (title: string) => /grand\s*final/i.test(title);
 
 export function FinalsBracketView({
   finals,
@@ -67,7 +68,7 @@ export function FinalsBracketView({
                 // Legion Wars · S01 · Championship
               </span>
             </div>
-            <h1 className="font-heading text-5xl font-black uppercase italic leading-none tracking-tighter text-white sm:text-6xl">
+            <h1 className="public-hero-title-reset font-heading text-5xl font-black uppercase italic leading-none tracking-tighter text-white sm:text-6xl">
               Grand{" "}
               <span className="bg-gradient-to-r from-finals to-white/60 bg-clip-text text-transparent">
                 Bracket
@@ -90,7 +91,12 @@ export function FinalsBracketView({
               <span className="block font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-finals">
                 // Round {String(ri + 1).padStart(2, "0")}
               </span>
-              <h3 className="mt-0.5 font-heading text-xl font-black uppercase italic tracking-tighter text-white">
+              <h3
+                className={
+                  (isGrandFinalRound(round.title) ? "public-hero-title-reset " : "") +
+                  "mt-0.5 font-heading text-xl font-black uppercase italic tracking-tighter text-white"
+                }
+              >
                 {round.title.replace(/^Round\s+\d+\s*·?\s*/i, "")}
               </h3>
               <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-widest text-muted-foreground/60">
@@ -113,7 +119,7 @@ export function FinalsBracketView({
               <span className="block font-mono text-[9px] font-bold uppercase tracking-[0.3em] text-finals">
                 Grand Finals
               </span>
-              <h4 className="font-heading text-2xl font-black uppercase italic tracking-tighter text-white">
+              <h4 className="public-hero-title-reset font-heading text-2xl font-black uppercase italic tracking-tighter text-white">
                 Champion Awaiting
               </h4>
             </div>
@@ -146,7 +152,12 @@ export function FinalsBracketView({
                     <span className="block font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-finals">
                       // Round {String(ri + 1).padStart(2, "0")}
                     </span>
-                    <h3 className="mt-0.5 font-heading text-2xl font-black uppercase italic tracking-tighter text-white">
+                    <h3
+                      className={
+                        (isGrandFinalRound(round.title) ? "public-hero-title-reset " : "") +
+                        "mt-0.5 font-heading text-2xl font-black uppercase italic tracking-tighter text-white"
+                      }
+                    >
                       {round.title.replace(/^Round\s+\d+\s*·?\s*/i, "")}
                     </h3>
                     <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-widest text-muted-foreground/60">
@@ -177,7 +188,7 @@ export function FinalsBracketView({
               <span className="block font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-finals">
                 // Winner Crowning
               </span>
-              <h3 className="mt-0.5 font-heading text-2xl font-black uppercase italic tracking-tighter text-white">
+              <h3 className="public-hero-title-reset mt-0.5 font-heading text-2xl font-black uppercase italic tracking-tighter text-white">
                 Champion
               </h3>
             </header>
