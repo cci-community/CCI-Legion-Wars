@@ -34,19 +34,19 @@ Accent themes:
 
 ## Component Mapping
 
-| Surface                   | Component                         | Data source                      |
-| ------------------------- | --------------------------------- | -------------------------------- |
-| App shell/tabs            | `src/routes/index.tsx`            | `useLiveTournamentData()`        |
-| Overview map              | `OverviewMap`                     | adapted `TournamentData`         |
-| Group progression         | `GroupProgressionView`            | `GroupView.progression`          |
-| Lobby card                | `LobbyCard`                       | adapted public lobby data        |
-| Wildcard pool             | `WildcardView`                    | group Round Four candidates/feed |
-| Finals bracket            | `FinalsBracketView` + `MatchCard` | adapted National Finals feed     |
-| Command palette           | `CommandPalette`                  | `flattenPlayers(data)`           |
-| Lobby drawer              | `LobbyDrawer`                     | `findLobbyById(id, data)`        |
-| Match drawer              | `MatchDrawer`                     | `findMatchById(id, data)`        |
-| Mobile feed tabs          | `MobileTabBar`                    | route tab state                  |
-| Sheet sync/cache/fallback | `src/data/sheet-data.js`          | published public CSV feeds       |
+| Surface                   | Component                         | Data source                            |
+| ------------------------- | --------------------------------- | -------------------------------------- |
+| App shell/tabs            | `src/routes/index.tsx`            | `useLiveTournamentData()`              |
+| Overview map              | `OverviewMap`                     | adapted `TournamentData`               |
+| Group progression         | `GroupProgressionView`            | `GroupView.progression`                |
+| Lobby card                | `LobbyCard`                       | adapted public lobby data              |
+| Wildcard bracket          | `WildcardView`                    | four-lobby Wildcard feed/fallback pool |
+| Finals bracket            | `FinalsBracketView` + `MatchCard` | adapted National Finals feed           |
+| Command palette           | `CommandPalette`                  | `flattenPlayers(data)`                 |
+| Lobby drawer              | `LobbyDrawer`                     | `findLobbyById(id, data)`              |
+| Match drawer              | `MatchDrawer`                     | `findMatchById(id, data)`              |
+| Mobile feed tabs          | `MobileTabBar`                    | route tab state                        |
+| Sheet sync/cache/fallback | `src/data/sheet-data.js`          | published public CSV feeds             |
 
 ## Public Data Boundary
 

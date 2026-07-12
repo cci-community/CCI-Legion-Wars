@@ -7,7 +7,7 @@ The OBS package is built as an original premium esports broadcast board. It uses
 - persistent medallion phase rail: Groups -> Wildcard -> Nationals -> Champion
 - stage-board sources for each named group
 - route sources that show Round 4 qualifiers splitting into clearly labeled National Finals and Wildcard paths
-- Wildcard board showing Titan, Nexus, and Dominion feeds into National Finals slots
+- Wildcard board showing four 3-player lobbies feeding four National Finals slots
 - Finals round boards with bracket lanes, advancement state, and champion slot
 
 No OBS screen consumes Master Sheet, Player Details, registration data, private contact data, staff notes, Discord operations, or mock data as production truth.
@@ -114,7 +114,7 @@ Wildcard board:
 https://cci-legion-wars.web.app/?mode=obs&view=wildcard
 ```
 
-This screen shows Titan, Nexus, and Dominion wildcard entries feeding four National Finals slots.
+This screen shows four Wildcard lobbies. Each lobby has three players and sends one winner into a National Finals slot.
 
 ### National Finals
 
@@ -186,7 +186,7 @@ The committed thumbnail folder mirrors the primary OBS scene list:
 
 - Use a group stage board while a group is being introduced or recapped.
 - Use the group qualification route after Round 4 to show direct National Finals qualifiers and the Wildcard pool.
-- Use the Wildcard board while last-chance qualifiers are being resolved.
+- Use the Wildcard board while the four last-chance lobbies are being resolved.
 - Use one Finals source per round. Do not use a scrolling full bracket during active match coverage.
 - If sheet data is pending, the screens show pending/awaiting states instead of inventing players.
 - OBS motion is intentionally limited to ambient background breathing, active phase scans, route current, crest pulse, and live-status pulse. Player names, scores, lobby cards, and match rows stay static for stream readability.

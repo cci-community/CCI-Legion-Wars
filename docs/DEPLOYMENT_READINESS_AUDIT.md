@@ -1,6 +1,6 @@
 # Deployment Readiness Audit
 
-Last updated: 2026-07-03
+Last updated: 2026-07-12
 
 ## Scope
 
@@ -30,8 +30,8 @@ Excluded from this audit:
 | Public page boundary   | Validation blocks iframe embeds, private-tab copy, and internal operations copy in public HTML.         | Verified 2026-07-03 |
 | Workbook config        | `src/data/sheet-config.js` defines only the five allowed public gid feeds.                              | Verified 2026-07-03 |
 | Group parser           | Fixtures validate group/lobby parsing plus Round Four local and global Wildcard routing.                | Verified 2026-07-03 |
-| National Finals parser | Fixture validates scores, winners, and final state.                                                     | Verified 2026-07-03 |
-| Wildcard parser        | Fixture validates `Wildcart` typo normalization and derived Wildcard pool behavior.                     | Verified 2026-07-03 |
+| National Finals parser | Fixture validates row-based finals and live wide-grid playoff parsing.                                  | Verified 2026-07-12 |
+| Wildcard parser        | Fixture validates `Wildcart` typo normalization, fallback behavior, and four-lobby Wildcard rendering.  | Verified 2026-07-12 |
 | Firebase config        | `firebase.json` serves `dist` with SPA rewrite, headers, and no raw source exposure.                    | Verified 2026-07-03 |
 | Firebase project       | CLI/GitHub config confirm project id, Hosting site/target, and `.firebaserc`.                           | Verified 2026-07-03 |
 | Preview deploy         | Firebase preview channel serves the built React app and loads live public Google Sheets data.           | Verified 2026-07-03 |
@@ -41,7 +41,7 @@ Excluded from this audit:
 
 Direct CSV checks succeeded for:
 
-- National Finals: `gid=126700734`
+- National Finals: `gid=1409701649`
 - Group Titan: `gid=1994318444`
 - Group Nexus: `gid=612483539`
 - Group Dominion: `gid=945411688`

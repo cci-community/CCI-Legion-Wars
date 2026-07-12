@@ -1,6 +1,6 @@
 # CCI Legion Wars Website Architecture
 
-Last updated: 2026-07-03
+Last updated: 2026-07-12
 
 ## Objective
 
@@ -65,7 +65,7 @@ Supported feed types:
 
 - `group`: Titan, Nexus, Dominion.
 - `wildcard`: Wildcard feed using the lobby-style parser.
-- `finals`: National Finals match bracket parser.
+- `finals`: National Finals playoff grid parser with row-based legacy fallback.
 
 Private tabs are intentionally not configured.
 
@@ -90,9 +90,28 @@ Behavior:
 - Marks Round 4 global placements 1-4 as National Finals.
 - Marks Round 4 global placements 5-8 as Wildcard candidates.
 - If a sheet uses two lobby-local rank lists instead, maps first/second from each lobby to direct Finals and third/fourth from each lobby to the group's 5th-8th Wildcard pool.
-- Derives Wildcard pool from group Round Four candidates when needed.
+- Uses the dedicated Wildcard tab when it contains public lobby players.
+- Derives a fallback Wildcard pool from group Round Four candidates only when the dedicated Wildcard tab is empty.
 
-### Match Bracket Parser
+### National Finals Parser
+
+Primary input:
+
+```text
+, Playoff [Top 16], Score, ..., Quarter-Finals, Score, ..., Semi-Finals, Score, ..., Finals, Score, ..., Winner
+```
+
+Behavior:
+
+- Reads the updated Finals playoff grid from `gid=1409701649`.
+- Builds Round of 16, Quarterfinals, Semifinals, and Grand Final rounds from spatial bracket cells.
+- Treats `Wildcard L1 Winner` through `Wildcard L4 Winner` as pending public Finals slots.
+- Treats `Pending` advancement cells as placeholders such as `Winner R16 M1`.
+- Parses scores and winners when entered.
+- Emits `pending`, `ready`, `live`, or `final` match states.
+- Preserves stable match ids such as `Finals_R16_M1`.
+
+Legacy row input:
 
 Input:
 
@@ -102,10 +121,7 @@ Round, Match, Player A, Score A, Player B, Score B, Winner
 
 Behavior:
 
-- Builds National Finals rounds.
-- Parses scores and winners.
-- Emits `pending`, `ready`, `live`, or `final` match states.
-- Preserves stable match ids such as `Finals_R16_M1`.
+- Still supported for older published row-based tabs.
 
 ## Public Data Boundary
 
@@ -131,7 +147,7 @@ The public page uses the tournament UI structure:
 - Tactical top tab rail.
 - Group progression lanes.
 - Slab lobby cards.
-- Wildcard last-chance pool and final-slot slabs.
+- Wildcard four-lobby bracket and final-slot slabs.
 - 16-player National Finals bracket.
 - Command/search palette.
 - Lobby and match drawers.

@@ -20,13 +20,13 @@ Public workbook id:
 
 Direct CSV checks succeeded for:
 
-| Feed            | gid          | Observed state                                                                                     |
-| --------------- | ------------ | -------------------------------------------------------------------------------------------------- |
-| National Finals | `126700734`  | Header is `Round, Match, Player A, Score, Player B, Score, Winner`; rows are pending placeholders. |
-| Group Titan     | `1994318444` | Group/lobby schema; contains `#REF!` cells.                                                        |
-| Group Nexus     | `612483539`  | Group/lobby schema; contains `#REF!` cells.                                                        |
-| Group Dominion  | `945411688`  | Group/lobby schema; contains `#REF!` cells.                                                        |
-| Wildcard        | `1564963263` | Group/lobby schema; current stage label is `Wildcart`.                                             |
+| Feed            | gid          | Observed state                                                                                         |
+| --------------- | ------------ | ------------------------------------------------------------------------------------------------------ |
+| National Finals | `1409701649` | Updated playoff grid with `Playoff [Top 16]`, Quarter-Finals, Semi-Finals, Finals, and Winner columns. |
+| Group Titan     | `1994318444` | Group/lobby schema; contains `#REF!` cells.                                                            |
+| Group Nexus     | `612483539`  | Group/lobby schema; contains `#REF!` cells.                                                            |
+| Group Dominion  | `945411688`  | Group/lobby schema; contains `#REF!` cells.                                                            |
+| Wildcard        | `1564963263` | Group/lobby schema; current stage label is `Wildcart`.                                                 |
 
 Implementation response:
 
@@ -77,7 +77,7 @@ Public page should show:
 - Current bracket status.
 - Feed tabs.
 - Group lobby progression.
-- Wildcard pool and Finals slots.
+- Wildcard four-lobby bracket and Finals slots.
 - Player names.
 - City/state/legion region if public-safe.
 - Scores.

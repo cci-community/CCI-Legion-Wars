@@ -1,6 +1,6 @@
 # Maintenance Guide
 
-Last updated: 2026-07-03
+Last updated: 2026-07-12
 
 ## During The Event
 
@@ -20,8 +20,8 @@ Before the event starts:
 - Public feeds do not contain emails, phone numbers, registration notes, payment details, or staff-only notes.
 - City/state/legion region values are approved for public display.
 - Each group `Round of 8` stage has two lobbies and records ranks for direct Finals and Wildcard routing.
-- If the Wildcard tab is not filled yet, verify the website still shows the derived Wildcard pool from group `Round of 8` candidates.
-- National Finals headers are preferably `Score A` and `Score B`.
+- Wildcard has four public lobbies with three players each.
+- National Finals uses the published playoff grid tab at `gid=1409701649`.
 - `Wildcart` is corrected to `Wildcard`.
 - `#REF!` cells are fixed in group feeds.
 
@@ -31,8 +31,8 @@ Use the current public page to verify:
 
 - Feed tabs appear for Finals, Titan, Nexus, Dominion, and Wildcard.
 - Titan, Nexus, and Dominion render Round 1-4 lobby progression, not Quarterfinal/Semifinal/Final bracket columns.
-- Wildcard renders the 12-player last-chance pool and four Finals slots.
-- National Finals renders the classic 16-player bracket.
+- Wildcard renders four 3-player lobby cards and four Finals slots.
+- National Finals renders the 16-player playoff grid as bracket rounds.
 - Pending slots appear for unknown players.
 - Scores and winners appear in National Finals when entered.
 - Group and Wildcard feeds do not expose private rows.
@@ -89,7 +89,7 @@ The current website supports:
 - Group/lobby-style feeds.
 - Wildcard using the group/lobby parser.
 - Custom group lobby progression rendering.
-- 16-player National Finals match bracket.
+- 16-player National Finals playoff grid and legacy row-based match bracket fallback.
 
 Future formats may need:
 

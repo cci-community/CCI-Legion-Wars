@@ -33,13 +33,13 @@ Group and Wildcard feeds use:
 Stage, Lobby, Player 1, City, Rank, Qualified, Player 2, City, Rank, Qualified, ...
 ```
 
-National Finals uses:
+National Finals supports the current published playoff grid and the legacy row schema:
 
 ```text
 Round, Match, Player A, Score A, Player B, Score B, Winner
 ```
 
-The current duplicate `Score` / `Score` National Finals headers are tolerated by the parser, but should be renamed to `Score A` / `Score B`.
+The current public Finals tab is the playoff grid at `gid=1409701649`. The row schema above remains supported for older published tabs.
 
 ## Tournament Ruleset Boundary
 
@@ -53,7 +53,8 @@ Current production assumptions:
 - Top two from both Round Four lobbies become the group's top four direct National Finals qualifiers.
 - Third/fourth from both Round Four lobbies become the group's 5th-8th placements and enter Wildcard.
 - Wildcard produces four National Finals qualifiers.
-- When the Wildcard tab has no public players yet, the website derives the 12-player Wildcard pool from the three group Round Four stages.
+- The dedicated Wildcard tab has four lobbies, three players per lobby, and one winner per lobby.
+- When the Wildcard tab has no public players, the website can derive a fallback 12-player Wildcard pool from the three group Round Four stages.
 - National Finals contains 16 players: 12 direct group qualifiers and 4 Wildcard qualifiers.
 - National Finals is single elimination.
 

@@ -67,6 +67,52 @@ const FINALS_ROUND_CODES = new Map([
   ["Semifinals", "SF"],
   ["Grand Final", "GF"],
 ]);
+const FINALS_GRID_ROUND_SPECS = [
+  {
+    title: "Round of 16",
+    code: "R16",
+    playerCol: 1,
+    scoreCols: [2, 3, 4],
+    totalCol: 5,
+    entrantRows: Array.from({ length: 16 }, (_, index) => 2 + index * 2),
+    winnerCol: 8,
+    winnerRows: Array.from({ length: 8 }, (_, index) => 3 + index * 4),
+    placeholderPrefix: "Qualifier",
+  },
+  {
+    title: "Quarterfinals",
+    code: "QF",
+    playerCol: 8,
+    scoreCols: [9, 10, 11],
+    totalCol: 12,
+    entrantRows: Array.from({ length: 8 }, (_, index) => 3 + index * 4),
+    winnerCol: 15,
+    winnerRows: Array.from({ length: 4 }, (_, index) => 5 + index * 8),
+    placeholderPrefix: "Winner R16 M",
+  },
+  {
+    title: "Semifinals",
+    code: "SF",
+    playerCol: 15,
+    scoreCols: [16, 17, 18],
+    totalCol: 19,
+    entrantRows: Array.from({ length: 4 }, (_, index) => 5 + index * 8),
+    winnerCol: 22,
+    winnerRows: Array.from({ length: 2 }, (_, index) => 9 + index * 16),
+    placeholderPrefix: "Winner QF M",
+  },
+  {
+    title: "Grand Final",
+    code: "GF",
+    playerCol: 22,
+    scoreCols: [23, 24, 25, 26, 27],
+    totalCol: 28,
+    entrantRows: [9, 25],
+    winnerCol: 31,
+    winnerRows: [17],
+    placeholderPrefix: "Winner SF M",
+  },
+];
 const GROUP_ROUTE_STAGE_NAMES = new Set([
   "round of 8",
   "round 8",
@@ -178,7 +224,7 @@ export function buildGroupFeedFromCsv(
   const qualifiedCount = lobbies.reduce((count, lobby) => {
     return count + lobby.qualifiers.filter((qualifier) => !qualifier.pending).length;
   }, 0);
-  const expectedCount = lobbies.length * 2;
+  const expectedCount = lobbies.length * (feedConfig.type === "wildcard" ? 1 : 2);
   const routeStage =
     feedConfig.type === "group" ? chooseGroupRouteStage(parsedStages) : activeStage;
   const rankedPlayers = rankedStagePlayers(routeStage);
@@ -261,6 +307,20 @@ export function buildFinalsFeedFromCsv(
   }
 
   const [headers, ...bodyRows] = rows;
+  if (isWideFinalsGrid(headers)) {
+    return buildWideFinalsFeedFromRows(rows, feedConfig, fallbackTournament, fetchedAt);
+  }
+
+  return buildRoundFinalsFeedFromRows(headers, bodyRows, feedConfig, fallbackTournament, fetchedAt);
+}
+
+function buildRoundFinalsFeedFromRows(
+  headers,
+  bodyRows,
+  feedConfig,
+  fallbackTournament,
+  fetchedAt,
+) {
   const columns = findFinalsColumns(headers);
   const rounds = [];
   let currentRound = "";
@@ -303,6 +363,7 @@ export function buildFinalsFeedFromCsv(
       {
         seed: "A",
         name: playerA,
+        city: "",
         score: scoreA,
         pending: playerA === "Awaiting qualifier",
         winner: namesMatch(playerA, winner),
@@ -310,6 +371,7 @@ export function buildFinalsFeedFromCsv(
       {
         seed: "B",
         name: playerB,
+        city: "",
         score: scoreB,
         pending: playerB === "Awaiting qualifier",
         winner: namesMatch(playerB, winner),
@@ -372,6 +434,95 @@ export function buildFinalsFeedFromCsv(
       wildcardCount: 0,
       directNationalCount: Math.min(12, entrantNames.size),
       summary: feedConfig.summary,
+    },
+  };
+}
+
+function buildWideFinalsFeedFromRows(rows, feedConfig, fallbackTournament, fetchedAt) {
+  const rounds = FINALS_GRID_ROUND_SPECS.map((spec, roundIndex) => {
+    const matches = [];
+
+    for (let index = 0; index < spec.entrantRows.length; index += 2) {
+      const matchIndex = index / 2;
+      const entrantA = finalsGridEntrant(rows, spec, index, roundIndex);
+      const entrantB = finalsGridEntrant(rows, spec, index + 1, roundIndex);
+      const winnerName = finalsGridWinnerName(rows, spec, matchIndex);
+      const hasScore = entrantA.score !== null || entrantB.score !== null;
+
+      entrantA.winner = namesMatch(entrantA.name, winnerName);
+      entrantB.winner = namesMatch(entrantB.name, winnerName);
+
+      matches.push({
+        id: `Finals_${spec.code}_M${matchIndex + 1}`,
+        label: spec.code === "GF" ? "Grand Final" : `Match ${matchIndex + 1}`,
+        status: winnerName
+          ? "final"
+          : entrantA.pending || entrantB.pending
+            ? "pending"
+            : hasScore
+              ? "live"
+              : "ready",
+        bestOf: spec.code === "GF" ? 5 : 3,
+        feed: winnerName ? `Winner: ${winnerName}` : "Winner advances",
+        starts: spec.title,
+        entrants: [entrantA, entrantB],
+      });
+    }
+
+    return {
+      id: `finals-${spec.code.toLowerCase()}`,
+      code: spec.code,
+      title: spec.title,
+      matches,
+    };
+  });
+
+  const entrantNames = new Set();
+  rounds.forEach((round) => {
+    round.matches.forEach((match) => {
+      match.entrants.forEach((entrant) => {
+        if (!entrant.pending) entrantNames.add(entrant.name);
+      });
+    });
+  });
+
+  const pendingSlots = Math.max(0, (feedConfig.finalistSlots ?? 16) - entrantNames.size);
+
+  return {
+    ...fallbackTournament,
+    id: feedConfig.id,
+    label: feedConfig.label,
+    shortLabel: feedConfig.shortLabel ?? feedConfig.label,
+    type: "finals",
+    status: [
+      { label: "Feed", value: "National Finals" },
+      { label: "Format", value: "16-player final" },
+      { label: "Rounds", value: `${rounds.length}` },
+      { label: "Players", value: `${entrantNames.size}/${feedConfig.finalistSlots ?? 16}` },
+    ],
+    bracket: {
+      phase: "National Finals",
+      mode: "16-player single elimination",
+      rounds,
+    },
+    lobbies: finalistCards(entrantNames, pendingSlots),
+    meta: {
+      source: "sheet",
+      sourceLabel: feedConfig.label,
+      feedId: feedConfig.id,
+      feedType: "finals",
+      gid: feedConfig.gid,
+      stage: "National Finals",
+      availableStages: [],
+      fetchedAt: fetchedAt.toISOString(),
+      qualifiedCount: entrantNames.size,
+      expectedCount: feedConfig.finalistSlots ?? 16,
+      lobbyCount: 0,
+      nationalCount: entrantNames.size,
+      wildcardCount: 0,
+      directNationalCount: Math.min(12, entrantNames.size),
+      summary: feedConfig.summary,
+      schema: "wide-playoff-grid",
     },
   };
 }
@@ -588,13 +739,13 @@ function buildWildcardProgression(lobbies, activeStage, feedConfig) {
   const poolLobbies = pool.length
     ? lobbies.map((lobby, index) => normalizeWildcardPoolCard(lobby, index))
     : wildcardPlaceholderPool();
-  const qualifiers = pool
-    .filter((player) => {
-      return (
-        (Number.isInteger(player.rank) && player.rank >= 1 && player.rank <= 4) || player.qualified
-      );
+  const qualifiers = poolLobbies
+    .map((lobby) => {
+      return (lobby.players ?? []).find((player) => {
+        return player.qualified || player.rank === 1 || player.state === "qualified";
+      });
     })
-    .sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99))
+    .filter(Boolean)
     .slice(0, 4);
 
   const finalSlots = Array.from({ length: 4 }, (_, index) => {
@@ -623,7 +774,7 @@ function buildWildcardProgression(lobbies, activeStage, feedConfig) {
   return {
     type: "wildcard",
     phase: feedConfig.shortLabel ?? feedConfig.label ?? "Wildcard",
-    mode: "12-player last chance",
+    mode: "4-lobby last chance",
     sourceStage: activeStage?.name ?? "Wildcard",
     poolCount: pool.length,
     expectedPoolCount: 12,
@@ -631,11 +782,11 @@ function buildWildcardProgression(lobbies, activeStage, feedConfig) {
     rounds: [
       {
         id: "wildcard-pool",
-        title: "Wildcard Pool",
+        title: "Wildcard Bracket",
         sourceStage: activeStage?.name ?? "Wildcard",
         players: pool.length,
-        expectedLobbies: 3,
-        advance: "Top 4 advance",
+        expectedLobbies: poolLobbies.length || 4,
+        advance: "Winner advances",
         result: "4 Finals slots",
         lobbies: poolLobbies,
       },
@@ -698,33 +849,37 @@ function normalizeProgressionLobby(lobby, feedConfig, spec, index, rankMode = "l
 function normalizeWildcardPoolCard(lobby, index) {
   return {
     ...lobby,
-    id: `Wildcard_M${index + 1}`,
-    name: lobby.name ?? `Wildcard Pool ${index + 1}`,
+    id: `Wildcard_L${index + 1}`,
+    name: lobby.name ?? `Wildcard Lobby ${index + 1}`,
     players: (lobby.players ?? []).map((player) => ({
       ...player,
       state: player.pending
         ? "pending"
-        : player.qualified || (Number.isInteger(player.rank) && player.rank <= 4)
+        : player.qualified || player.rank === 1
           ? "qualified"
-          : "wildcard",
+          : Number.isInteger(player.rank)
+            ? "eliminated"
+            : "wildcard",
       stateLabel: player.pending
         ? "Pending"
-        : player.qualified || (Number.isInteger(player.rank) && player.rank <= 4)
+        : player.qualified || player.rank === 1
           ? "Finals"
-          : "Pool",
+          : Number.isInteger(player.rank)
+            ? "Out"
+            : "Pool",
     })),
   };
 }
 
 function wildcardPlaceholderPool() {
-  return Array.from({ length: 3 }, (_, poolIndex) => {
-    const start = poolIndex * 4 + 1;
+  return Array.from({ length: 4 }, (_, poolIndex) => {
+    const start = poolIndex * 3 + 1;
     return {
-      id: `Wildcard_M${poolIndex + 1}`,
-      name: `Wildcard Pool ${poolIndex + 1}`,
-      summary: "Awaiting Round 4 5th-8th placements",
+      id: `Wildcard_L${poolIndex + 1}`,
+      name: `Wildcard Lobby ${poolIndex + 1}`,
+      summary: "Awaiting wildcard players",
       status: "Awaiting result",
-      players: Array.from({ length: 4 }, (_, offset) => {
+      players: Array.from({ length: 3 }, (_, offset) => {
         const slot = start + offset;
         return {
           seed: `W${slot}`,
@@ -1126,8 +1281,12 @@ function normalizeLobby(lobby, feedConfig) {
     qualified: player.qualified,
     pending: false,
   }));
+  const advanceCount = feedConfig.type === "wildcard" ? 1 : 2;
   const ranked = lobby.players
-    .filter((player) => player.qualified || player.rank === 1 || player.rank === 2)
+    .filter((player) => {
+      if (feedConfig.type === "wildcard") return player.qualified || player.rank === 1;
+      return player.qualified || player.rank === 1 || player.rank === 2;
+    })
     .map((player, index) => ({
       seed: `${formatSeedPrefix(lobby.id)}-${player.rank || index + 1}`,
       name: player.name,
@@ -1136,20 +1295,25 @@ function normalizeLobby(lobby, feedConfig) {
       pending: false,
     }))
     .sort((a, b) => a.placement - b.placement)
-    .slice(0, 2);
+    .slice(0, advanceCount);
 
-  const qualifiers = [1, 2].map((placement) => {
-    return (
-      ranked.find((player) => player.placement === placement) ??
-      ranked[placement - 1] ?? {
-        seed: `${formatSeedPrefix(lobby.id)}-${placement}`,
-        name: `Awaiting ${placement === 1 ? "1st" : "2nd"} place`,
-        city: "",
-        placement,
-        pending: true,
-      }
-    );
-  });
+  const qualifiers = Array.from({ length: advanceCount }, (_, index) => index + 1).map(
+    (placement) => {
+      return (
+        ranked.find((player) => player.placement === placement) ??
+        ranked[placement - 1] ?? {
+          seed: `${formatSeedPrefix(lobby.id)}-${placement}`,
+          name:
+            feedConfig.type === "wildcard"
+              ? "Awaiting winner"
+              : `Awaiting ${placement === 1 ? "1st" : "2nd"} place`,
+          city: "",
+          placement,
+          pending: true,
+        }
+      );
+    },
+  );
 
   return {
     id: lobby.id,
@@ -1294,6 +1458,102 @@ function findFinalsColumns(headers) {
   }
 
   return { round, match, playerA, scoreA, playerB, scoreB, winner };
+}
+
+function isWideFinalsGrid(headers) {
+  const normalized = headers.map((header) => cleanText(header).toLowerCase());
+  return (
+    normalized.includes("playoff [top 16]") &&
+    normalized.includes("quarter-finals") &&
+    normalized.includes("semi-finals") &&
+    normalized.includes("finals") &&
+    normalized.includes("winner")
+  );
+}
+
+function finalsGridEntrant(rows, spec, entrantIndex, roundIndex) {
+  const rowIndex = spec.entrantRows[entrantIndex];
+  const row = rows[rowIndex] ?? [];
+  const rawName = normalizeName(row[spec.playerCol]);
+  const placeholder = finalsGridPlaceholder(spec, entrantIndex, roundIndex);
+  const publicPlayer = parseFinalsGridPlayer(rawName);
+  const pending = isPendingFinalsGridName(rawName);
+  const displayName = isLiteralPendingFinalsGridName(rawName)
+    ? placeholder
+    : publicPlayer.name || placeholder;
+  const hasResultInput = spec.scoreCols.some((column) => cleanText(row[column]) !== "");
+  const totalScore = parseScore(row[spec.totalCol]);
+  const score =
+    hasResultInput || (Number.isInteger(totalScore) && totalScore > 0) ? totalScore : null;
+
+  return {
+    seed: finalsGridSeed(row, rowIndex, entrantIndex, spec),
+    name: displayName,
+    city: publicPlayer.city,
+    score,
+    pending,
+    winner: false,
+  };
+}
+
+function finalsGridWinnerName(rows, spec, matchIndex) {
+  const rowIndex = spec.winnerRows[matchIndex];
+  const rawName = normalizeName(rows[rowIndex]?.[spec.winnerCol]);
+  return isPendingFinalsGridName(rawName) ? "" : parseFinalsGridPlayer(rawName).name;
+}
+
+function finalsGridPlaceholder(spec, entrantIndex, roundIndex) {
+  if (roundIndex === 0) return `Qualifier ${entrantIndex + 1}`;
+  return `${spec.placeholderPrefix}${entrantIndex + 1}`;
+}
+
+function finalsGridSeed(row, rowIndex, entrantIndex, spec) {
+  if (spec.code !== "R16") return `${spec.code}${entrantIndex + 1}`;
+  const source = cleanText(row[0]).replace(/\s+/g, " ").toLowerCase();
+  const name = cleanText(row[spec.playerCol]).replace(/\s+/g, " ");
+  if (source.includes("titan")) return `T${Math.floor(entrantIndex / 4) + 1}`;
+  if (source.includes("nexus")) return `N${Math.floor(entrantIndex / 4) + 1}`;
+  if (source.includes("dominion")) return `D${Math.floor(entrantIndex / 4) + 1}`;
+  if (source.includes("wildcard")) {
+    const wildcardMatch = name.match(/l\s*(\d+)/i);
+    return wildcardMatch ? `W${wildcardMatch[1]}` : `W${Math.floor(rowIndex / 8) + 1}`;
+  }
+  return `F${entrantIndex + 1}`;
+}
+
+function parseFinalsGridPlayer(value) {
+  const text = normalizeName(value).replace(/\r/g, "");
+  if (!text) return { name: "", city: "" };
+  const joined = text
+    .split(/\n+/)
+    .map((part) => cleanText(part))
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ");
+  const cityMatch = joined.match(/^(.*?)\s*\(([^()]*)\)\s*$/);
+  if (cityMatch) {
+    return {
+      name: cleanText(cityMatch[1]),
+      city: cleanText(cityMatch[2]),
+    };
+  }
+  return { name: joined, city: "" };
+}
+
+function isPendingFinalsGridName(value) {
+  const normalized = cleanText(value).replace(/\s+/g, " ").toLowerCase();
+  return (
+    !normalized ||
+    normalized === "pending" ||
+    normalized.startsWith("awaiting") ||
+    normalized.startsWith("winner ") ||
+    /^wildcard\s+l\d+\s+winner$/.test(normalized)
+  );
+}
+
+function isLiteralPendingFinalsGridName(value) {
+  const normalized = cleanText(value).replace(/\s+/g, " ").toLowerCase();
+  return !normalized || normalized === "pending" || normalized.startsWith("awaiting");
 }
 
 function qualifierToEntrant(lobby, qualifierIndex) {

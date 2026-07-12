@@ -8,6 +8,11 @@ const errors = [];
 
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
 const exists = (relativePath) => fs.existsSync(path.join(root, relativePath));
+const csvCell = (value) => {
+  const text = String(value ?? "");
+  return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+};
+const csvRows = (rows) => rows.map((row) => row.map(csvCell).join(",")).join("\n");
 
 for (const required of [
   "index.html",
@@ -130,7 +135,7 @@ for (const blockedCopy of [
 
 const sheetConfig = read("src/data/sheet-config.js");
 for (const [feedId, gid] of [
-  ["national-finals", "126700734"],
+  ["national-finals", "1409701649"],
   ["group-titan", "1994318444"],
   ["group-nexus", "612483539"],
   ["group-dominion", "945411688"],
@@ -219,8 +224,13 @@ if (!roundFourPlayers.some((player) => player.rank === 4 && player.stateLabel ==
   errors.push("Round 4 global rank 4 must render as a Finals player");
 }
 
-const wildcardCsv =
-  "Stage,Lobby,Player 1,City,Rank,Qualified\nWildcart,Lobby 1,Asha Rao,Delhi,1,YES\n";
+const wildcardCsv = [
+  "Stage,Lobby,Player 1,City,Rank,Qualified,Player 2,City,Rank,Qualified,Player 3,City,Rank,Qualified",
+  "Wildcart,Lobby 1,Asha Rao,Delhi,1,YES,Dev Iyer,Mumbai,2,NO,Kai Sen,Pune,3,NO",
+  ",Lobby 2,Neel Roy,Jaipur,,,Tara Shah,Surat,,,Zed Khan,Bhopal,,",
+  ",Lobby 3,Ria Bose,Chennai,,,Mira Das,Kolkata,,,Uma Nair,Kochi,,",
+  ",Lobby 4,Arun Pal,Delhi,,,Ira Sen,Pune,,,Omar Ali,Surat,,",
+].join("\n");
 const wildcardFeed = buildGroupFeedFromCsv(
   wildcardCsv,
   {
@@ -236,6 +246,15 @@ const wildcardFeed = buildGroupFeedFromCsv(
 if (wildcardFeed.meta?.stage !== "Wildcard") {
   errors.push("Wildcard parser must normalize the current Wildcart typo");
 }
+if (wildcardFeed.progression?.rounds?.[0]?.lobbies?.length !== 4) {
+  errors.push("Wildcard parser must render four lobbies from the dedicated public tab");
+}
+if (wildcardFeed.progression?.rounds?.[0]?.expectedLobbies !== 4) {
+  errors.push("Wildcard parser must expect four lobby winners");
+}
+if (wildcardFeed.progression?.finalSlots?.[0]?.name !== "Asha Rao") {
+  errors.push("Wildcard parser must send only each lobby winner to Finals slots");
+}
 
 const finalsCsv = [
   "Round,Match,Player A,Score A,Player B,Score B,Winner",
@@ -248,7 +267,7 @@ const finalsFeed = buildFinalsFeedFromCsv(
     label: "National Finals",
     shortLabel: "Finals",
     type: "finals",
-    gid: "126700734",
+    gid: "1409701649",
     finalistSlots: 16,
   },
   fallbackTournament,
@@ -256,7 +275,79 @@ const finalsFeed = buildFinalsFeedFromCsv(
 );
 const firstFinalsMatch = finalsFeed.bracket.rounds[0]?.matches[0];
 if (firstFinalsMatch?.id !== "Finals_R16_M1" || firstFinalsMatch?.status !== "final") {
-  errors.push("Finals parser must preserve National Finals match IDs, scores, and winner state");
+  errors.push("Legacy Finals parser must preserve match IDs, scores, and winner state");
+}
+
+const wideFinalsRows = Array.from({ length: 33 }, () => Array(32).fill(""));
+wideFinalsRows[0][1] = "Playoff [Top 16]";
+wideFinalsRows[0][2] = "Score";
+wideFinalsRows[0][8] = "Quarter-Finals";
+wideFinalsRows[0][9] = "Score";
+wideFinalsRows[0][15] = "Semi-Finals";
+wideFinalsRows[0][16] = "Score";
+wideFinalsRows[0][22] = "Finals";
+wideFinalsRows[0][23] = "Score";
+wideFinalsRows[0][31] = "Winner";
+const gridEntrants = [
+  ["Group \nTitan", "Asha Rao\n(Delhi)"],
+  ["Group \nNexus", "Dev Iyer\n(Mumbai)"],
+  ["Group \nDominion", "Kai Sen\n(Pune)"],
+  ["Wildcard", "Wildcard \nL1 Winner"],
+  ["Group \nTitan", "Mira Das\n(Kolkata)"],
+  ["Group \nNexus", "Neel Roy\n(Jaipur)"],
+  ["Group \nDominion", "Tara Shah\n(Surat)"],
+  ["Wildcard", "Wildcard \nL2 Winner"],
+  ["Group \nTitan", "Zed Khan\n(Bhopal)"],
+  ["Group \nNexus", "Ria Bose\n(Chennai)"],
+  ["Group \nDominion", "Uma Nair\n(Kochi)"],
+  ["Wildcard", "Wildcard \nL3 Winner"],
+  ["Group \nTitan", "Arun Pal\n(Delhi)"],
+  ["Group \nNexus", "Ira Sen\n(Pune)"],
+  ["Group \nDominion", "Omar Ali\n(Surat)"],
+  ["Wildcard", "Wildcard \nL4 Winner"],
+];
+gridEntrants.forEach(([source, player], index) => {
+  const row = 2 + index * 2;
+  wideFinalsRows[row][0] = source;
+  wideFinalsRows[row][1] = player;
+});
+wideFinalsRows[3][8] = "Pending";
+wideFinalsRows[5][15] = "Pending";
+wideFinalsRows[9][22] = "Pending";
+wideFinalsRows[17][31] = "Pending";
+wideFinalsRows.forEach((row, index) => {
+  if (index > 0 && row.every((cell) => cell === "")) row[30] = "0";
+});
+const wideFinalsFeed = buildFinalsFeedFromCsv(
+  csvRows(wideFinalsRows),
+  {
+    id: "national-finals",
+    label: "National Finals",
+    shortLabel: "Finals",
+    type: "finals",
+    gid: "1409701649",
+    finalistSlots: 16,
+  },
+  fallbackTournament,
+  new Date("2026-07-12T00:00:00.000Z"),
+);
+const wideRounds = wideFinalsFeed.bracket.rounds;
+if (wideRounds.map((round) => round.matches.length).join(",") !== "8,4,2,1") {
+  errors.push("Wide-grid Finals parser must build 8/4/2/1 bracket rounds");
+}
+if (wideRounds[0]?.matches[0]?.entrants[0]?.city !== "Delhi") {
+  errors.push("Wide-grid Finals parser must parse first-round player cities");
+}
+if (wideRounds[0]?.matches[1]?.entrants[1]?.name !== "Wildcard L1 Winner") {
+  errors.push("Wide-grid Finals parser must preserve Wildcard winner placeholders");
+}
+if (!wideRounds[0]?.matches[1]?.entrants[1]?.pending) {
+  errors.push("Wide-grid Finals parser must keep Wildcard winner placeholders pending");
+}
+if (wideRounds[1]?.matches[0]?.entrants[0]?.name !== "Winner R16 M1") {
+  errors.push(
+    "Wide-grid Finals parser must replace Pending advancement cells with winner-path labels",
+  );
 }
 
 if (errors.length) {

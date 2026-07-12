@@ -71,7 +71,8 @@ export interface WildcardPlayer {
   seed: string;
   name: string;
   city: string;
-  sourceGroup: "Titan" | "Nexus" | "Dominion";
+  sourceGroup: "Titan" | "Nexus" | "Dominion" | "Wildcard";
+  sourceLobby?: string;
   sourceRank: number;
   status: PlayerState;
   statusLabel: string;
@@ -84,12 +85,21 @@ export interface WildcardFinalSlot {
   pending: boolean;
 }
 
+export interface WildcardLobby {
+  id: string;
+  label: string;
+  status: LobbyStatus;
+  players: Player[];
+  winner?: WildcardFinalSlot;
+}
+
 export interface WildcardViewData {
   id: string;
   label: string;
   poolCount: number;
   finalSlots: number;
   players: WildcardPlayer[];
+  lobbies: WildcardLobby[];
   finalSlotPlayers: WildcardFinalSlot[];
 }
 
@@ -237,23 +247,34 @@ function emptyFinals(): FinalsView {
 }
 
 function emptyWildcard(): WildcardViewData {
-  const groups = ["Titan", "Nexus", "Dominion"] as const;
+  const lobbies: WildcardLobby[] = Array.from({ length: 4 }, (_, lobbyIndex) => ({
+    id: `Wildcard_L${lobbyIndex + 1}`,
+    label: `Lobby ${lobbyIndex + 1}`,
+    status: "Pending",
+    players: Array.from({ length: 3 }, (_, playerIndex) => ({
+      ...placeholderPlayer(`W${lobbyIndex * 3 + playerIndex + 1}`),
+      stateLabel: "Pending",
+    })),
+  }));
+
   return {
     id: "wildcard",
     label: "Wildcard",
     poolCount: 12,
     finalSlots: 4,
-    players: groups.flatMap((sourceGroup, groupIndex) =>
-      Array.from({ length: 4 }, (_, index) => ({
-        seed: `W${groupIndex * 4 + index + 1}`,
+    players: lobbies.flatMap((lobby, lobbyIndex) =>
+      lobby.players.map((player, index) => ({
+        seed: player.seed,
         name: "Awaiting qualifier",
         city: "",
-        sourceGroup,
-        sourceRank: index + 5,
+        sourceGroup: "Wildcard",
+        sourceLobby: lobby.label,
+        sourceRank: lobbyIndex * 3 + index + 1,
         status: "pending" as PlayerState,
         statusLabel: "Pending",
       })),
     ),
+    lobbies,
     finalSlotPlayers: Array.from({ length: 4 }, (_, index) => ({
       seed: `WQ${index + 1}`,
       name: "Awaiting qualifier",

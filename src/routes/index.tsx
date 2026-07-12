@@ -451,9 +451,9 @@ function Index() {
           )}
           {tab === "wildcard" && (
             <WildcardView
-              players={data.wildcardView.players}
               finalSlots={data.wildcardView.finalSlots}
               poolCount={data.wildcardView.poolCount}
+              lobbies={data.wildcardView.lobbies}
               finalSlotPlayers={data.wildcardView.finalSlotPlayers}
             />
           )}

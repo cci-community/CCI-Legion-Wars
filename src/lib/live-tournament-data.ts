@@ -16,6 +16,7 @@ import {
   type SyncMeta,
   type TournamentData,
   type WildcardFinalSlot,
+  type WildcardLobby,
   type WildcardPlayer,
   type WildcardViewData,
 } from "./tournament-data";
@@ -329,16 +330,24 @@ function adaptWildcardFeed(
   fallback: WildcardViewData,
 ): WildcardViewData {
   const candidatePlayers = wildcardCandidatesFromGroups(feeds);
+  const lobbies = wildcardLobbiesFromFeed(wildcardFeed, fallback.lobbies);
   const feedPlayers = wildcardPlayersFromFeed(wildcardFeed);
-  const players = completeWildcardPlayers(candidatePlayers.length ? candidatePlayers : feedPlayers);
-  const finalSlotPlayers = wildcardFinalSlots(wildcardFeed, fallback.finalSlotPlayers);
+  const hasDedicatedWildcardFeed = feedPlayers.some((player) => !isAwaitingName(player.name));
+  const players = hasDedicatedWildcardFeed
+    ? feedPlayers
+    : completeWildcardPlayers(candidatePlayers.length ? candidatePlayers : feedPlayers);
+  const finalSlotPlayers = wildcardFinalSlots(wildcardFeed, lobbies, fallback.finalSlotPlayers);
+  const poolCount = hasDedicatedWildcardFeed
+    ? lobbies.reduce((count, lobby) => count + realPlayerCount(lobby.players), 0)
+    : candidatePlayers.length || feedPlayers.length || fallback.poolCount;
 
   return {
     id: "wildcard",
     label: "Wildcard",
-    poolCount: candidatePlayers.length || feedPlayers.length || fallback.poolCount,
+    poolCount,
     finalSlots: 4,
     players,
+    lobbies,
     finalSlotPlayers,
   };
 }
@@ -364,21 +373,15 @@ function wildcardPlayersFromFeed(wildcardFeed: SheetFeed | undefined): WildcardP
   const lobbies = wildcardFeed?.progression?.rounds?.[0]?.lobbies;
   if (!Array.isArray(lobbies)) return [];
   return lobbies.flatMap((lobby: SheetFeed, lobbyIndex: number) => {
-    const sourceGroup = GROUPS[lobbyIndex]?.short ?? "Titan";
     return (lobby.players ?? []).map((player: SheetFeed, index: number) => ({
-      seed: String(player.seed ?? `W${lobbyIndex * 4 + index + 1}`),
+      seed: String(player.seed ?? `W${lobbyIndex * 3 + index + 1}`),
       name: publicName(player.name, "Awaiting qualifier"),
       city: cleanText(player.city),
-      sourceGroup,
-      sourceRank: Number(player.rank ?? index + 5),
-      status:
-        normalizePlayerState(player.state, 4, toNumberOrNull(player.rank)) === "finals"
-          ? "finals"
-          : "wildcard",
-      statusLabel:
-        normalizePlayerState(player.state, 4, toNumberOrNull(player.rank)) === "finals"
-          ? "Finals"
-          : "Pool",
+      sourceGroup: "Wildcard",
+      sourceLobby: cleanText(lobby.name) || `Lobby ${lobbyIndex + 1}`,
+      sourceRank: Number(player.rank ?? lobbyIndex * 3 + index + 1),
+      status: normalizeWildcardPlayerState(player),
+      statusLabel: wildcardPlayerStateLabel(normalizeWildcardPlayerState(player)),
     }));
   });
 }
@@ -400,19 +403,29 @@ function completeWildcardPlayers(players: WildcardPlayer[]): WildcardPlayer[] {
     }
   }
   return completed.sort((left, right) => {
+    const leftGroupIndex = GROUPS.findIndex((group) => group.short === left.sourceGroup);
+    const rightGroupIndex = GROUPS.findIndex((group) => group.short === right.sourceGroup);
     const groupDelta =
-      GROUPS.findIndex((group) => group.short === left.sourceGroup) -
-      GROUPS.findIndex((group) => group.short === right.sourceGroup);
+      (leftGroupIndex < 0 ? GROUPS.length : leftGroupIndex) -
+      (rightGroupIndex < 0 ? GROUPS.length : rightGroupIndex);
     return groupDelta || left.sourceRank - right.sourceRank;
   });
 }
 
 function wildcardFinalSlots(
   wildcardFeed: SheetFeed | undefined,
+  lobbies: WildcardLobby[],
   fallback: WildcardFinalSlot[],
 ): WildcardFinalSlot[] {
   const slots = wildcardFeed?.progression?.finalSlots;
-  if (!Array.isArray(slots)) return fallback;
+  if (!Array.isArray(slots)) {
+    return lobbies.length
+      ? Array.from({ length: 4 }, (_, index) => {
+          const winner = lobbies[index]?.winner;
+          return winner ?? fallback[index];
+        })
+      : fallback;
+  }
   return Array.from({ length: 4 }, (_, index) => {
     const slot = slots[index];
     return {
@@ -422,6 +435,86 @@ function wildcardFinalSlots(
       pending: Boolean(slot?.pending) || !slot?.name || /^awaiting/i.test(String(slot?.name)),
     };
   });
+}
+
+function wildcardLobbiesFromFeed(
+  wildcardFeed: SheetFeed | undefined,
+  fallback: WildcardLobby[],
+): WildcardLobby[] {
+  const sourceLobbies = wildcardFeed?.progression?.rounds?.[0]?.lobbies;
+  if (!Array.isArray(sourceLobbies) || !sourceLobbies.length) return fallback;
+
+  return sourceLobbies.map((lobby: SheetFeed, lobbyIndex: number) => {
+    const players = Array.isArray(lobby.players)
+      ? lobby.players.map((player: SheetFeed, playerIndex: number) =>
+          adaptWildcardLobbyPlayer(player, lobbyIndex, playerIndex),
+        )
+      : [];
+    const winner = players.find((player) => player.state === "finals");
+
+    return {
+      id: String(lobby.id ?? `Wildcard_L${lobbyIndex + 1}`),
+      label: cleanText(lobby.name) || `Lobby ${lobbyIndex + 1}`,
+      status: wildcardLobbyStatus(players),
+      players,
+      winner: winner
+        ? {
+            seed: `WQ${lobbyIndex + 1}`,
+            name: winner.name,
+            city: winner.city,
+            pending: false,
+          }
+        : undefined,
+    };
+  });
+}
+
+function realPlayerCount(players: Player[]): number {
+  return players.filter((player) => !isAwaitingName(player.name)).length;
+}
+
+function wildcardLobbyStatus(players: Player[]): LobbyStatus {
+  if (!players.length || players.every((player) => player.state === "pending")) return "Pending";
+  if (players.some((player) => player.state === "finals")) return "Qualified";
+  return "Ready";
+}
+
+function adaptWildcardLobbyPlayer(
+  player: SheetFeed,
+  lobbyIndex: number,
+  playerIndex: number,
+): Player {
+  const rank = toNumberOrNull(player.rank);
+  const state = normalizeWildcardPlayerState(player);
+  return {
+    seed: String(player.seed ?? `W${lobbyIndex * 3 + playerIndex + 1}`),
+    name: publicName(player.name, "Awaiting player"),
+    city: cleanText(player.city),
+    region: cleanText(player.region) || undefined,
+    rank,
+    score: toNumberOrNull(player.score),
+    state,
+    stateLabel: wildcardPlayerStateLabel(state),
+  };
+}
+
+function normalizeWildcardPlayerState(player: SheetFeed): PlayerState {
+  const normalized = cleanText(player?.state).toLowerCase();
+  const rank = toNumberOrNull(player?.rank);
+  const qualified = Boolean(player?.qualified);
+  if (normalized === "finals" || normalized === "qualified" || qualified || rank === 1) {
+    return "finals";
+  }
+  if (normalized === "eliminated" || (rank != null && rank > 1)) return "eliminated";
+  if (isAwaitingName(player?.name)) return "pending";
+  return "wildcard";
+}
+
+function wildcardPlayerStateLabel(state: PlayerState): string {
+  if (state === "finals") return "Finals";
+  if (state === "eliminated") return "Out";
+  if (state === "pending") return "Pending";
+  return "Pool";
 }
 
 function normalizeStatus(status: unknown, fallback: { label: string; value: string }[]) {
@@ -515,6 +608,10 @@ function publicName(value: unknown, fallback: string): string {
   const text = cleanText(value);
   if (!text || text.startsWith("#")) return fallback;
   return text;
+}
+
+function isAwaitingName(value: unknown): boolean {
+  return /^awaiting/i.test(cleanText(value));
 }
 
 function toNumberOrNull(value: unknown): number | null {

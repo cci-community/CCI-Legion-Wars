@@ -58,15 +58,17 @@ export function flattenPlayers(data: TournamentData = defaultTournamentData): Pl
     });
   });
 
-  data.wildcardView.players.forEach((player) => {
-    if (!player.name || /^awaiting/i.test(player.name)) return;
-    out.push({
-      key: `wc-${player.seed}`,
-      name: player.name,
-      city: player.city,
-      location: `Wildcard · From ${player.sourceGroup}`,
-      view: "wildcard",
-      state: player.statusLabel,
+  data.wildcardView.lobbies.forEach((lobby) => {
+    lobby.players.forEach((player, index) => {
+      if (!player.name || /^awaiting/i.test(player.name)) return;
+      out.push({
+        key: `wc-${lobby.id}-${index}`,
+        name: player.name,
+        city: player.city,
+        location: `Wildcard · ${lobby.label}`,
+        view: "wildcard",
+        state: player.stateLabel,
+      });
     });
   });
 

@@ -22,8 +22,8 @@ export const sheetConfig = {
       label: "National Finals",
       shortLabel: "Finals",
       type: "finals",
-      gid: "126700734",
-      csvUrl: publishedCsvUrl("126700734"),
+      gid: "1409701649",
+      csvUrl: publishedCsvUrl("1409701649"),
       summary:
         "16-player national final bracket: 12 direct group qualifiers plus 4 wildcard qualifiers.",
       finalistSlots: 16,

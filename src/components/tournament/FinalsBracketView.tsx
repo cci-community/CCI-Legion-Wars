@@ -15,6 +15,8 @@ export function FinalsBracketView({
   onSelectMatch?: (id: string) => void;
 }) {
   const totalMatches = finals.bracket.rounds.reduce((a, r) => a + r.matches.length, 0);
+  const grandFinal = finals.bracket.rounds.at(-1)?.matches[0];
+  const champion = grandFinal?.entrants.find((entrant) => entrant.winner && !entrant.pending);
 
   const currentIdx = finals.bracket.rounds.findIndex((r) =>
     r.matches.some((m) => m.status === "ready" || m.status === "live"),
@@ -120,8 +122,13 @@ export function FinalsBracketView({
                 Grand Finals
               </span>
               <h4 className="public-hero-title-reset font-heading text-2xl font-black uppercase italic tracking-tighter text-white">
-                Champion Awaiting
+                {champion?.name ?? "Champion Awaiting"}
               </h4>
+              {champion?.city && (
+                <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-widest text-muted-foreground/70">
+                  {champion.city}
+                </span>
+              )}
             </div>
           </div>
           <div className="pointer-events-none absolute left-1 top-1 h-3 w-3 border-l-2 border-t-2 border-finals" />
@@ -244,10 +251,10 @@ export function FinalsBracketView({
                         // Season 01
                       </span>
                       <h4 className="mt-1 font-heading text-2xl font-black uppercase italic leading-none tracking-tighter text-white">
-                        Awaiting
+                        {champion?.name ?? "Awaiting"}
                       </h4>
                       <span className="mt-1 block font-mono text-[9px] uppercase tracking-widest text-muted-foreground/70">
-                        Winner of GF · M1
+                        {champion?.city ?? "Winner of GF · M1"}
                       </span>
                       <div className="mx-auto mt-3 h-[3px] w-10 bg-finals" />
                     </div>

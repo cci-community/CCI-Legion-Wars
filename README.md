@@ -15,9 +15,9 @@ The public site does not expose private tabs, raw Sheets embeds, Discord operati
 
 ## Features
 
-- React tournament UI: overview map, tactical tabs, group progression, Wildcard pool, Finals bracket, command palette, drawers, and mobile tab bar.
+- React tournament UI: overview map, tactical tabs, group progression, four-lobby Wildcard bracket, Finals bracket, command palette, drawers, and mobile tab bar.
 - Preserved multi-feed sheet fetch/cache/fallback behavior.
-- Preserved group/lobby parser, National Finals parser, Wildcard derivation, public-data safety, and workbook gids.
+- Preserved group/lobby parser, National Finals parsers, Wildcard derivation fallback, public-data safety, and workbook gids.
 - Public player names, city/region values when safe, ranks, scores, winners, and pending/ready/live/final states.
 - Logo favicon and Firebase Hosting deploy-on-push workflow.
 - OBS Browser Source overlay mode for stream-safe bracket and leaderboard scenes.
@@ -76,13 +76,13 @@ Key files:
 
 ## Google Sheets Feeds
 
-| Feed                           | Parser               | gid          |
-| ------------------------------ | -------------------- | ------------ |
-| Group Titan Bracket            | group/lobby          | `1994318444` |
-| Group Nexus Bracket            | group/lobby          | `612483539`  |
-| Group Dominion Bracket         | group/lobby          | `945411688`  |
-| Wildcard                       | group/lobby          | `1564963263` |
-| National Finals / Main Bracket | finals match bracket | `126700734`  |
+| Feed                           | Parser              | gid          |
+| ------------------------------ | ------------------- | ------------ |
+| Group Titan Bracket            | group/lobby         | `1994318444` |
+| Group Nexus Bracket            | group/lobby         | `612483539`  |
+| Group Dominion Bracket         | group/lobby         | `945411688`  |
+| Wildcard                       | group/lobby         | `1564963263` |
+| National Finals / Main Bracket | finals playoff grid | `1409701649` |
 
 Do not consume `Master Sheet`, `Player Details`, or `Overview` from the public website unless a separate public-safe tab is created.
 

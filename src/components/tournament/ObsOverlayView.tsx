@@ -8,7 +8,7 @@ import type {
   Match,
   Player,
   TournamentData,
-  WildcardPlayer,
+  WildcardLobby,
 } from "@/lib/tournament-data";
 
 type OverlayView = "overview" | "titan" | "nexus" | "dominion" | "wildcard" | "finals";
@@ -1441,11 +1441,7 @@ function AdvancementBucket({
 }
 
 function WildcardOverlay({ data }: { data: TournamentData }) {
-  const byGroup = {
-    Titan: data.wildcardView.players.filter((player) => player.sourceGroup === "Titan"),
-    Nexus: data.wildcardView.players.filter((player) => player.sourceGroup === "Nexus"),
-    Dominion: data.wildcardView.players.filter((player) => player.sourceGroup === "Dominion"),
-  };
+  const lockedSlots = data.wildcardView.finalSlotPlayers.filter((slot) => !slot.pending).length;
 
   return (
     <div className="grid h-full grid-rows-[auto_minmax(0,1fr)] gap-5">
@@ -1463,7 +1459,7 @@ function WildcardOverlay({ data }: { data: TournamentData }) {
                   Wildcard
                 </h2>
                 <span className="mb-2 font-mono text-[14px] font-bold uppercase tracking-[0.28em] text-foreground">
-                  12 players / 4 Nationals slots
+                  4 lobbies / 4 Nationals slots
                 </span>
               </div>
             </div>
@@ -1475,8 +1471,8 @@ function WildcardOverlay({ data }: { data: TournamentData }) {
               accent="wildcard"
             />
             <HeaderStat
-              label="Advancing"
-              value={String(data.wildcardView.finalSlots)}
+              label="Locked"
+              value={`${lockedSlots}/${data.wildcardView.finalSlots}`}
               accent="wildcard"
               border
             />
@@ -1485,13 +1481,9 @@ function WildcardOverlay({ data }: { data: TournamentData }) {
         </div>
       </BroadcastPanel>
 
-      <section className="grid min-h-0 grid-cols-[1fr_1fr_1fr_420px] gap-4">
-        {(["Titan", "Nexus", "Dominion"] as const).map((sourceGroup) => (
-          <WildcardPoolCard
-            key={sourceGroup}
-            players={byGroup[sourceGroup]}
-            sourceGroup={sourceGroup}
-          />
+      <section className="grid min-h-0 grid-cols-[repeat(4,minmax(0,1fr))_420px] gap-4">
+        {data.wildcardView.lobbies.map((lobby, index) => (
+          <WildcardPoolCard key={lobby.id} index={index} lobby={lobby} />
         ))}
         <WildcardFinalSlotsPanel data={data.wildcardView} />
       </section>
@@ -1597,7 +1589,7 @@ function FinalsOverlay({ finals, round }: { finals: FinalsView; round?: number |
                 {bracketRound.matches.map((match) => (
                   <OverlayMatchCard
                     key={match.id}
-                    featured={focused}
+                    featured={focused && bracketRound.matches.length <= 2}
                     match={match}
                     trophy={isGrandFinal}
                   />
@@ -1968,14 +1960,9 @@ function OverlayPlayerRow({
   );
 }
 
-function WildcardPoolCard({
-  players,
-  sourceGroup,
-}: {
-  players: WildcardPlayer[];
-  sourceGroup: WildcardPlayer["sourceGroup"];
-}) {
-  const accent = sourceGroup === "Titan" ? "titan" : sourceGroup === "Nexus" ? "nexus" : "dominion";
+function WildcardPoolCard({ index, lobby }: { index: number; lobby: WildcardLobby }) {
+  const accent = "wildcard";
+  const winner = lobby.players.find((player) => player.state === "finals");
 
   return (
     <article
@@ -1988,29 +1975,38 @@ function WildcardPoolCard({
           <BroadcastGlyph accent={accent} className="h-11 w-11 shrink-0" />
           <div className="min-w-0">
             <div className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-muted-foreground">
-              From
+              Wildcard
             </div>
             <div
-              className="font-heading text-3xl font-black uppercase italic tracking-tight"
+              className="font-heading text-3xl font-black uppercase italic tracking-tight text-wildcard"
               style={{ color: `var(--${accent})` }}
             >
-              {sourceGroup}
+              {lobby.label}
             </div>
           </div>
         </div>
         <div className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-          Rank 5-8
+          {winner ? "Winner Locked" : `Lobby ${index + 1}`}
         </div>
       </header>
       <div className="obs-panel-content divide-y divide-border/45">
-        {players.map((player) => (
-          <div key={player.seed} className="flex items-center justify-between gap-3 px-4 py-3">
+        {lobby.players.map((player, playerIndex) => (
+          <div
+            key={`${lobby.id}-${player.seed}-${player.name}`}
+            className={cn(
+              "flex items-center justify-between gap-3 px-4 py-3",
+              player.state === "finals" && "bg-finals-soft/35 shadow-[inset_3px_0_0_var(--finals)]",
+            )}
+          >
             <div className="flex min-w-0 items-center gap-3">
               <span
                 className="grid h-9 w-9 shrink-0 place-items-center border font-mono text-xs font-black tabular-nums"
-                style={{ borderColor: `var(--${accent})`, color: `var(--${accent})` }}
+                style={{
+                  borderColor: player.state === "finals" ? "var(--finals)" : `var(--${accent})`,
+                  color: player.state === "finals" ? "var(--finals)" : `var(--${accent})`,
+                }}
               >
-                {player.sourceRank}
+                {player.rank ?? playerIndex + 1}
               </span>
               <div className="min-w-0">
                 <div className="obs-player-name truncate font-heading text-2xl font-black uppercase leading-none tracking-tight text-white">
@@ -2022,7 +2018,7 @@ function WildcardPoolCard({
               </div>
             </div>
             <div className="font-mono text-[10px] font-black uppercase tracking-widest text-wildcard">
-              {player.statusLabel}
+              {player.stateLabel}
             </div>
           </div>
         ))}
