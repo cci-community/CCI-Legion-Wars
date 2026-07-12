@@ -58,7 +58,7 @@ export function WildcardView({
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {lobbies.map((lobby, index) => (
           <WildcardLobbyCard key={lobby.id} index={index} lobby={lobby} />
         ))}
@@ -178,6 +178,7 @@ function WildcardLobbyPlayer({ player, playerIndex }: { player: Player; playerIn
       className={cn(
         "flex items-center gap-3 px-3 py-3",
         isWinner && "bg-finals-soft/35 shadow-[inset_3px_0_0_var(--finals)]",
+        isOut && "bg-background/20",
       )}
     >
       <span
@@ -196,7 +197,7 @@ function WildcardLobbyPlayer({ player, playerIndex }: { player: Player; playerIn
         <div
           className={cn(
             "truncate font-mono text-xs font-bold uppercase tracking-wide",
-            isOut ? "text-muted-foreground/55" : "text-foreground",
+            isOut ? "text-muted-foreground/65" : "text-foreground",
           )}
         >
           {player.name}
@@ -210,7 +211,9 @@ function WildcardLobbyPlayer({ player, playerIndex }: { player: Player; playerIn
           "border px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.18em]",
           isWinner
             ? "border-finals/40 bg-finals-soft/30 text-finals"
-            : "border-wildcard/35 bg-wildcard-soft/20 text-wildcard",
+            : isOut
+              ? "border-border/50 bg-muted/20 text-muted-foreground/70"
+              : "border-wildcard/35 bg-wildcard-soft/20 text-wildcard",
         )}
       >
         {player.stateLabel}

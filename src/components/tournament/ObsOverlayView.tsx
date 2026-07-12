@@ -1996,20 +1996,29 @@ function WildcardPoolCard({ index, lobby }: { index: number; lobby: WildcardLobb
             className={cn(
               "flex items-center justify-between gap-3 px-4 py-3",
               player.state === "finals" && "bg-finals-soft/35 shadow-[inset_3px_0_0_var(--finals)]",
+              player.state === "eliminated" && "bg-background/25",
             )}
           >
             <div className="flex min-w-0 items-center gap-3">
               <span
-                className="grid h-9 w-9 shrink-0 place-items-center border font-mono text-xs font-black tabular-nums"
-                style={{
-                  borderColor: player.state === "finals" ? "var(--finals)" : `var(--${accent})`,
-                  color: player.state === "finals" ? "var(--finals)" : `var(--${accent})`,
-                }}
+                className={cn(
+                  "grid h-9 w-9 shrink-0 place-items-center border font-mono text-xs font-black tabular-nums",
+                  player.state === "finals"
+                    ? "border-finals text-finals"
+                    : player.state === "eliminated"
+                      ? "border-border/50 text-muted-foreground/55"
+                      : "border-wildcard text-wildcard",
+                )}
               >
                 {player.rank ?? playerIndex + 1}
               </span>
               <div className="min-w-0">
-                <div className="obs-player-name truncate font-heading text-2xl font-black uppercase leading-none tracking-tight text-white">
+                <div
+                  className={cn(
+                    "obs-player-name truncate font-heading text-xl font-black uppercase leading-tight tracking-tight",
+                    player.state === "eliminated" ? "text-muted-foreground/65" : "text-white",
+                  )}
+                >
                   {player.name}
                 </div>
                 <div className="mt-1 truncate font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
@@ -2017,7 +2026,16 @@ function WildcardPoolCard({ index, lobby }: { index: number; lobby: WildcardLobb
                 </div>
               </div>
             </div>
-            <div className="font-mono text-[10px] font-black uppercase tracking-widest text-wildcard">
+            <div
+              className={cn(
+                "shrink-0 font-mono text-[10px] font-black uppercase tracking-widest",
+                player.state === "finals"
+                  ? "w-[76px] text-right leading-tight text-finals"
+                  : player.state === "eliminated"
+                    ? "text-muted-foreground/65"
+                    : "text-wildcard",
+              )}
+            >
               {player.stateLabel}
             </div>
           </div>

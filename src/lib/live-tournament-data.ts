@@ -502,17 +502,18 @@ function normalizeWildcardPlayerState(player: SheetFeed): PlayerState {
   const normalized = cleanText(player?.state).toLowerCase();
   const rank = toNumberOrNull(player?.rank);
   const qualified = Boolean(player?.qualified);
-  if (normalized === "finals" || normalized === "qualified" || qualified || rank === 1) {
+  if (rank != null) return rank === 1 ? "finals" : "eliminated";
+  if (normalized === "finals" || normalized === "qualified" || qualified) {
     return "finals";
   }
-  if (normalized === "eliminated" || (rank != null && rank > 1)) return "eliminated";
+  if (normalized === "eliminated") return "eliminated";
   if (isAwaitingName(player?.name)) return "pending";
   return "wildcard";
 }
 
 function wildcardPlayerStateLabel(state: PlayerState): string {
-  if (state === "finals") return "Finals";
-  if (state === "eliminated") return "Out";
+  if (state === "finals") return "Advanced to Finals";
+  if (state === "eliminated") return "Eliminated";
   if (state === "pending") return "Pending";
   return "Pool";
 }

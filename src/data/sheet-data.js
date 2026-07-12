@@ -742,7 +742,7 @@ function buildWildcardProgression(lobbies, activeStage, feedConfig) {
   const qualifiers = poolLobbies
     .map((lobby) => {
       return (lobby.players ?? []).find((player) => {
-        return player.qualified || player.rank === 1 || player.state === "qualified";
+        return player.rank === 1 || player.state === "qualified";
       });
     })
     .filter(Boolean)
@@ -758,7 +758,7 @@ function buildWildcardProgression(lobbies, activeStage, feedConfig) {
           placement: index + 1,
           pending: false,
           state: "qualified",
-          stateLabel: "Finals",
+          stateLabel: "Advanced to Finals",
         }
       : {
           seed: `WQ${index + 1}`,
@@ -851,23 +851,31 @@ function normalizeWildcardPoolCard(lobby, index) {
     ...lobby,
     id: `Wildcard_L${index + 1}`,
     name: lobby.name ?? `Wildcard Lobby ${index + 1}`,
-    players: (lobby.players ?? []).map((player) => ({
-      ...player,
-      state: player.pending
+    players: (lobby.players ?? []).map((player) => {
+      const hasRank = Number.isInteger(player.rank);
+      const state = player.pending
         ? "pending"
-        : player.qualified || player.rank === 1
-          ? "qualified"
-          : Number.isInteger(player.rank)
-            ? "eliminated"
-            : "wildcard",
-      stateLabel: player.pending
-        ? "Pending"
-        : player.qualified || player.rank === 1
-          ? "Finals"
-          : Number.isInteger(player.rank)
-            ? "Out"
-            : "Pool",
-    })),
+        : hasRank
+          ? player.rank === 1
+            ? "qualified"
+            : "eliminated"
+          : player.qualified
+            ? "qualified"
+            : "wildcard";
+
+      return {
+        ...player,
+        state,
+        stateLabel:
+          state === "qualified"
+            ? "Advanced to Finals"
+            : state === "eliminated"
+              ? "Eliminated"
+              : state === "pending"
+                ? "Pending"
+                : "Pool",
+      };
+    }),
   };
 }
 

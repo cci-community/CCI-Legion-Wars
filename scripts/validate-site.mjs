@@ -255,6 +255,13 @@ if (wildcardFeed.progression?.rounds?.[0]?.expectedLobbies !== 4) {
 if (wildcardFeed.progression?.finalSlots?.[0]?.name !== "Asha Rao") {
   errors.push("Wildcard parser must send only each lobby winner to Finals slots");
 }
+const decidedWildcardPlayers = wildcardFeed.progression?.rounds?.[0]?.lobbies?.[0]?.players ?? [];
+if (decidedWildcardPlayers[0]?.stateLabel !== "Advanced to Finals") {
+  errors.push("Wildcard lobby winner must be labeled Advanced to Finals");
+}
+if (decidedWildcardPlayers.slice(1, 3).some((player) => player.stateLabel !== "Eliminated")) {
+  errors.push("Wildcard lobby second and third place must be labeled Eliminated");
+}
 
 const finalsCsv = [
   "Round,Match,Player A,Score A,Player B,Score B,Winner",
