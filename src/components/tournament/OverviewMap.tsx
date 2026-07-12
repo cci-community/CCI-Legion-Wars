@@ -59,7 +59,7 @@ export function OverviewMap({
                 // Legion Wars · S01 · Overview
               </span>
             </div>
-            <h1 className="font-heading text-5xl font-black uppercase italic leading-none tracking-tighter text-white sm:text-6xl">
+            <h1 className="public-hero-title-reset font-heading text-5xl font-black uppercase italic leading-none tracking-tighter text-white sm:text-6xl">
               Tournament{" "}
               <span className="bg-gradient-to-r from-finals via-white/70 to-foreground/40 bg-clip-text text-transparent">
                 Map

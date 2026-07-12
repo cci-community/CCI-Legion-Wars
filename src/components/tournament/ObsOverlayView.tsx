@@ -246,7 +246,7 @@ export function ObsOverlayView({
   return (
     <div
       className={cn(
-        "obs-overlay-root relative h-screen w-screen overflow-hidden text-foreground",
+        "obs-overlay-root public-readable relative h-screen w-screen overflow-hidden text-foreground",
         transparent ? "bg-transparent" : "bg-background",
       )}
       style={{ "--tab-accent": `var(--${accent})` } as CSSProperties}
@@ -1519,7 +1519,7 @@ function FinalsOverlay({ finals, round }: { finals: FinalsView; round?: number |
           </div>
           <div className="grid min-w-[600px] grid-cols-3 border border-finals/30 bg-surface-0/75">
             <HeaderStat label="Phase" value={finals.bracket.phase} accent="finals" />
-            <HeaderStat label="Format" value={finals.bracket.mode} accent="finals" border />
+            <HeaderStat label="Format" value={finals.bracket.mode} accent="finals" border compact />
             <HeaderStat
               label="Rounds"
               value={String(finals.bracket.rounds.length)}
@@ -2191,11 +2191,13 @@ function OverlayMatchCard({
 function HeaderStat({
   accent,
   border,
+  compact,
   label,
   value,
 }: {
   accent: string;
   border?: boolean;
+  compact?: boolean;
   label: string;
   value: string;
 }) {
@@ -2205,7 +2207,10 @@ function HeaderStat({
         {label}
       </div>
       <div
-        className="mt-1 truncate font-heading text-[1.35rem] font-black uppercase italic leading-none tracking-tight"
+        className={cn(
+          "mt-1 truncate font-heading font-black uppercase italic leading-none tracking-tight",
+          compact ? "text-[1.05rem]" : "text-[1.35rem]",
+        )}
         style={{ color: `var(--${accent})` }}
       >
         {value}
